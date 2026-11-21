@@ -36,6 +36,9 @@ export class SimEffects {
     } else if (mode === 'micro') {
       this._buildMicroOptics();
       this._buildGuideLines(15.0, -15.0, [[-6.4, -6.4], [6.4, -6.4], [-6.4, 6.4], [6.4, 6.4]]);
+    } else if (mode === 'lens') {
+      this._buildLensOptics();
+      this._buildGuideLines(14.0, -12.4, [[-9.2, -9.2], [9.2, -9.2], [-9.2, 9.2], [9.2, 9.2]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -222,6 +225,90 @@ export class SimEffects {
     ], 0xec4899, 0.88, 0.075, 4);
   }
 
+  _buildLensOptics() {
+    // Authentic Multi-Field Refracted Optical Ray Tracing through 1G7P + 6-Blade Variable Aperture Stop
+    // 1. Emerald Green: On-axis (0° field) marginal + chief rays converging sharply to center of 1-inch sensor focal plane
+    const axialOffsets = [
+      { x: 0, z: 0 },
+      { x: 2.35, z: 0 },
+      { x: -2.35, z: 0 },
+      { x: 0, z: 2.35 }
+    ];
+    for (const o of axialOffsets) {
+      this._addRay([
+        new THREE.Vector3(o.x * 1.15, 9.2, o.z * 1.15),
+        new THREE.Vector3(o.x * 1.12, 6.08, o.z * 1.12), // Sapphire window
+        new THREE.Vector3(o.x * 1.04, 4.75, o.z * 1.04), // L1 Molded Glass 1G (strong convergence)
+        new THREE.Vector3(o.x * 0.82, 3.52, o.z * 0.82), // 6-Blade Variable Aperture Stop
+        new THREE.Vector3(o.x * 0.78, 2.65, o.z * 0.78), // L2 Flint
+        new THREE.Vector3(o.x * 0.62, 0.74, o.z * 0.62), // L3/L4
+        new THREE.Vector3(o.x * 0.44, -1.36, o.z * 0.44), // L6
+        new THREE.Vector3(o.x * 0.24, -3.65, o.z * 0.24), // L8 W-Field Flattener
+        new THREE.Vector3(0, -5.85, 0)                    // 1-inch CMOS Focal Plane Center
+      ], 0x10b981, 0.82, 0.065, 3);
+    }
+
+    // 2. Royal Blue: Mid-field (~20° field) oblique rays passing through aperture stop to mid-image height (r = 3.2 mm)
+    for (const s of [-1, 1]) {
+      this._addRay([
+        new THREE.Vector3(s * -2.15, 9.0, s * 1.45),
+        new THREE.Vector3(s * -0.95, 6.08, s * 0.62),
+        new THREE.Vector3(s * -0.35, 4.65, s * 0.22),
+        new THREE.Vector3(s * 0.15, 3.52, s * -0.10),   // Crossing 6-blade iris stop!
+        new THREE.Vector3(s * 0.95, 1.76, s * -0.62),
+        new THREE.Vector3(s * 1.88, -0.28, s * -1.25),
+        new THREE.Vector3(s * 2.55, -2.46, s * -1.68),  // L7 Gullwing inflection
+        new THREE.Vector3(s * 2.85, -3.65, s * -1.88),  // L8 CRA correction
+        new THREE.Vector3(s * 3.15, -5.85, s * -2.08)   // Mid-field focus on 1-inch sensor
+      ], 0x2563eb, 0.80, 0.062, 3);
+    }
+
+    // 3. Crimson Red: Extreme wide-angle (~38° edge field) rays bent by L7 Gullwing & L8 W-Flattener to CRA <= 34°
+    for (const s of [-1, 1]) {
+      this._addRay([
+        new THREE.Vector3(s * -4.25, 8.7, s * -2.45),
+        new THREE.Vector3(s * -2.25, 6.08, s * -1.28),
+        new THREE.Vector3(s * -1.25, 4.55, s * -0.72),
+        new THREE.Vector3(s * -0.15, 3.52, s * -0.08),  // Threading center of 6-blade iris stop!
+        new THREE.Vector3(s * 1.45, 1.76, s * 0.84),
+        new THREE.Vector3(s * 3.05, -0.28, s * 1.76),
+        new THREE.Vector3(s * 4.55, -2.46, s * 2.62),   // Outer Gullwing wing of L7
+        new THREE.Vector3(s * 5.25, -3.65, s * 3.02),   // L8 bends ray sharply back toward vertical (CRA <= 34°!)
+        new THREE.Vector3(s * 5.75, -5.85, s * 3.32)    // 1-inch Image Circle Corner (r ≈ 6.6 mm)
+      ], 0xef4444, 0.84, 0.065, 3);
+    }
+
+    // Translucent 1-inch CMOS Focal Plane Reference Disc (φ16 mm Image Circle target below L8)
+    const focalDisc = new THREE.Mesh(
+      new THREE.RingGeometry(0.15, 6.85, 64),
+      new THREE.MeshBasicMaterial({
+        color: 0x0ea5e9,
+        transparent: true,
+        opacity: 0.12,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      })
+    );
+    focalDisc.rotation.x = -Math.PI / 2;
+    focalDisc.position.y = -5.86;
+    focalDisc.userData.ignorePick = true;
+
+    const focalRim = new THREE.Mesh(
+      new THREE.RingGeometry(6.72, 6.88, 64),
+      new THREE.MeshBasicMaterial({
+        color: 0x0284c7,
+        transparent: true,
+        opacity: 0.52,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      })
+    );
+    focalRim.rotation.x = -Math.PI / 2;
+    focalRim.position.y = -5.85;
+    focalRim.userData.ignorePick = true;
+    this.opticsGroup.add(focalDisc, focalRim);
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -267,23 +354,45 @@ export class SimEffects {
       }
     }
 
-    // Apply exploded offset + real-time 3D Sensor-Shift OIS micro-actuation on moving parts
-    const oisActive = this.oisEnabled && this.mode === 'macro';
-    const oisX = oisActive ? Math.sin(elapsed * 4.4) * 0.55 : 0;
-    const oisZ = oisActive ? Math.cos(elapsed * 3.1) * 0.45 : 0;
-    const oisRoll = oisActive ? Math.sin(elapsed * 2.2) * 0.045 : 0;
+    // Apply exploded offset + real-time mechanical actuation:
+    //  - Macro mode: 3D Sensor-Shift OIS (IBIS) XY + Roll
+    //  - Lens mode: Synchronized 6-Blade Stepless Variable Aperture (f/1.63 <-> f/4.0)
+    //               + Closed-Loop Ball-Guide AF Z-Focus Stroke + Lens-Shift OIS XY
+    const macroOis = this.oisEnabled && this.mode === 'macro';
+    const lensAct = this.oisEnabled && this.mode === 'lens';
+
+    const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
+    const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
+    const oisRoll = macroOis ? Math.sin(elapsed * 2.2) * 0.045 : 0;
+    const afStrokeY = lensAct ? Math.sin(elapsed * 1.9) * 0.42 : 0;
+    // Stepless iris modulation 0.02 (f/1.63 wide open) <-> 0.50 rad (f/4.0 closed)
+    const irisNorm = lensAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.35)) : null;
 
     for (const entry of partsMap.values()) {
       const ex = entry.basePos.x + entry.explodeVec.x * explodeT;
       const ey = entry.basePos.y + entry.explodeVec.y * explodeT;
       const ez = entry.basePos.z + entry.explodeVec.z * explodeT;
 
-      if (entry.oisMoving && oisActive) {
-        entry.group.position.set(ex + oisX, ey, ez + oisZ);
+      const dx = (entry.oisMoving && (macroOis || lensAct)) ? oisX : 0;
+      const dy = (entry.afMoving && lensAct) ? afStrokeY : 0;
+      const dz = (entry.oisMoving && (macroOis || lensAct)) ? oisZ : 0;
+
+      entry.group.position.set(ex + dx, ey + dy, ez + dz);
+
+      if (entry.oisMoving && macroOis) {
         entry.group.rotation.y = oisRoll;
+      } else if (entry.group.userData.isIrisCamRing) {
+        entry.group.rotation.y = lensAct ? (irisNorm - 0.5) * 0.30 : 0;
       } else {
-        entry.group.position.set(ex, ey, ez);
         entry.group.rotation.y = 0;
+      }
+
+      // Live 6-blade stepless variable aperture articulation
+      if (entry.group.userData.irisBlades) {
+        for (const pivot of entry.group.userData.irisBlades) {
+          const swing = lensAct ? (0.02 + irisNorm * 0.48) : pivot.userData.restSwing;
+          pivot.rotation.y = pivot.userData.baseAzimuth + swing;
+        }
       }
     }
 

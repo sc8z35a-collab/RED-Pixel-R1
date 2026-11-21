@@ -19,6 +19,14 @@ Based on 2021–2025 IEEE IEDM / IISW state-of-the-art 3D Sequential 2-Layer Tra
 - **2-Stage LOFIC 120 dB HDR Capacitor System (2 parts)**: Stage-1 High-Density Trench MOS Capacitor (~15 fF), Stage-2 3D Cylindrical High-k ZAZ (ZrO₂/Al₂O₃/ZrO₂) MIM Capacitor (~80 fF)
 - **Nano Contacts & Local Interconnects (5 parts)**: 23× Ti/TiN-Lined CVD Tungsten Contact Plugs, M0 Ultra-Low-C FD Route & Active Miller Guard Traces, M1 Horizontal Row-Control Damascene Copper Bus, M2 Shielded VSL + VDD/VSS Power Rails, Porous Low-k SiCOH ILD (Cutaway) & Top Cu-Cu Exit Vias
 
+## Phase 3 — Optical 1G7P Lens Group, 6-Blade Variable Aperture & Closed-Loop VCM/OIS Layer (30 Independent Parts, 1 unit = 1 mm)
+Dedicated standalone optical + mechatronic layer sitting above the 1-inch sensor module (100 total independent dissectable parts across all 4 modes):
+- **Housing, Barrel & Stray-Light Traps (5 parts)**: Cutaway SUS430/Permalloy EMI Magnetic Shield Can, Sapphire Front Protection Window + AR/AF Coating & IP68 O-Ring, Stepped LCP Precision Lens Barrel with Inner Serrated Baffles & M10 Threads, 6× Matte-Black Inter-Lens Shading Sheets & Spacers, Rear Lock Retainer Ring & 6-Axis Active Alignment (AA) UV Flange
+- **1G7P 1-Inch Aspheric Optical Prescription (9 parts)**: ALD Atomic Layer Deposition Ultra-Low-Reflectance Coating (`R < 0.15%`), L1 Molded Aspheric Lanthanum Glass (`1G/WLG`, low `dn/dT`), L2 Iupizeta EP-8000 Flint Meniscus (`n_d = 1.661, ν_d = 20.4`), L3 APEL COC Positive Crown (`n_d = 1.544, ν_d = 56.0`), L4 OKP-1 Fluorene Negative Corrector (`n_d = 1.642, ν_d = 22.3`), L5 APEL Positive Meniscus Relay, L6 Iupizeta EP-9000 High-n (`n_d = 1.671, ν_d = 19.2`), L7 Iconic Gullwing M-Shaped 16th-Order Aspheric Lens, L8 Wide W-Shaped Field Flattener & CRA ≤ 34° Control Element
+- **6-Blade Stepless Variable Aperture (4 parts)**: Fixed Pivot Stator Ring (6 pins), 6 Interlocking Matte-Black 30 μm Iris Blades (`f/1.63 – f/4.0` live articulated), Slotted Cam-Drive Rotor Ring, Dedicated Side Micro-VCM Rotary Iris Actuator & Closed-Loop Hall Sensor
+- **Closed-Loop Ball-Guide AF VCM Actuator (6 parts)**: Cutaway V-Groove AF Lens Carrier/Bobbin, 4-Side Self-Bonding Copper AF Voice Coils, 6× Y-TZP ZrO₂ Ceramic V-Groove Guide Balls, 2× Permalloy Magnetic Attraction Preload Yokes, 4× Multi-Pole N52 NdFeB Shared Magnets, Closed-Loop AF Z-Axis Hall/TMR Position Sensor IC
+- **Lens-Shift OIS, Suspension & Electronics (6 parts)**: Cutaway OIS Fixed Housing Base with Drop-Shock Stoppers, 4× Bottom Fine Pattern OIS Coils (FP-Coil, CIPA 4.5-stop), 4× Cu-Ni-Si Alloy Suspension Wires (parallel-link + power feed), Upper & Lower Etched BeCu Flexure Leaf Springs + UV Silicone Damper Gel, 2× OIS X/Y Hall Sensors & Single-Chip Closed-Loop PID Driver IC + MLCCs, Actuator Control Polyimide FPC & ENIG Interface Pads
+
 ## Development
 ```bash
 npm install

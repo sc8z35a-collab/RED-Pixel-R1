@@ -278,9 +278,16 @@ export class CadEngine {
         }
       });
 
+      if (!p.group.userData.origPos) {
+        p.group.userData.origPos = p.group.position.clone();
+      } else {
+        p.group.position.copy(p.group.userData.origPos);
+        p.group.rotation.set(0, 0, 0);
+      }
+
       this.partMap.set(p.id, {
         ...p,
-        basePos: p.group.position.clone(),
+        basePos: p.group.userData.origPos.clone(),
         hidden: false
       });
     }
