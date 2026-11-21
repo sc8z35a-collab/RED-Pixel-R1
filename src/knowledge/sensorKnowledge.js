@@ -1,4 +1,9 @@
+import { LAYER2_OVERVIEW_DOC, LAYER2_PARTS } from './layer2Knowledge.js';
+
+export { LAYER2_PARTS };
+
 export const OVERVIEW_DOCS = {
+  layer2: LAYER2_OVERVIEW_DOC,
   macro: {
     id: 'overview-macro',
     scale: 'macro',
@@ -939,5 +944,5 @@ export const MICRO_PARTS = [
 ];
 
 export const ALL_PARTS_BY_ID = Object.fromEntries(
-  [...MACRO_PARTS, ...MICRO_PARTS].map((p) => [p.id, p])
+  [...MACRO_PARTS, ...MICRO_PARTS, ...LAYER2_PARTS].map((p) => [p.id, p])
 );

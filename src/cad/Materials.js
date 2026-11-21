@@ -974,6 +974,136 @@ export function createMaterialLibrary(clippingPlanes) {
       color: 0x334155,
       metalness: 0.72,
       roughness: 0.28
+    }),
+
+    // === LAYER-2 NANOSCALE PIXEL TRANSISTOR MATERIALS ===
+    l2BoxOxide: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xcfe4ff,
+      metalness: 0.04,
+      roughness: 0.10,
+      transparent: true,
+      opacity: 0.16,
+      clearcoat: 0.9,
+      depthWrite: false
+    }),
+    l2InterPolySi: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x0284c7,
+      metalness: 0.62,
+      roughness: 0.24
+    }),
+    l2SoiSilicon: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1e3a8a,
+      metalness: 0.56,
+      roughness: 0.16,
+      clearcoat: 0.72,
+      iridescence: 0.35,
+      iridescenceIOR: 2.0
+    }),
+    l2StiOxide: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xdbeafe,
+      metalness: 0.04,
+      roughness: 0.18,
+      transparent: true,
+      opacity: 0.28,
+      depthWrite: false
+    }),
+    l2FinChannel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x2563eb,
+      metalness: 0.48,
+      roughness: 0.12,
+      clearcoat: 0.9,
+      iridescence: 0.45,
+      iridescenceIOR: 1.9
+    }),
+    l2GateOxide: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xc084fc,
+      metalness: 0.12,
+      roughness: 0.10,
+      transparent: true,
+      opacity: 0.78,
+      iridescence: 0.85,
+      iridescenceIOR: 1.55
+    }),
+    l2TinLiner: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xca8a04,
+      metalness: 0.94,
+      roughness: 0.20
+    }),
+    l2SpacerSiN: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x6366f1,
+      metalness: 0.18,
+      roughness: 0.32
+    }),
+    l2RaisedEpiSD: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      metalness: 0.52,
+      roughness: 0.20,
+      clearcoat: 0.55
+    }),
+    l2NiSiSalicide: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe5e7eb,
+      metalness: 0.98,
+      roughness: 0.12,
+      clearcoat: 0.4
+    }),
+    l2CeslStress: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      metalness: 0.08,
+      roughness: 0.10,
+      transparent: true,
+      opacity: 0.22,
+      iridescence: 0.72,
+      iridescenceIOR: 1.95,
+      depthWrite: false
+    }),
+    l2LoficZazDielectric: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf43f5e,
+      metalness: 0.15,
+      roughness: 0.16,
+      transparent: true,
+      opacity: 0.72,
+      iridescence: 0.8
+    }),
+    l2FdgGate: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x8b5cf6,
+      metalness: 0.76,
+      roughness: 0.22
+    }),
+    l2LoficGate: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xec4899,
+      metalness: 0.76,
+      roughness: 0.22
+    }),
+    l2MillerShield: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x14b8a6,
+      metalness: 0.72,
+      roughness: 0.22,
+      transparent: true,
+      opacity: 0.62
+    }),
+    l2LowKDielectric: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xcbd5e1,
+      metalness: 0.04,
+      roughness: 0.18,
+      transparent: true,
+      opacity: 0.24,
+      depthWrite: false
     })
   };
 }

@@ -2,9 +2,10 @@ import * as THREE from 'three';
 
 // Pure Geometric SVG Pictograms — STRICT ZERO-TEXT UI
 const ICONS = {
-  // Scale Switch
+  // Scale Switch (Macro Module / Micro 2x2 Pixel / Layer-2 SOI FinFET Nanoscale)
   macro: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><rect x="7.5" y="8" width="9" height="8" rx="1"/><circle cx="12" cy="12" r="1.8"/><path d="M9 20v2M15 20v2"/></svg>`,
   micro: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="16.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="7.5" cy="16.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="16.5" cy="16.5" r="1.3" fill="currentColor" stroke="none"/></svg>`,
+  layer2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5h18"/><path d="M5.5 16.5v-5.5h3v5.5M10.5 16.5v-5.5h3v5.5M15.5 16.5v-5.5h3v5.5"/><rect x="4" y="7" width="16" height="4" rx="1.2" fill="currentColor" fill-opacity="0.18"/><line x1="12" y1="3.5" x2="12" y2="7"/><line x1="12" y1="16.5" x2="12" y2="20.5"/></svg>`,
 
   // Explode
   assembled: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>`,
@@ -131,11 +132,12 @@ export class ZeroTextUI {
   _buildDOM() {
     this.root.innerHTML = '';
 
-    // 1. TOP-LEFT SCALE SWITCH (Macro Module <-> Micro Sub-Micron Pixel)
+    // 1. TOP-LEFT SCALE SWITCH (Macro Module <-> Micro 2x2 Pixel <-> Layer-2 Nanoscale)
     const scaleDock = this._el('div', 'scale-dock cad-glass');
-    this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'), 'active');
+    this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'));
     this.btnMicro = this._iconBtn(ICONS.micro, () => this.cb.onSwitchScale('micro'));
-    scaleDock.append(this.btnMacro, this.btnMicro);
+    this.btnLayer2 = this._iconBtn(ICONS.layer2, () => this.cb.onSwitchScale('layer2'), 'active');
+    scaleDock.append(this.btnMacro, this.btnMicro, this.btnLayer2);
     this.root.appendChild(scaleDock);
 
     // 2. LEFT VISUAL LAYER DISSECTION DOCK (ZERO TEXT — Color Bars + Category Glyphs + Eye Toggles)
@@ -334,6 +336,7 @@ export class ZeroTextUI {
     this.scale = scale;
     this.btnMacro.classList.toggle('active', scale === 'macro');
     this.btnMicro.classList.toggle('active', scale === 'micro');
+    this.btnLayer2.classList.toggle('active', scale === 'layer2');
     // OIS button only relevant in macro mode
     this.btnOis.style.display = scale === 'macro' ? 'inline-flex' : 'none';
   }

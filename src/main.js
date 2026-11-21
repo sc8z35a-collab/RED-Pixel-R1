@@ -1,10 +1,16 @@
 import './style.css';
-import * as THREE from 'three';
 import { CadEngine } from './cad/CadEngine.js';
 import { SimEffects } from './cad/SimEffects.js';
 import { buildMacroSensorAssembly } from './assemblies/MacroSensorAssembly.js';
 import { buildMicroPixelAssembly } from './assemblies/MicroPixelAssembly.js';
-import { MACRO_PARTS, MICRO_PARTS, OVERVIEW_DOCS, ALL_PARTS_BY_ID } from './knowledge/sensorKnowledge.js';
+import { buildLayer2TransistorAssembly } from './assemblies/Layer2TransistorAssembly.js';
+import {
+  MACRO_PARTS,
+  MICRO_PARTS,
+  LAYER2_PARTS,
+  OVERVIEW_DOCS,
+  ALL_PARTS_BY_ID
+} from './knowledge/sensorKnowledge.js';
 import { ZeroTextUI } from './ui/ZeroTextUI.js';
 
 const viewportEl = document.getElementById('cad-viewport');
@@ -13,14 +19,23 @@ const uiRoot = document.getElementById('ui-root');
 const engine = new CadEngine(viewportEl);
 const sim = new SimEffects(engine.scene);
 
-// Pre-build both scales for instant zero-lag Macro <-> Micro transition
-const macroAsm = buildMacroSensorAssembly(engine.materials);
-const microAsm = buildMicroPixelAssembly(engine.materials);
-engine.scene.add(macroAsm.root);
-engine.scene.add(microAsm.root);
+// Pre-build all 3 scales for seamless Macro <-> Micro Pixel <-> Layer-2 Nanoscale navigation
+const assemblies = {
+  macro: buildMacroSensorAssembly(engine.materials),
+  micro: buildMicroPixelAssembly(engine.materials),
+  layer2: buildLayer2TransistorAssembly(engine.materials)
+};
 
-let currentScale = 'macro';
-let activeAsm = macroAsm;
+const partDocsByScale = {
+  macro: MACRO_PARTS,
+  micro: MICRO_PARTS,
+  layer2: LAYER2_PARTS
+};
+
+Object.values(assemblies).forEach((asm) => engine.scene.add(asm.root));
+
+let currentScale = 'layer2';
+let activeAsm = assemblies.layer2;
 let targetExplode = 0;
 let currentExplode = 0;
 
@@ -34,7 +49,7 @@ function getHiddenIds() {
 
 const ui = new ZeroTextUI(uiRoot, {
   onSwitchScale(scale) {
-    if (scale === currentScale) return;
+    if (scale === currentScale || !assemblies[scale]) return;
     switchScale(scale);
   },
   onExplodeChange(val) {
@@ -59,7 +74,7 @@ const ui = new ZeroTextUI(uiRoot, {
     engine.animateCameraTo(activeAsm.defaultCameraPos, activeAsm.defaultTarget, 520);
   },
   onSnapView(preset) {
-    const dist = currentScale === 'macro' ? 35 : 28;
+    const dist = currentScale === 'macro' ? 36 : currentScale === 'layer2' ? 32 : 28;
     engine.snapView(preset, dist, activeAsm.defaultTarget);
   },
   onSelectPartUI(partId) {
@@ -102,10 +117,11 @@ engine.onCameraSync = (quat) => {
 
 function switchScale(scale, instantCamera = false) {
   currentScale = scale;
-  activeAsm = scale === 'macro' ? macroAsm : microAsm;
+  activeAsm = assemblies[scale];
 
-  macroAsm.root.visible = scale === 'macro';
-  microAsm.root.visible = scale === 'micro';
+  Object.entries(assemblies).forEach(([k, asm]) => {
+    asm.root.visible = k === scale;
+  });
 
   engine.setGridElevation(activeAsm.gridY);
   engine.registerAssembly(activeAsm.root, activeAsm.parts);
@@ -116,10 +132,9 @@ function switchScale(scale, instantCamera = false) {
   ui.setScaleUI(scale);
   ui.resetClipUI();
   ui.setIsolateUI(false);
-  ui.populateLayers(scale === 'macro' ? MACRO_PARTS : MICRO_PARTS);
+  ui.populateLayers(partDocsByScale[scale]);
   ui.syncSelection(null, OVERVIEW_DOCS[scale]);
 
-  // Smoothly reset explode to subtle view or keep crisp assembled state
   targetExplode = 0;
   currentExplode = 0;
   ui.setExplodeUI(0, false);
@@ -133,17 +148,15 @@ function switchScale(scale, instantCamera = false) {
   }
 }
 
-// Initialize into Macro 1-inch Sensor Assembly
-switchScale('macro', true);
+// Launch directly into the ultra-detailed Layer-2 Pixel Transistor Nanoscale CAD space
+switchScale('layer2', true);
 
-// Keyboard ergonomics (no UI text shown)
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     engine.selectPart(null);
   }
 });
 
-// Main 60fps CAD Render & Physics Loop
 let prevTime = performance.now();
 const startTime = prevTime;
 
@@ -153,14 +166,13 @@ function animate(now) {
   prevTime = now;
   const elapsed = (now - startTime) / 1000;
 
-  // Smooth exponential damping on explode slider
   currentExplode += (targetExplode - currentExplode) * Math.min(1, dt * 11);
   if (Math.abs(targetExplode - currentExplode) < 0.0005) {
     currentExplode = targetExplode;
   }
 
   sim.update(dt, elapsed, engine.partMap, currentExplode);
-  const gridDrop = currentExplode * (currentScale === 'macro' ? 9.6 : 9.4);
+  const gridDrop = currentExplode * (currentScale === 'layer2' ? 8.0 : currentScale === 'macro' ? 9.6 : 9.4);
   engine.setGridElevation(activeAsm.gridY - gridDrop);
   engine.update(now);
 }

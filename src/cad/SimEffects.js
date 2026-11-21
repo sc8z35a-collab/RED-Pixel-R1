@@ -33,9 +33,12 @@ export class SimEffects {
     if (mode === 'macro') {
       this._buildMacroOptics();
       this._buildGuideLines(13.0, -9.5, [[-9.5, -8.0], [9.5, -8.0], [-9.5, 8.0], [9.5, 8.0]]);
-    } else {
+    } else if (mode === 'micro') {
       this._buildMicroOptics();
       this._buildGuideLines(15.0, -15.0, [[-6.4, -6.4], [6.4, -6.4], [-6.4, 6.4], [6.4, 6.4]]);
+    } else {
+      this._buildLayer2SignalFlow();
+      this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
     }
     this.opticsGroup.visible = this.opticsEnabled;
   }
@@ -176,6 +179,47 @@ export class SimEffects {
       new THREE.Vector3(-1.5, -5.8, -1.5)
     ];
     this._addRay(electronPath, 0xf59e0b, 0.88, 0.09, 4);
+  }
+
+  _buildLayer2SignalFlow() {
+    // 1. Gold/Amber: Photoelectron voltage transfer from Layer-1 BSC Sidewall -> FD Deep Contact -> M0 FD -> AMP Tri-Gate
+    this._addRay([
+      new THREE.Vector3(-5.6, -3.15, -2.0),
+      new THREE.Vector3(-3.2, -3.15, 0.35),
+      new THREE.Vector3(-3.2, 2.62, 0.35),
+      new THREE.Vector3(-3.2, 2.62, -0.95),
+      new THREE.Vector3(-3.2, 1.65, -0.95)
+    ], 0xf59e0b, 0.9, 0.08, 3);
+
+    // 2. Emerald: Amplified Source-Follower carrier flow across 3 parallel SOI fins -> SEL -> M2 VSL -> Top Exit Via
+    for (const fz of [-4.9, -3.5, -2.1]) {
+      this._addRay([
+        new THREE.Vector3(-5.42, 0.65, fz),
+        new THREE.Vector3(-3.2, 0.65, fz),
+        new THREE.Vector3(-0.98, 0.65, fz)
+      ], 0x10b981, 0.85, 0.065, 2);
+    }
+    this._addRay([
+      new THREE.Vector3(-0.98, 2.62, -3.5),
+      new THREE.Vector3(-2.06, 2.62, 0.35),
+      new THREE.Vector3(-3.15, 2.62, 4.2),
+      new THREE.Vector3(-4.4, 0.72, 4.2),
+      new THREE.Vector3(-5.65, 4.46, 4.2),
+      new THREE.Vector3(-5.65, 4.46, -5.6),
+      new THREE.Vector3(-5.65, 5.65, -5.6)
+    ], 0x10b981, 0.85, 0.08, 4);
+
+    // 3. Magenta: High-brightness Overflow Electron Cascade -> FDG -> Stage-1 Trench MOS Cap -> SG -> Stage-2 3D ZAZ MIM Cap
+    this._addRay([
+      new THREE.Vector3(-3.2, 2.62, 0.58),
+      new THREE.Vector3(1.85, 2.62, 0.8),
+      new THREE.Vector3(2.7, 0.72, 0.8),
+      new THREE.Vector3(3.55, 2.62, 3.9),
+      new THREE.Vector3(4.8, 2.62, 3.9),
+      new THREE.Vector3(5.4, 0.72, 0.8),
+      new THREE.Vector3(4.1, 2.62, -2.4),
+      new THREE.Vector3(4.1, 1.35, -4.0)
+    ], 0xec4899, 0.88, 0.075, 4);
   }
 
   _buildGuideLines(topY, botY, corners) {
