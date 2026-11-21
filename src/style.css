@@ -1,0 +1,608 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  color: #16181d;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+#cad-viewport {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #ffffff;
+  cursor: grab;
+}
+
+#cad-viewport:active {
+  cursor: grabbing;
+}
+
+#cad-viewport canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#ui-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* =====================================================
+   ZERO-TEXT INDUSTRIAL CAD INTERFACE (WHITE STUDIO)
+   ===================================================== */
+
+.cad-glass {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 10px 30px -10px rgba(15, 23, 42, 0.09);
+}
+
+/* Top-Left Mode Switch (Macro Assembly <-> Micro Pixel Dive) */
+.scale-dock {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 14px;
+}
+
+/* Left Vertical Dissection Stack (Visual Layer Chips - ZERO TEXT) */
+.layer-dock {
+  position: fixed;
+  top: 76px;
+  left: 18px;
+  bottom: 84px;
+  width: 66px;
+  pointer-events: auto;
+  border-radius: 16px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.layer-dock-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  flex-shrink: 0;
+}
+
+.layer-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 2px 1px;
+  scrollbar-width: none;
+}
+
+.layer-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.layer-group-sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: rgba(15, 23, 42, 0.09);
+  flex-shrink: 0;
+}
+
+.layer-chip {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px 0 4px;
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
+  flex-shrink: 0;
+}
+
+.layer-chip:hover {
+  transform: translateX(2px);
+  border-color: rgba(15, 23, 42, 0.25);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.layer-chip.selected {
+  border-color: #111827;
+  background: #111827;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
+}
+
+.layer-chip.selected .chip-glyph {
+  color: #ffffff;
+}
+
+.layer-chip.hidden-part {
+  opacity: 0.34;
+}
+
+.chip-swatch {
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18);
+}
+
+.chip-glyph {
+  width: 15px;
+  height: 15px;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chip-vis-btn {
+  width: 15px;
+  height: 15px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  color: #64748b;
+  transition: color 0.12s ease, background 0.12s ease;
+  flex-shrink: 0;
+}
+
+.chip-vis-btn:hover {
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+.layer-chip.selected .chip-vis-btn {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.layer-chip.selected .chip-vis-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+/* Bottom Floating CAD Toolbar (100% Zero-Text Icon Controls) */
+.bottom-dock {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 18px;
+  max-width: calc(100vw - 36px);
+}
+
+.dock-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dock-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(15, 23, 42, 0.1);
+  margin: 0 3px;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.icon-btn.sm {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}
+
+.icon-btn:hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+}
+
+.icon-btn:active {
+  transform: scale(0.94);
+}
+
+.icon-btn.active {
+  background: #111827;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.22);
+}
+
+.icon-btn.active-red {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.28);
+}
+
+.icon-btn.active-green {
+  background: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(22, 163, 74, 0.28);
+}
+
+.icon-btn.active-blue {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.28);
+}
+
+.icon-btn.active-amber {
+  background: #d97706;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(217, 119, 6, 0.28);
+}
+
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.75;
+}
+
+.icon-btn.sm svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Zero-text CAD Sliders */
+.slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px;
+}
+
+.slider-ico {
+  width: 16px;
+  height: 16px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cad-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 96px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.13);
+  outline: none;
+  cursor: pointer;
+}
+
+.cad-range.short {
+  width: 72px;
+}
+
+.cad-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #111827;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 5px rgba(15, 23, 42, 0.35);
+  transition: transform 0.12s ease;
+}
+
+.cad-range::-webkit-slider-thumb:hover {
+  transform: scale(1.18);
+}
+
+.cad-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #111827;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 5px rgba(15, 23, 42, 0.35);
+}
+
+.cad-range.clip-x::-webkit-slider-thumb { background: #dc2626; }
+.cad-range.clip-y::-webkit-slider-thumb { background: #16a34a; }
+.cad-range.clip-z::-webkit-slider-thumb { background: #2563eb; }
+
+.cad-range:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+/* Top-Right Zero-Text 3D Orientation Gizmo & Info Toggle */
+.top-right-stack {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.gizmo-shell {
+  width: 78px;
+  height: 78px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.gizmo-canvas {
+  width: 72px;
+  height: 72px;
+  display: block;
+}
+
+.ortho-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 14px;
+}
+
+/* =====================================================
+   EXPLANATION PANEL (THE ONLY PLACE WITH TEXT)
+   ===================================================== */
+
+.info-panel {
+  position: fixed;
+  top: 108px;
+  right: 18px;
+  bottom: 84px;
+  width: 372px;
+  max-width: calc(100vw - 110px);
+  pointer-events: auto;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+  user-select: text;
+}
+
+.info-panel.collapsed {
+  transform: translateX(calc(100% + 28px));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.info-head {
+  padding: 16px 16px 12px 18px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.info-color-bar {
+  width: 5px;
+  min-height: 40px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-head-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.info-category {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  margin-bottom: 3px;
+}
+
+.info-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.38;
+  color: #0f172a;
+}
+
+.info-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.info-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.16) transparent;
+}
+
+.info-summary {
+  font-size: 13px;
+  line-height: 1.68;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.info-specs {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(15, 23, 42, 0.07);
+}
+
+.spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 12px;
+  line-height: 1.48;
+  padding-bottom: 5px;
+  border-bottom: 1px dashed rgba(15, 23, 42, 0.07);
+}
+
+.spec-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.spec-k {
+  color: #64748b;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.spec-v {
+  color: #0f172a;
+  text-align: right;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-section-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.info-section-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0f172a;
+  flex-shrink: 0;
+}
+
+.info-paragraph {
+  font-size: 12.6px;
+  line-height: 1.76;
+  color: #334155;
+}
+
+.info-note {
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: rgba(241, 245, 249, 0.78);
+  border-left: 3px solid #0f172a;
+  font-size: 12.3px;
+  line-height: 1.74;
+  color: #1e293b;
+}
+
+.info-footer {
+  padding: 8px 12px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.info-progress-track {
+  flex: 1;
+  height: 3px;
+  margin: 0 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.09);
+  overflow: hidden;
+}
+
+.info-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #0f172a;
+  transition: width 0.2s ease;
+}
+
+@media (max-width: 900px) {
+  .info-panel {
+    width: 310px;
+  }
+  .cad-range {
+    width: 68px;
+  }
+  .cad-range.short {
+    width: 52px;
+  }
+}
