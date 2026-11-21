@@ -1,0 +1,979 @@
+import * as THREE from 'three';
+
+function makeCanvas(w, h) {
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  return { c, ctx: c.getContext('2d') };
+}
+
+function toTexture(canvas, srgb = true, repeatX = 1, repeatY = 1) {
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(repeatX, repeatY);
+  tex.anisotropy = 8;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/**
+ * High-resolution procedural texture for the 1-inch CMOS active pixel array,
+ * dummy pixel guard ring, and Optical Black (OB) tungsten light-shield frame.
+ */
+function createSensorSurfaceTextures() {
+  const { c, ctx } = makeCanvas(1024, 768);
+  const { c: rc, ctx: rctx } = makeCanvas(1024, 768);
+
+  // Outer Optical Black (OB) tungsten light-shielded zone
+  ctx.fillStyle = '#18202c';
+  ctx.fillRect(0, 0, 1024, 768);
+  rctx.fillStyle = '#707070';
+  rctx.fillRect(0, 0, 1024, 768);
+
+  // Fine OB shield micro-texture
+  ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < 1024; x += 12) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 768); ctx.stroke();
+  }
+  for (let y = 0; y < 768; y += 12) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1024, y); ctx.stroke();
+  }
+
+  // Optical Black inner tungsten border
+  ctx.strokeStyle = '#3b4a62';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(26, 22, 972, 724);
+
+  // Dummy pixel guard ring
+  ctx.fillStyle = '#14263d';
+  ctx.fillRect(42, 36, 940, 696);
+  ctx.strokeStyle = '#60a5fa';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(42, 36, 940, 696);
+
+  // Active pixel imaging area (Quad Bayer microlens diffraction zone)
+  const ax = 62, ay = 52, aw = 900, ah = 664;
+  const grad = ctx.createLinearGradient(ax, ay, ax + aw, ay + ah);
+  grad.addColorStop(0.0, '#0c274d');
+  grad.addColorStop(0.25, '#0f3b68');
+  grad.addColorStop(0.5, '#0b4a5e');
+  grad.addColorStop(0.75, '#19376d');
+  grad.addColorStop(1.0, '#0d2240');
+  ctx.fillStyle = grad;
+  ctx.fillRect(ax, ay, aw, ah);
+
+  // Smooth glossy microlens roughness in active area
+  rctx.fillStyle = '#181818';
+  rctx.fillRect(ax, ay, aw, ah);
+
+  // Subtle Quad-Bayer color diffraction grid (macro visual representation)
+  const cell = 6;
+  for (let y = ay; y < ay + ah; y += cell) {
+    const row = Math.floor((y - ay) / cell);
+    for (let x = ax; x < ax + aw; x += cell) {
+      const col = Math.floor((x - ax) / cell);
+      const qx = Math.floor(col / 2) % 2;
+      const qy = Math.floor(row / 2) % 2;
+      if (qx === 0 && qy === 0) ctx.fillStyle = 'rgba(239, 68, 68, 0.20)';
+      else if (qx === 1 && qy === 1) ctx.fillStyle = 'rgba(59, 130, 246, 0.26)';
+      else ctx.fillStyle = 'rgba(34, 197, 94, 0.22)';
+      ctx.fillRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
+    }
+  }
+
+  // Fine sub-pixel microlens highlights
+  ctx.strokeStyle = 'rgba(186, 230, 253, 0.16)';
+  ctx.lineWidth = 0.7;
+  for (let x = ax; x <= ax + aw; x += cell * 2) {
+    ctx.beginPath(); ctx.moveTo(x, ay); ctx.lineTo(x, ay + ah); ctx.stroke();
+  }
+  for (let y = ay; y <= ay + ah; y += cell * 2) {
+    ctx.beginPath(); ctx.moveTo(ax, y); ctx.lineTo(ax + aw, y); ctx.stroke();
+  }
+
+  // Corner optical alignment fiducial crosses (zero text)
+  const corners = [
+    [18, 16], [1006, 16], [18, 752], [1006, 752]
+  ];
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 2;
+  for (const [cx, cy] of corners) {
+    ctx.beginPath();
+    ctx.moveTo(cx - 7, cy); ctx.lineTo(cx + 7, cy);
+    ctx.moveTo(cx, cy - 7); ctx.lineTo(cx, cy + 7);
+    ctx.stroke();
+  }
+
+  return {
+    map: toTexture(c, true),
+    roughnessMap: toTexture(rc, false)
+  };
+}
+
+/**
+ * Logic die floorplan: Dual column-parallel 14-bit ADC banks (top/bottom),
+ * AI remosaic / ISP core, row decoders, PLL, MIPI CSI-2 PHY lanes.
+ */
+function createLogicDieTextures() {
+  const { c, ctx } = makeCanvas(1024, 768);
+  const { c: rc, ctx: rctx } = makeCanvas(1024, 768);
+
+  ctx.fillStyle = '#1b2330';
+  ctx.fillRect(0, 0, 1024, 768);
+  rctx.fillStyle = '#484848';
+  rctx.fillRect(0, 0, 1024, 768);
+
+  // Top & Bottom Column-Parallel ADC Arrays
+  const drawAdcBand = (y0, h) => {
+    ctx.fillStyle = '#243247';
+    ctx.fillRect(90, y0, 844, h);
+    rctx.fillStyle = '#282828';
+    rctx.fillRect(90, y0, 844, h);
+    for (let x = 94; x < 930; x += 6) {
+      ctx.fillStyle = (x % 18 === 0) ? '#64748b' : '#3b82f6';
+      ctx.fillRect(x, y0 + 6, 3, h - 12);
+    }
+    // Comparator & counter rails
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(90, y0 + h * 0.35, 844, 3);
+    ctx.fillRect(90, y0 + h * 0.72, 844, 3);
+  };
+  drawAdcBand(36, 128);
+  drawAdcBand(604, 128);
+
+  // Left & Right Row Drivers & Timing Generators
+  const drawRowDriver = (x0) => {
+    ctx.fillStyle = '#2a3444';
+    ctx.fillRect(x0, 178, 58, 412);
+    for (let y = 186; y < 582; y += 8) {
+      ctx.fillStyle = (y % 24 === 0) ? '#d97706' : '#475569';
+      ctx.fillRect(x0 + 6, y, 46, 4);
+    }
+  };
+  drawRowDriver(22);
+  drawRowDriver(944);
+
+  // Center digital logic macros (ISP, AI Remosaic NPU, HDR Fusion, Line Buffers, MIPI PHY)
+  const blocks = [
+    { x: 102, y: 184, w: 240, h: 190, col: '#1e3a5f', accent: '#38bdf8' },
+    { x: 356, y: 184, w: 312, h: 190, col: '#26304d', accent: '#818cf8' },
+    { x: 682, y: 184, w: 240, h: 190, col: '#1f3b4d', accent: '#2dd4bf' },
+    { x: 102, y: 390, w: 380, h: 194, col: '#2a2f42', accent: '#f59e0b' },
+    { x: 496, y: 390, w: 426, h: 194, col: '#223346', accent: '#60a5fa' }
+  ];
+
+  for (const b of blocks) {
+    ctx.fillStyle = b.col;
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.strokeStyle = b.accent;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(b.x, b.y, b.w, b.h);
+
+    // Sub-cell standard logic rows
+    ctx.fillStyle = 'rgba(226, 232, 240, 0.16)';
+    for (let y = b.y + 10; y < b.y + b.h - 10; y += 10) {
+      for (let x = b.x + 10; x < b.x + b.w - 14; x += 22) {
+        const w = ((x * 13 + y * 7) % 14) + 5;
+        ctx.fillRect(x, y, w, 5);
+      }
+    }
+  }
+
+  // Power delivery metal mesh
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.35)';
+  ctx.lineWidth = 2;
+  for (let x = 90; x <= 934; x += 64) {
+    ctx.beginPath(); ctx.moveTo(x, 36); ctx.lineTo(x, 732); ctx.stroke();
+  }
+  for (let y = 36; y <= 732; y += 64) {
+    ctx.beginPath(); ctx.moveTo(90, y); ctx.lineTo(934, y); ctx.stroke();
+  }
+
+  return {
+    map: toTexture(c, true),
+    roughnessMap: toTexture(rc, false)
+  };
+}
+
+/**
+ * Stacked DRAM die texture: 8x4 high-bandwidth memory banks + TSV arrays.
+ */
+function createDramDieTexture() {
+  const { c, ctx } = makeCanvas(1024, 768);
+  ctx.fillStyle = '#0f292e';
+  ctx.fillRect(0, 0, 1024, 768);
+
+  const cols = 8;
+  const rows = 4;
+  const padX = 36, padY = 34;
+  const gapX = 16, gapY = 20;
+  const bw = (1024 - padX * 2 - gapX * (cols - 1)) / cols;
+  const bh = (768 - padY * 2 - gapY * (rows - 1)) / rows;
+
+  for (let r = 0; r < rows; r++) {
+    for (let col = 0; col < cols; col++) {
+      const x = padX + col * (bw + gapX);
+      const y = padY + r * (bh + gapY);
+      ctx.fillStyle = '#134e4a';
+      ctx.fillRect(x, y, bw, bh);
+      ctx.strokeStyle = '#2dd4bf';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x, y, bw, bh);
+
+      // Bitline/Wordline dense sub-array stripes
+      ctx.fillStyle = 'rgba(94, 234, 212, 0.25)';
+      for (let sy = y + 6; sy < y + bh - 6; sy += 6) {
+        ctx.fillRect(x + 5, sy, bw - 10, 2);
+      }
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(x + bw * 0.48, y + 2, 4, bh - 4);
+    }
+  }
+
+  // Central TSV bus spines
+  ctx.fillStyle = '#d97706';
+  for (let x = 60; x < 964; x += 24) {
+    ctx.beginPath();
+    ctx.arc(x, 384, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  return toTexture(c, true);
+}
+
+/**
+ * 2nd Layer Transistor Substrate texture: 2x2 shared AMP/RST/SEL + LOFIC cells.
+ */
+function createTransistorLayerTexture() {
+  const { c, ctx } = makeCanvas(1024, 768);
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(0, 0, 1024, 768);
+
+  const step = 32;
+  for (let y = 16; y < 752; y += step) {
+    for (let x = 16; x < 1008; x += step) {
+      // Cell boundary
+      ctx.strokeStyle = 'rgba(129, 140, 248, 0.28)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, step - 2, step - 2);
+      // Large AMP MOSFET gate
+      ctx.fillStyle = '#10b981';
+      ctx.fillRect(x + 4, y + 4, 14, 10);
+      // RST & SEL gates
+      ctx.fillStyle = '#60a5fa';
+      ctx.fillRect(x + 4, y + 18, 8, 8);
+      ctx.fillRect(x + 15, y + 18, 8, 8);
+      // LOFIC capacitor plate
+      ctx.fillStyle = '#eab308';
+      ctx.fillRect(x + 21, y + 4, 7, 11);
+      // Vertical FD via contact dot
+      ctx.fillStyle = '#f97316';
+      ctx.beginPath();
+      ctx.arc(x + 15, y + 15, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  return toTexture(c, true);
+}
+
+/**
+ * Cu-Cu Hybrid Bonding dielectric (SiCN) + dense copper micro-pad array.
+ */
+function createCuCuHybridTexture() {
+  const { c, ctx } = makeCanvas(1024, 768);
+  const { c: mc, ctx: mctx } = makeCanvas(1024, 768);
+
+  // Ultra-flat SiCN dielectric matrix
+  ctx.fillStyle = '#2b394a';
+  ctx.fillRect(0, 0, 1024, 768);
+  mctx.fillStyle = '#101010';
+  mctx.fillRect(0, 0, 1024, 768);
+
+  const pitch = 16;
+  for (let y = 12; y < 756; y += pitch) {
+    for (let x = 12; x < 1012; x += pitch) {
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(x, y, 8, 8);
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(x + 1.5, y + 1.5, 5, 5);
+
+      mctx.fillStyle = '#ffffff';
+      mctx.fillRect(x, y, 8, 8);
+    }
+  }
+
+  return {
+    map: toTexture(c, true),
+    metalnessMap: toTexture(mc, false)
+  };
+}
+
+/**
+ * High-density Rigid PCB texture: dark matte solder mask, copper differential
+ * traces, ENIG gold finger pads, and central thermal via array.
+ */
+function createRigidPcbTexture() {
+  const { c, ctx } = makeCanvas(1024, 1024);
+  ctx.fillStyle = '#123d2d';
+  ctx.fillRect(0, 0, 1024, 1024);
+
+  // Subtle glass-weave FR4/BT texture
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 1024; i += 8) {
+    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 1024); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(1024, i); ctx.stroke();
+  }
+
+  // Outer GND shield copper ring (ENIG gold finish)
+  ctx.strokeStyle = '#d4a843';
+  ctx.lineWidth = 16;
+  ctx.strokeRect(24, 24, 976, 976);
+
+  // Copper signal traces radiating from center die to perimeter
+  ctx.strokeStyle = '#206b4e';
+  ctx.lineWidth = 3;
+  for (let i = 0; i < 28; i++) {
+    const t = 180 + i * 24;
+    ctx.beginPath();
+    ctx.moveTo(t, 240);
+    ctx.lineTo(t, 110);
+    ctx.lineTo(t + (i - 14) * 4, 65);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(t, 784);
+    ctx.lineTo(t, 914);
+    ctx.lineTo(t + (i - 14) * 4, 958);
+    ctx.stroke();
+  }
+
+  // Central copper thermal pad & gold-plated thermal via array
+  ctx.fillStyle = '#b4872c';
+  ctx.fillRect(260, 310, 504, 404);
+  ctx.fillStyle = '#0e2c21';
+  ctx.fillRect(272, 322, 480, 380);
+
+  for (let y = 344; y < 684; y += 30) {
+    for (let x = 294; x < 734; x += 30) {
+      ctx.fillStyle = '#e5b94c';
+      ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#2b2416';
+      ctx.beginPath(); ctx.arc(x, y, 4.2, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  // Gold wire-bond fingers around inner perimeter
+  ctx.fillStyle = '#f0c451';
+  for (let x = 210; x <= 814; x += 18) {
+    ctx.fillRect(x, 224, 10, 26);
+    ctx.fillRect(x, 774, 10, 26);
+  }
+  for (let y = 270; y <= 754; y += 18) {
+    ctx.fillRect(172, y, 26, 10);
+    ctx.fillRect(826, y, 26, 10);
+  }
+
+  // Fiducial registration dots (4 corners)
+  const fids = [[86, 86], [938, 86], [86, 938], [938, 938]];
+  for (const [fx, fy] of fids) {
+    ctx.fillStyle = '#f0c451';
+    ctx.beginPath(); ctx.arc(fx, fy, 12, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#123d2d';
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(fx, fy, 17, 0, Math.PI * 2); ctx.stroke();
+  }
+
+  return toTexture(c, true);
+}
+
+/**
+ * Polyimide FPC differential MIPI CSI-2 trace texture (amber polyimide + copper pairs).
+ */
+function createFpcTexture() {
+  const { c, ctx } = makeCanvas(512, 1024);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(0, 0, 512, 1024);
+
+  // Warm polyimide amber gradient
+  const g = ctx.createLinearGradient(0, 0, 512, 0);
+  g.addColorStop(0, '#9a3412');
+  g.addColorStop(0.25, '#c25e0a');
+  g.addColorStop(0.5, '#d97706');
+  g.addColorStop(0.75, '#c25e0a');
+  g.addColorStop(1, '#9a3412');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 512, 1024);
+
+  // Longitudinal MIPI CSI-2 4-lane + CLK differential copper trace pairs with ground guards
+  const lanes = [56, 112, 168, 224, 288, 344, 400, 456];
+  for (let idx = 0; idx < lanes.length; idx++) {
+    const x = lanes[idx];
+    // GND guard copper strip
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.38)';
+    ctx.fillRect(x - 20, 0, 4, 1024);
+
+    // Differential pair (+/-) with authentic length-matching serpentine meanders
+    ctx.strokeStyle = '#fde68a';
+    ctx.lineWidth = 4.5;
+    for (const offset of [-5.5, 5.5]) {
+      ctx.beginPath();
+      for (let y = 0; y <= 1024; y += 14) {
+        const meander = (y > 680 && y < 860 && idx % 2 === 0)
+          ? Math.sin((y - 680) * 0.14) * 5.5
+          : 0;
+        if (y === 0) ctx.moveTo(x + offset + meander, y);
+        else ctx.lineTo(x + offset + meander, y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  // Fine diamond hatched copper EMI reference mesh
+  ctx.strokeStyle = 'rgba(20, 20, 25, 0.14)';
+  ctx.lineWidth = 1.4;
+  for (let i = -512; i < 1536; i += 22) {
+    ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i + 512); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(512, i); ctx.lineTo(0, i + 512); ctx.stroke();
+  }
+
+  // Gold-plated solder landing fingers at PCB root (top edge)
+  ctx.fillStyle = '#facc15';
+  for (let x = 28; x < 484; x += 18) {
+    ctx.fillRect(x, 0, 10, 42);
+  }
+
+  return toTexture(c, true);
+}
+
+/**
+ * Fine enameled copper winding coil texture.
+ */
+function createCopperCoilTexture() {
+  const { c, ctx } = makeCanvas(512, 256);
+  ctx.fillStyle = '#9a3412';
+  ctx.fillRect(0, 0, 512, 256);
+  for (let y = 0; y < 256; y += 4) {
+    const shade = (y % 8 === 0) ? '#ea580c' : '#c2410c';
+    ctx.fillStyle = shade;
+    ctx.fillRect(0, y, 512, 2.5);
+    ctx.fillStyle = '#fb923c';
+    ctx.fillRect(0, y, 512, 0.9);
+  }
+  return toTexture(c, true, 1, 2);
+}
+
+/**
+ * Creates a clean white studio PMREM environment map for crisp CAD reflections
+ * on white backgrounds (metallic copper/gold/SUS + glassy IRCF/OCL).
+ */
+export function createWhiteStudioEnv(renderer) {
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envScene = new THREE.Scene();
+  envScene.background = new THREE.Color(0xf6f8fb);
+
+  // Soft overhead studio softbox
+  const topBox = new THREE.Mesh(
+    new THREE.PlaneGeometry(36, 36),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+  );
+  topBox.position.set(0, 14, 0);
+  topBox.rotation.x = Math.PI / 2;
+  envScene.add(topBox);
+
+  // Key warm-white side softbox
+  const keyBox = new THREE.Mesh(
+    new THREE.PlaneGeometry(20, 14),
+    new THREE.MeshBasicMaterial({ color: 0xfffbf4, side: THREE.DoubleSide })
+  );
+  keyBox.position.set(16, 7, 12);
+  keyBox.lookAt(0, 0, 0);
+  envScene.add(keyBox);
+
+  // Cool sky fill softbox
+  const fillBox = new THREE.Mesh(
+    new THREE.PlaneGeometry(22, 14),
+    new THREE.MeshBasicMaterial({ color: 0xe8f2ff, side: THREE.DoubleSide })
+  );
+  fillBox.position.set(-16, 6, -10);
+  fillBox.lookAt(0, 0, 0);
+  envScene.add(fillBox);
+
+  // Subtle dark studio flags so metals and glass show crisp industrial contrast on white
+  const darkFlag1 = new THREE.Mesh(
+    new THREE.PlaneGeometry(24, 6),
+    new THREE.MeshBasicMaterial({ color: 0x334155, side: THREE.DoubleSide })
+  );
+  darkFlag1.position.set(0, 1.5, -18);
+  darkFlag1.lookAt(0, 0, 0);
+  envScene.add(darkFlag1);
+
+  const darkFlag2 = new THREE.Mesh(
+    new THREE.PlaneGeometry(18, 5),
+    new THREE.MeshBasicMaterial({ color: 0x475569, side: THREE.DoubleSide })
+  );
+  darkFlag2.position.set(18, 1.5, -8);
+  darkFlag2.lookAt(0, 0, 0);
+  envScene.add(darkFlag2);
+
+  // Bright bounce floor
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(40, 40),
+    new THREE.MeshBasicMaterial({ color: 0xeef2f6, side: THREE.DoubleSide })
+  );
+  floor.position.set(0, -10, 0);
+  floor.rotation.x = -Math.PI / 2;
+  envScene.add(floor);
+
+  const rt = pmrem.fromScene(envScene, 0.035);
+  pmrem.dispose();
+  return rt.texture;
+}
+
+/**
+ * Material Library Factory with shared clipping planes & clean PBR parameters.
+ */
+export function createMaterialLibrary(clippingPlanes) {
+  const sensorSurf = createSensorSurfaceTextures();
+  const logicTex = createLogicDieTextures();
+  const dramTex = createDramDieTexture();
+  const trLayerTex = createTransistorLayerTexture();
+  const cucuTex = createCuCuHybridTexture();
+  const pcbTex = createRigidPcbTexture();
+  const fpcTex = createFpcTexture();
+  const coilTex = createCopperCoilTexture();
+
+  const base = {
+    clippingPlanes,
+    clipShadows: true,
+    side: THREE.DoubleSide
+  };
+
+  return {
+    susSteel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xc2ccd6,
+      metalness: 0.94,
+      roughness: 0.22,
+      clearcoat: 0.35,
+      clearcoatRoughness: 0.18
+    }),
+    susDarkInner: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x1b212a,
+      metalness: 0.55,
+      roughness: 0.52
+    }),
+    ircfCoating: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x67e8f9,
+      metalness: 0.16,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.20,
+      iridescence: 1.0,
+      iridescenceIOR: 1.85,
+      iridescenceThicknessRange: [240, 580],
+      clearcoat: 1.0,
+      depthWrite: false
+    }),
+    blueGlassIrcf: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x0ea5e9,
+      metalness: 0.04,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.26,
+      ior: 1.52,
+      reflectivity: 0.92,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+      iridescence: 0.38,
+      iridescenceIOR: 1.5,
+      depthWrite: false
+    }),
+    lcpBlack: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x262d38,
+      metalness: 0.08,
+      roughness: 0.62
+    }),
+    uvAdhesive: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x4f46e5,
+      metalness: 0.05,
+      roughness: 0.22,
+      transparent: true,
+      opacity: 0.78,
+      clearcoat: 0.8
+    }),
+    sensorOpticalSurface: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: sensorSurf.map,
+      roughnessMap: sensorSurf.roughnessMap,
+      color: 0xffffff,
+      metalness: 0.45,
+      roughness: 0.18,
+      iridescence: 1.0,
+      iridescenceIOR: 1.48,
+      iridescenceThicknessRange: [260, 640],
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.06
+    }),
+    siliconPhotodiode: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1e3a8a,
+      metalness: 0.62,
+      roughness: 0.22,
+      iridescence: 0.45,
+      iridescenceIOR: 2.1,
+      clearcoat: 0.5
+    }),
+    transistorSilicon: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: trLayerTex,
+      color: 0xe0e7ff,
+      metalness: 0.58,
+      roughness: 0.26
+    }),
+    cucuHybridLayer: new THREE.MeshStandardMaterial({
+      ...base,
+      map: cucuTex.map,
+      metalnessMap: cucuTex.metalnessMap,
+      color: 0xffffff,
+      metalness: 0.88,
+      roughness: 0.24
+    }),
+    copperPad: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xd97706,
+      metalness: 0.95,
+      roughness: 0.20
+    }),
+    dramDie: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: dramTex,
+      color: 0xffffff,
+      metalness: 0.64,
+      roughness: 0.24,
+      clearcoat: 0.4
+    }),
+    logicDie: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: logicTex.map,
+      roughnessMap: logicTex.roughnessMap,
+      color: 0xffffff,
+      metalness: 0.68,
+      roughness: 0.28
+    }),
+    siliconBulkSide: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x3b4252,
+      metalness: 0.78,
+      roughness: 0.26
+    }),
+    goldBond: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf7c948,
+      metalness: 0.98,
+      roughness: 0.15,
+      clearcoat: 0.2
+    }),
+    alPad: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xe2e8f0,
+      metalness: 0.94,
+      roughness: 0.2
+    }),
+    mobEpoxy: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x1b1f27,
+      metalness: 0.06,
+      roughness: 0.52
+    }),
+    silverEpoxyDaf: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x9ca3af,
+      metalness: 0.75,
+      roughness: 0.38
+    }),
+    oisCarrierPcb: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x0f5c52,
+      metalness: 0.18,
+      roughness: 0.42
+    }),
+    rigidPcb: new THREE.MeshStandardMaterial({
+      ...base,
+      map: pcbTex,
+      color: 0xffffff,
+      metalness: 0.22,
+      roughness: 0.42
+    }),
+    fpcPolyimide: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: fpcTex,
+      color: 0xffffff,
+      metalness: 0.35,
+      roughness: 0.32,
+      clearcoat: 0.45
+    }),
+    fpcEmiFilm: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x1c1e24,
+      metalness: 0.35,
+      roughness: 0.48
+    }),
+    copperCoil: new THREE.MeshStandardMaterial({
+      ...base,
+      map: coilTex,
+      color: 0xfb923c,
+      metalness: 0.92,
+      roughness: 0.26
+    }),
+    magnetNickel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xcbd5e1,
+      metalness: 0.96,
+      roughness: 0.16,
+      clearcoat: 0.3
+    }),
+    magnetNorthTint: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x94a3b8,
+      metalness: 0.90,
+      roughness: 0.22
+    }),
+    magnetSlit: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x334155,
+      metalness: 0.4,
+      roughness: 0.6
+    }),
+    yokePermalloy: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x64748b,
+      metalness: 0.88,
+      roughness: 0.32
+    }),
+    ceramicZirconia: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf8fafc,
+      metalness: 0.04,
+      roughness: 0.08,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05
+    }),
+    beCuSpring: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xd48b45,
+      metalness: 0.94,
+      roughness: 0.22
+    }),
+    mlccCeramic: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xb48a5a,
+      metalness: 0.08,
+      roughness: 0.36
+    }),
+    solderTin: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xdce3ec,
+      metalness: 0.92,
+      roughness: 0.22
+    }),
+    icPackageDark: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x1e2430,
+      metalness: 0.14,
+      roughness: 0.42
+    }),
+    hallSensorEmerald: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x065f46,
+      metalness: 0.35,
+      roughness: 0.32
+    }),
+    btbHousing: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x2c2a29,
+      metalness: 0.1,
+      roughness: 0.48
+    }),
+    graphiteSheet: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x272a30,
+      metalness: 0.48,
+      roughness: 0.38
+    }),
+
+    // === MICRO PIXEL CROSS-SECTION MATERIALS ===
+    microLensPolymer: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe0f2fe,
+      metalness: 0.04,
+      roughness: 0.03,
+      transparent: true,
+      opacity: 0.24,
+      ior: 1.64,
+      reflectivity: 0.96,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.02,
+      iridescence: 0.42,
+      iridescenceIOR: 1.64,
+      depthWrite: false
+    }),
+    microArlLayer: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xbae6fd,
+      metalness: 0.05,
+      roughness: 0.08,
+      transparent: true,
+      opacity: 0.16,
+      iridescence: 0.85,
+      iridescenceIOR: 1.6,
+      depthWrite: false
+    }),
+    cfaRed: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe11d48,
+      metalness: 0.02,
+      roughness: 0.12,
+      transparent: true,
+      opacity: 0.86,
+      clearcoat: 0.75
+    }),
+    cfaGreen: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x16a34a,
+      metalness: 0.02,
+      roughness: 0.12,
+      transparent: true,
+      opacity: 0.86,
+      clearcoat: 0.75
+    }),
+    cfaBlue: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x2563eb,
+      metalness: 0.02,
+      roughness: 0.12,
+      transparent: true,
+      opacity: 0.86,
+      clearcoat: 0.75
+    }),
+    tungstenGrid: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x475569,
+      metalness: 0.92,
+      roughness: 0.25
+    }),
+    lowNGrid: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe2e8f0,
+      metalness: 0.05,
+      roughness: 0.12,
+      transparent: true,
+      opacity: 0.58
+    }),
+    hfo2FixedCharge: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x9333ea,
+      metalness: 0.28,
+      roughness: 0.16,
+      transparent: true,
+      opacity: 0.86,
+      iridescence: 0.75
+    }),
+    fullDtiOxide: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xdbe4ee,
+      metalness: 0.08,
+      roughness: 0.24,
+      transparent: true,
+      opacity: 0.90
+    }),
+    microPdSilicon: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1d4ed8,
+      metalness: 0.22,
+      roughness: 0.15,
+      transparent: true,
+      opacity: 0.42,
+      clearcoat: 0.6,
+      depthWrite: false
+    }),
+    microPdDepletion: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x0ea5e9,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.34,
+      metalness: 0.12,
+      roughness: 0.18,
+      transparent: true,
+      opacity: 0.58,
+      depthWrite: false
+    }),
+    polySiVtg: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xf97316,
+      metalness: 0.65,
+      roughness: 0.28
+    }),
+    fdLoficNode: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xeab308,
+      metalness: 0.82,
+      roughness: 0.22
+    }),
+    viaTungsten: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xfbbf24,
+      metalness: 0.92,
+      roughness: 0.2
+    }),
+    secondLayerSi: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x334155,
+      metalness: 0.42,
+      roughness: 0.28,
+      transparent: true,
+      opacity: 0.62
+    }),
+    mosfetAmp: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x10b981,
+      metalness: 0.72,
+      roughness: 0.24
+    }),
+    mosfetRstSel: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x0ea5e9,
+      metalness: 0.72,
+      roughness: 0.24
+    }),
+    beolCopper: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xea580c,
+      metalness: 0.95,
+      roughness: 0.18
+    }),
+    sicnDielectric: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x64748b,
+      metalness: 0.12,
+      roughness: 0.24,
+      transparent: true,
+      opacity: 0.34,
+      depthWrite: false
+    }),
+    finfetLogicBase: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x334155,
+      metalness: 0.72,
+      roughness: 0.28
+    })
+  };
+}
