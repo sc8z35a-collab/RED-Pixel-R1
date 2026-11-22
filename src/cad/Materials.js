@@ -534,6 +534,49 @@ export function createWhiteStudioEnv(renderer) {
 }
 
 /**
+ * Phase 13: Precision sub-micron optical/TMR linear encoder zebra grating texture.
+ */
+function createEncoderScaleTexture() {
+  const { c, ctx } = makeCanvas(512, 128);
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 512, 128);
+
+  // Fine incremental optical grating bars (20 um pitch visual representation)
+  for (let x = 0; x < 512; x += 8) {
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillRect(x, 14, 4, 52);
+  }
+  // Absolute reference index track along lower lane
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(0, 84, 512, 8);
+  for (let x = 16; x < 512; x += 48) {
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(x, 96, 10, 18);
+  }
+  return toTexture(c, true);
+}
+
+/**
+ * Phase 13: Co-fired multilayer PZT ceramic + alternating Ag-Pd internal electrode lamination texture.
+ */
+function createPztStackTexture() {
+  const { c, ctx } = makeCanvas(256, 256);
+  ctx.fillStyle = '#d9bc82';
+  ctx.fillRect(0, 0, 256, 256);
+
+  // Alternating warm PZT piezoelectric layers (25 um) & silver-palladium (Ag-Pd) internal electrodes
+  for (let y = 0; y < 256; y += 16) {
+    ctx.fillStyle = '#c9a667';
+    ctx.fillRect(0, y, 256, 11);
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillRect(0, y + 11, 256, 3);
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(0, y + 14, 256, 2);
+  }
+  return toTexture(c, true);
+}
+
+/**
  * Material Library Factory with shared clipping planes & clean PBR parameters.
  */
 export function createMaterialLibrary(clippingPlanes) {
@@ -545,6 +588,8 @@ export function createMaterialLibrary(clippingPlanes) {
   const pcbTex = createRigidPcbTexture();
   const fpcTex = createFpcTexture();
   const coilTex = createCopperCoilTexture();
+  const encoderTex = createEncoderScaleTexture();
+  const pztStackTex = createPztStackTexture();
 
   const base = {
     clippingPlanes,
@@ -2203,6 +2248,148 @@ export function createMaterialLibrary(clippingPlanes) {
       emissiveIntensity: 0.42,
       metalness: 0.25,
       roughness: 0.24
+    }),
+
+    // === PHASE 13: CONTINUOUS OPTICAL ZOOM PERISCOPE (85-170mm) + 110kHz ULTRASONIC PIEZO + 10,000x PEROVSKITE PZT ===
+    zmPztCeramic: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: pztStackTex,
+      color: 0xffffff,
+      emissive: 0xb45309,
+      emissiveIntensity: 0.08,
+      metalness: 0.16,
+      roughness: 0.28,
+      clearcoat: 0.55
+    }),
+    zmAgPdElectrode: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe2e8f0,
+      metalness: 0.94,
+      roughness: 0.16,
+      clearcoat: 0.65
+    }),
+    zmAluminaCeramic: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf8fafc,
+      emissive: 0xf43f5e,
+      emissiveIntensity: 0.06,
+      metalness: 0.05,
+      roughness: 0.14,
+      clearcoat: 0.92
+    }),
+    zmRubyTip: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe11d48,
+      emissive: 0xbe123c,
+      emissiveIntensity: 0.34,
+      metalness: 0.12,
+      roughness: 0.10,
+      clearcoat: 1.0
+    }),
+    zmGuideShaft: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe2e8f0,
+      metalness: 0.96,
+      roughness: 0.08,
+      clearcoat: 0.72
+    }),
+    zmPtfeBushing: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xc27c3e,
+      metalness: 0.64,
+      roughness: 0.26,
+      clearcoat: 0.35
+    }),
+    zmEncoderScale: new THREE.MeshStandardMaterial({
+      ...base,
+      map: encoderTex,
+      color: 0xffffff,
+      metalness: 0.42,
+      roughness: 0.28
+    }),
+    zmPbCation: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x64748b,
+      emissive: 0x334155,
+      emissiveIntensity: 0.18,
+      metalness: 0.80,
+      roughness: 0.18,
+      clearcoat: 0.85
+    }),
+    zmOxygenAnion: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x14b8a6,
+      emissive: 0x0d9488,
+      emissiveIntensity: 0.36,
+      metalness: 0.14,
+      roughness: 0.14,
+      clearcoat: 0.92
+    }),
+    zmOctaFacet: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x2dd4bf,
+      emissive: 0x14b8a6,
+      emissiveIntensity: 0.14,
+      metalness: 0.06,
+      roughness: 0.12,
+      transparent: true,
+      opacity: 0.16,
+      depthWrite: false
+    }),
+    zmTiDipole: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf59e0b,
+      emissive: 0xea580c,
+      emissiveIntensity: 0.62,
+      metalness: 0.22,
+      roughness: 0.14,
+      clearcoat: 1.0
+    }),
+    zmOrbitGlow: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x06b6d4,
+      emissive: 0x0891b2,
+      emissiveIntensity: 0.68,
+      metalness: 0.16,
+      roughness: 0.18
+    }),
+    zmDipoleVector: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xd946ef,
+      emissive: 0xa21caf,
+      emissiveIntensity: 0.56,
+      metalness: 0.20,
+      roughness: 0.18
+    }),
+    zmDcutGlass: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xbfdbfe,
+      emissive: 0x38bdf8,
+      emissiveIntensity: 0.10,
+      metalness: 0.04,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.44,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+      iridescence: 0.68,
+      iridescenceIOR: 1.78,
+      depthWrite: false
+    }),
+    zmDcutFlint: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe9d5ff,
+      emissive: 0xa855f7,
+      emissiveIntensity: 0.10,
+      metalness: 0.04,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.46,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+      iridescence: 0.72,
+      iridescenceIOR: 1.85,
+      depthWrite: false
     })
   };
 }

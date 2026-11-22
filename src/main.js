@@ -14,6 +14,7 @@ import { buildLidarPhotonicsAssembly } from './assemblies/LidarPhotonicsAssembly
 import { buildSmaMuscleAssembly } from './assemblies/SmaMuscleAssembly.js';
 import { buildLiquidLensAssembly } from './assemblies/LiquidLensAssembly.js';
 import { buildTetraprismAssembly } from './assemblies/TetraprismAssembly.js';
+import { buildContinuousZoomAssembly } from './assemblies/ContinuousZoomAssembly.js';
 import {
   MACRO_PARTS,
   MICRO_PARTS,
@@ -28,6 +29,7 @@ import {
   SMA_PARTS,
   LIQUID_PARTS,
   TETRAPRISM_PARTS,
+  CONTINUOUS_ZOOM_PARTS,
   OVERVIEW_DOCS,
   ALL_PARTS_BY_ID
 } from './knowledge/sensorKnowledge.js';
@@ -39,7 +41,7 @@ const uiRoot = document.getElementById('ui-root');
 const engine = new CadEngine(viewportEl);
 const sim = new SimEffects(engine.scene);
 
-// Pre-build all 13 multiscale modes (368 independent dissectable 3D CAD parts!)
+// Pre-build all 14 multiscale modes (400 independent dissectable 3D CAD parts!)
 const assemblies = {
   macro: buildMacroSensorAssembly(engine.materials),
   micro: buildMicroPixelAssembly(engine.materials),
@@ -53,7 +55,8 @@ const assemblies = {
   lidar: buildLidarPhotonicsAssembly(engine.materials),
   sma: buildSmaMuscleAssembly(engine.materials),
   liquid: buildLiquidLensAssembly(engine.materials),
-  tetra: buildTetraprismAssembly(engine.materials)
+  tetra: buildTetraprismAssembly(engine.materials),
+  zoom: buildContinuousZoomAssembly(engine.materials)
 };
 
 const partDocsByScale = {
@@ -69,13 +72,14 @@ const partDocsByScale = {
   lidar: LIDAR_PARTS,
   sma: SMA_PARTS,
   liquid: LIQUID_PARTS,
-  tetra: TETRAPRISM_PARTS
+  tetra: TETRAPRISM_PARTS,
+  zoom: CONTINUOUS_ZOOM_PARTS
 };
 
 Object.values(assemblies).forEach((asm) => engine.scene.add(asm.root));
 
-let currentScale = 'tetra';
-let activeAsm = assemblies.tetra;
+let currentScale = 'zoom';
+let activeAsm = assemblies.zoom;
 let targetExplode = 0;
 let currentExplode = 0;
 
@@ -115,31 +119,33 @@ const ui = new ZeroTextUI(uiRoot, {
   },
   onSnapView(preset) {
     const dist =
-      currentScale === 'tetra'
-        ? 44
-        : currentScale === 'liquid'
-          ? 42
-          : currentScale === 'sma'
+      currentScale === 'zoom'
+        ? 45
+        : currentScale === 'tetra'
+          ? 44
+          : currentScale === 'liquid'
             ? 42
-            : currentScale === 'lidar'
-              ? 40
-              : currentScale === 'iris_nano'
-                ? 34
-                : currentScale === 'iris'
-                  ? 44
-                  : currentScale === 'aperture'
+            : currentScale === 'sma'
+              ? 42
+              : currentScale === 'lidar'
+                ? 40
+                : currentScale === 'iris_nano'
+                  ? 34
+                  : currentScale === 'iris'
                     ? 44
-                    : currentScale === 'periscope'
-                      ? 40
-                      : currentScale === 'deco'
-                        ? 42
-                        : currentScale === 'lens'
-                          ? 38
-                          : currentScale === 'macro'
-                            ? 36
-                            : currentScale === 'layer2'
-                              ? 32
-                              : 28;
+                    : currentScale === 'aperture'
+                      ? 44
+                      : currentScale === 'periscope'
+                        ? 40
+                        : currentScale === 'deco'
+                          ? 42
+                          : currentScale === 'lens'
+                            ? 38
+                            : currentScale === 'macro'
+                              ? 36
+                              : currentScale === 'layer2'
+                                ? 32
+                                : 28;
     engine.snapView(preset, dist, activeAsm.defaultTarget);
   },
   onSelectPartUI(partId) {
@@ -240,8 +246,8 @@ function switchScale(scale, instantCamera = false) {
   }
 }
 
-// Launch directly into Phase 12 4-Bounce Folded Tetraprism 5x Telephoto Engine & 500x TIR Evanescent-Wave Nano-Anatomy (32 Parts)
-switchScale('tetra', true);
+// Launch directly into Phase 13 Continuous Optical Zoom Periscope (85-170mm) + 110kHz Ultrasonic Piezo & 10,000x Perovskite PZT Lattice (32 Parts -> 400-Part Milestone!)
+switchScale('zoom', true);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -266,31 +272,33 @@ function animate(now) {
   sim.update(dt, elapsed, engine.partMap, currentExplode);
   const gridDrop =
     currentExplode *
-    (currentScale === 'tetra'
+    (currentScale === 'zoom'
       ? 6.4
-      : currentScale === 'liquid'
-        ? 6.2
-        : currentScale === 'sma'
-          ? 6.0
-          : currentScale === 'lidar'
-            ? 6.4
-            : currentScale === 'iris_nano'
-              ? 5.0
-              : currentScale === 'iris'
-                ? 6.8
-                : currentScale === 'aperture'
-                  ? 9.2
-                  : currentScale === 'periscope'
-                    ? 6.4
-                    : currentScale === 'deco'
-                      ? 8.8
-                      : currentScale === 'lens'
-                        ? 7.6
-                        : currentScale === 'layer2'
-                          ? 8.0
-                          : currentScale === 'macro'
-                            ? 9.6
-                            : 9.4);
+      : currentScale === 'tetra'
+        ? 6.4
+        : currentScale === 'liquid'
+          ? 6.2
+          : currentScale === 'sma'
+            ? 6.0
+            : currentScale === 'lidar'
+              ? 6.4
+              : currentScale === 'iris_nano'
+                ? 5.0
+                : currentScale === 'iris'
+                  ? 6.8
+                  : currentScale === 'aperture'
+                    ? 9.2
+                    : currentScale === 'periscope'
+                      ? 6.4
+                      : currentScale === 'deco'
+                        ? 8.8
+                        : currentScale === 'lens'
+                          ? 7.6
+                          : currentScale === 'layer2'
+                            ? 8.0
+                            : currentScale === 'macro'
+                              ? 9.6
+                              : 9.4);
   engine.setGridElevation(activeAsm.gridY - gridDrop);
   engine.update(now);
 }

@@ -9,6 +9,7 @@ import { LIDAR_OVERVIEW_DOC, LIDAR_PARTS } from './lidarKnowledge.js';
 import { SMA_OVERVIEW_DOC, SMA_PARTS } from './smaMuscleKnowledge.js';
 import { LIQUID_OVERVIEW_DOC, LIQUID_PARTS } from './liquidLensKnowledge.js';
 import { TETRAPRISM_OVERVIEW_DOC, TETRAPRISM_PARTS } from './tetraprismKnowledge.js';
+import { CONTINUOUS_ZOOM_OVERVIEW_DOC, CONTINUOUS_ZOOM_PARTS } from './continuousZoomKnowledge.js';
 
 export {
   LAYER2_PARTS,
@@ -21,10 +22,12 @@ export {
   LIDAR_PARTS,
   SMA_PARTS,
   LIQUID_PARTS,
-  TETRAPRISM_PARTS
+  TETRAPRISM_PARTS,
+  CONTINUOUS_ZOOM_PARTS
 };
 
 export const OVERVIEW_DOCS = {
+  zoom: CONTINUOUS_ZOOM_OVERVIEW_DOC,
   tetra: TETRAPRISM_OVERVIEW_DOC,
   liquid: LIQUID_OVERVIEW_DOC,
   sma: SMA_OVERVIEW_DOC,
@@ -989,6 +992,7 @@ export const ALL_PARTS_BY_ID = Object.fromEntries(
     ...LIDAR_PARTS,
     ...SMA_PARTS,
     ...LIQUID_PARTS,
-    ...TETRAPRISM_PARTS
+    ...TETRAPRISM_PARTS,
+    ...CONTINUOUS_ZOOM_PARTS
   ].map((p) => [p.id, p])
 );

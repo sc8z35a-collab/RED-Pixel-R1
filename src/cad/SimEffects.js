@@ -67,6 +67,9 @@ export class SimEffects {
     } else if (mode === 'tetra') {
       this._buildTetraOptics();
       this._buildGuideLines(11.8, -8.8, [[-9.0, -4.5], [12.6, -4.5], [-9.0, 6.2], [12.6, 6.2]]);
+    } else if (mode === 'zoom') {
+      this._buildZoomOptics();
+      this._buildGuideLines(11.6, -8.6, [[-9.8, -3.5], [13.2, -3.5], [-9.8, 5.2], [13.2, 5.2]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -922,6 +925,101 @@ export class SimEffects {
     ], 0xf59e0b, 0.86, 0.064, 3);
   }
 
+  _buildZoomOptics() {
+    // Crisp piecewise-linear folded periscope ray helper (exact 90° fold at 45° TIR prism -> G1 -> G2 -> G3 -> G4 -> CMOS!)
+    const addSharpRay = (pts, colorHex, opacity = 0.86, radius = 0.068, pulseCount = 4) => {
+      const path = new THREE.CurvePath();
+      const segMat = new THREE.MeshBasicMaterial({
+        color: colorHex,
+        transparent: true,
+        opacity,
+        depthWrite: false
+      });
+      const up = new THREE.Vector3(0, 1, 0);
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i];
+        const b = pts[i + 1];
+        path.add(new THREE.LineCurve3(a, b));
+        const dir = b.clone().sub(a);
+        const len = dir.length();
+        const cyl = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, len, 10), segMat);
+        cyl.position.copy(a).add(b).multiplyScalar(0.5);
+        if (len > 1e-5) cyl.quaternion.setFromUnitVectors(up, dir.divideScalar(len));
+        cyl.userData.ignorePick = true;
+        this.opticsGroup.add(cyl);
+      }
+
+      const dotGeo = new THREE.SphereGeometry(radius * 2.4, 10, 10);
+      const dotMat = new THREE.MeshBasicMaterial({ color: colorHex });
+      for (let k = 0; k < pulseCount; k++) {
+        const dot = new THREE.Mesh(dotGeo, dotMat);
+        dot.userData.ignorePick = true;
+        this.opticsGroup.add(dot);
+        this.photonPulses.push({
+          mesh: dot,
+          curve: path,
+          phase: k / pulseCount,
+          speed: 0.25 + (k % 2) * 0.04
+        });
+      }
+    };
+
+    // 1. Emerald Central Chief Ray: Vertical Down (-7.65) -> 45° Prism Fold -> G1 -> G2 -> G3 -> G4 -> Vertical CMOS (+4.42)!
+    addSharpRay([
+      new THREE.Vector3(-7.65, 5.4, 0.0),
+      new THREE.Vector3(-7.65, 0.55, 0.0), // Exact 45° TIR mirror reflection!
+      new THREE.Vector3(-5.45, 0.55, 0.0), // Fixed Front G1
+      new THREE.Vector3(-2.45, 0.55, 0.0), // Moving Zoom Variator G2
+      new THREE.Vector3(0.95, 0.55, 0.0),  // Moving Parfocal Compensator G3
+      new THREE.Vector3(2.85, 0.55, 0.0),  // Fixed Field Flattener G4
+      new THREE.Vector3(4.42, 0.55, 0.0)   // Vertical BSI Exmor-RS CMOS!
+    ], 0x10b981, 0.90, 0.076, 4);
+
+    // 2. Royal-Blue Upper Marginal Ray (shows classic zoom expansion through negative G2 -> convergence through positive G3 -> focus on CMOS!)
+    addSharpRay([
+      new THREE.Vector3(-8.35, 5.4, 0.45),
+      new THREE.Vector3(-8.35, 1.25, 0.45), // Hits 45° hypotenuse (x + y = -7.10) cleanly!
+      new THREE.Vector3(-5.45, 1.20, 0.42), // G1 slightly converges
+      new THREE.Vector3(-2.45, 0.92, 0.36), // G2 negative variator expands beam
+      new THREE.Vector3(0.95, 1.18, 0.28),  // G3 positive compensator re-focuses parfocally!
+      new THREE.Vector3(2.85, 0.84, 0.16),  // G4 flattens field
+      new THREE.Vector3(4.42, 0.55, 0.0)    // Sharp parfocal point on CMOS!
+    ], 0x2563eb, 0.82, 0.056, 3);
+
+    // 3. Crimson Lower Marginal Ray (symmetric lower ray converging sharply onto the exact same parfocal image plane!)
+    addSharpRay([
+      new THREE.Vector3(-6.95, 5.4, -0.45),
+      new THREE.Vector3(-6.95, -0.15, -0.45), // Hits 45° hypotenuse (-6.95 + -0.15 = -7.10) cleanly!
+      new THREE.Vector3(-5.45, -0.10, -0.42),
+      new THREE.Vector3(-2.45, 0.18, -0.36),
+      new THREE.Vector3(0.95, -0.08, -0.28),
+      new THREE.Vector3(2.85, 0.26, -0.16),
+      new THREE.Vector3(4.42, 0.55, 0.0)
+    ], 0xef4444, 0.82, 0.056, 3);
+
+    // 4. Amber 110 kHz Quadrature (±90°) Piezo Drive Waveforms (Driver ASIC -> G2 Upper & G3 Lower PZT Stators!)
+    this._addRay([
+      new THREE.Vector3(-5.35, -1.80, 1.95),
+      new THREE.Vector3(-4.15, 0.25, 2.55),
+      new THREE.Vector3(-2.45, 1.70, 2.58)
+    ], 0xf59e0b, 0.86, 0.058, 3);
+
+    this._addRay([
+      new THREE.Vector3(-4.75, -1.80, 2.10),
+      new THREE.Vector3(-2.15, -1.25, 2.55),
+      new THREE.Vector3(0.72, -0.58, 2.58)
+    ], 0xf97316, 0.86, 0.058, 3);
+
+    // 5. Violet 10,000x Electric Field E Lines across Perovskite PZT Unit Cell (Bottom Electrode -> Top Electrode)
+    for (const [dx, dz] of [[-0.85, 0.85], [0.85, 0.85], [-0.85, -0.85], [0.85, -0.85]]) {
+      this._addRay([
+        new THREE.Vector3(10.6 + dx, 0.55, dz),
+        new THREE.Vector3(10.6 + dx, 2.25, dz),
+        new THREE.Vector3(10.6 + dx, 3.95, dz)
+      ], 0xd946ef, 0.72, 0.036, 2);
+    }
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -990,6 +1088,7 @@ export class SimEffects {
     //  - SMA: 8-Wire Antagonistic NiTiCu Artificial-Muscle 5-Axis Motion + Real-Time Hot Austenite <-> Cool Martensite Glow + Phase Front!
     //  - Liquid: Live 3D Vertex-Morphing Oil-Water Meniscus (-15 D <-> +35 D AF + 2-Axis Quadrant OIS Tilt) + 500x EDL Wetting Slide!
     //  - Tetra: Horizontal 3D Sensor-Shift OIS (X/Y) + Vertical Sensor-Shift AF (Z) at 10,000 Hz + 500x EM Wave & Evanescent Field Pulse!
+    //  - Zoom: 85-170 mm Continuous Optical Zoom (G2 linear variator + G3 non-linear parfocal U-turn) + Twin 110 kHz Ultrasonic Piezo Tips + 10,000x Perovskite PZT Dipole Strain!
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
     const decoAct = this.oisEnabled && this.mode === 'deco';
@@ -1001,6 +1100,7 @@ export class SimEffects {
     const smaAct = this.oisEnabled && this.mode === 'sma';
     const liquidAct = this.oisEnabled && this.mode === 'liquid';
     const tetraAct = this.oisEnabled && this.mode === 'tetra';
+    const zoomAct = this.oisEnabled && this.mode === 'zoom';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
@@ -1050,6 +1150,17 @@ export class SimEffects {
     const tpDz = tetraAct ? Math.cos(elapsed * 3.1) * 0.30 : 0;
     const tpWavePulse = tetraAct ? (0.48 + 0.75 * (0.5 + 0.5 * Math.sin(elapsed * 6.5))) : 0.52;
     const tpEvanDy = tetraAct ? Math.sin(elapsed * 4.5) * 0.08 : 0;
+
+    // Phase 13 85-170 mm Continuous Optical Zoom (G2 linear sweep + G3 parabolic parfocal U-turn) + 110 kHz Piezo & 10,000x PZT Dipole!
+    const zoomU = zoomAct ? (0.5 - 0.5 * Math.cos(elapsed * 0.92)) : 0.5;
+    const zoomDir = zoomAct ? (Math.sin(elapsed * 0.92) >= 0 ? 1 : -1) : 1;
+    const zoomG2Dx = zoomAct ? (zoomU - 0.5) * 2.40 : 0;
+    const zoomG3Dx = zoomAct ? (-0.72 * Math.sin(zoomU * Math.PI) + 0.34 * (zoomU - 0.5)) : 0;
+    const zoomPrismPitch = zoomAct ? Math.sin(elapsed * 2.8) * 0.036 : 0;
+    const zoomPrismYaw = zoomAct ? Math.cos(elapsed * 2.1) * 0.032 : 0;
+    const zoomPiezoStrain = zoomAct ? Math.sin(elapsed * 5.8) * 0.085 : 0;
+    const zoomTiDy = zoomAct ? Math.sin(elapsed * 5.8) * 0.24 : 0;
+    const zoomOrbitTheta = zoomAct ? elapsed * 5.6 * zoomDir : 0;
 
     for (const entry of partsMap.values()) {
       const ex = entry.basePos.x + entry.explodeVec.x * explodeT;
@@ -1103,10 +1214,23 @@ export class SimEffects {
         }
       }
 
+      // Phase 13 85-170 mm Continuous Optical Zoom (G2 Variator + G3 Parfocal Compensator + Ti4+ Dipole)
+      if (zoomAct) {
+        if (entry.zoomG2Moving) {
+          dx += zoomG2Dx;
+        } else if (entry.zoomG3Moving) {
+          dx += zoomG3Dx;
+        } else if (entry.zoomTiDipole) {
+          dy += zoomTiDy;
+        }
+      }
+
       entry.group.position.set(ex + dx, ey + dy, ez + dz);
 
       if (entry.prismTiltMoving) {
         entry.group.rotation.set(0, prismYaw, prismPitch);
+      } else if (entry.zoomPrismOis) {
+        entry.group.rotation.set(0, zoomPrismYaw, zoomPrismPitch);
       } else if (entry.nanoBall && irisNanoAct) {
         // True rolling rotation around X axis matching 0.5x translation along Z (R_ball = 1.60)
         entry.group.rotation.set(nanoBallZ / 1.60, 0, 0);
@@ -1274,6 +1398,45 @@ export class SimEffects {
       // Live Phase 12 500x Electromagnetic Wave Propagation Pulse
       if (entry.group.userData.tetraWaveMat) {
         entry.group.userData.tetraWaveMat.emissiveIntensity = tpWavePulse;
+      }
+
+      // Live Phase 13 Synchronized G2 & G3 Sub-Assemblies (Bushings, Alumina Sliders, Optical Encoders, Ultrasonic Tips, Perovskite c-Axis Strain & 500x Elliptical Orbit!)
+      const ud = entry.group.userData;
+      if (ud.zoomBushingG2) {
+        ud.zoomBushingG2.position.x = zoomG2Dx;
+        ud.zoomBushingG3.position.x = zoomG3Dx;
+      }
+      if (ud.zoomSliderG2) {
+        ud.zoomSliderG2.position.x = zoomG2Dx;
+        ud.zoomSliderG3.position.x = zoomG3Dx;
+      }
+      if (ud.zoomEncG2) {
+        ud.zoomEncG2.position.x = zoomG2Dx;
+        ud.zoomEncG3.position.x = zoomG3Dx;
+      }
+      if (ud.zoomTipG2) {
+        const b2 = ud.zoomTipG2.userData.basePos;
+        const b3 = ud.zoomTipG3.userData.basePos;
+        if (zoomAct) {
+          ud.zoomTipG2.position.set(b2.x + Math.cos(zoomOrbitTheta) * 0.075, b2.y, b2.z + Math.sin(zoomOrbitTheta) * 0.055);
+          ud.zoomTipG3.position.set(b3.x + Math.cos(-zoomOrbitTheta * 1.2) * 0.075, b3.y, b3.z + Math.sin(-zoomOrbitTheta * 1.2) * 0.055);
+        } else {
+          ud.zoomTipG2.position.copy(b2);
+          ud.zoomTipG3.position.copy(b3);
+        }
+      }
+      if (ud.zoomLatticeStretch) {
+        ud.zoomLatticeStretch.scale.set(1, 1 + zoomPiezoStrain, 1);
+      }
+      if (ud.zoomTopElectrode) {
+        ud.zoomTopElectrode.position.y = zoomPiezoStrain * 2.76;
+      }
+      if (ud.zoomMicroOrbitHead) {
+        if (zoomAct) {
+          ud.zoomMicroOrbitHead.position.set(Math.cos(zoomOrbitTheta) * 0.78, Math.sin(zoomOrbitTheta) * 0.36, 0);
+        } else {
+          ud.zoomMicroOrbitHead.position.set(0, 0, 0);
+        }
       }
     }
 

@@ -16,6 +16,7 @@ const ICONS = {
   sma: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.4" fill="currentColor" fill-opacity="0.16"/><line x1="4" y1="5.5" x2="17" y2="7.5"/><line x1="20" y1="5.5" x2="7" y2="7.5"/><line x1="4" y1="18.5" x2="17" y2="16.5"/><line x1="20" y1="18.5" x2="7" y2="16.5"/><circle cx="4" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="20" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="18.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="20" cy="18.5" r="1.2" fill="currentColor" stroke="none"/></svg>`,
   liquid: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5h15l-2.4 13H6.9l-2.4-13z"/><path d="M5.8 12.8c2.6-3.4 9.8-3.4 12.4 0" fill="currentColor" fill-opacity="0.22"/><line x1="2.2" y1="12" x2="4.6" y2="12"/><line x1="19.4" y1="12" x2="21.8" y2="12"/></svg>`,
   tetra: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="3.5 7 15.5 7 20.5 9.2 20.5 15.5 8.5 15.5 3.5 13.3" fill="currentColor" fill-opacity="0.14"/><path d="M6.2 3v11l3.6-6.8 3.6 8.2 3.8-7.4v10.2"/><rect x="13.5" y="18.8" width="7.2" height="2.2" rx="0.8" fill="currentColor" stroke="none"/></svg>`,
+  zoom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="2.5 8 7.5 8 7.5 14.5" fill="currentColor" fill-opacity="0.18"/><path d="M5 4v7.2h15.5"/><line x1="11.2" y1="7.5" x2="11.2" y2="15"/><line x1="16.2" y1="7.5" x2="16.2" y2="15"/><path d="M9.5 18.5h8.2M11.3 16.7l-1.8 1.8 1.8 1.8M15.9 16.7l1.8 1.8-1.8 1.8"/><rect x="20" y="7.5" width="2" height="7.5" rx="0.7" fill="currentColor" stroke="none"/></svg>`,
 
   // Explode
   assembled: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>`,
@@ -110,7 +111,7 @@ export class ZeroTextUI {
   constructor(rootEl, callbacks) {
     this.root = rootEl;
     this.cb = callbacks;
-    this.scale = 'tetra';
+    this.scale = 'zoom';
     this.partsList = [];
     this.selectedId = null;
     this.hiddenSet = new Set();
@@ -147,7 +148,7 @@ export class ZeroTextUI {
   _buildDOM() {
     this.root.innerHTML = '';
 
-    // 1. TOP-LEFT SCALE SWITCH (13 Multiscale Modes — 368 Independent 3D CAD Parts!)
+    // 1. TOP-LEFT SCALE SWITCH (14 Multiscale Modes — 400 Independent 3D CAD Parts!)
     const scaleDock = this._el('div', 'scale-dock cad-glass');
     this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'));
     this.btnMicro = this._iconBtn(ICONS.micro, () => this.cb.onSwitchScale('micro'));
@@ -161,7 +162,8 @@ export class ZeroTextUI {
     this.btnLidar = this._iconBtn(ICONS.lidar, () => this.cb.onSwitchScale('lidar'));
     this.btnSma = this._iconBtn(ICONS.sma, () => this.cb.onSwitchScale('sma'));
     this.btnLiquid = this._iconBtn(ICONS.liquid, () => this.cb.onSwitchScale('liquid'));
-    this.btnTetra = this._iconBtn(ICONS.tetra, () => this.cb.onSwitchScale('tetra'), 'active');
+    this.btnTetra = this._iconBtn(ICONS.tetra, () => this.cb.onSwitchScale('tetra'));
+    this.btnZoom = this._iconBtn(ICONS.zoom, () => this.cb.onSwitchScale('zoom'), 'active');
     scaleDock.append(
       this.btnMacro,
       this.btnMicro,
@@ -175,7 +177,8 @@ export class ZeroTextUI {
       this.btnLidar,
       this.btnSma,
       this.btnLiquid,
-      this.btnTetra
+      this.btnTetra,
+      this.btnZoom
     );
     this.root.appendChild(scaleDock);
 
@@ -392,7 +395,8 @@ export class ZeroTextUI {
     this.btnSma.classList.toggle('active', scale === 'sma');
     this.btnLiquid.classList.toggle('active', scale === 'liquid');
     this.btnTetra.classList.toggle('active', scale === 'tetra');
-    // Live demo button (OIS / Iris+AF+OIS / Flash+LiDAR / Prism-Tilt / Deep Iris / Micro-Iris / Sub-Micron / Quantum LiDAR / SMA / Liquid / Tetraprism)
+    this.btnZoom.classList.toggle('active', scale === 'zoom');
+    // Live demo button (OIS / Iris+AF+OIS / Flash+LiDAR / Prism-Tilt / Deep Iris / Micro-Iris / Sub-Micron / Quantum LiDAR / SMA / Liquid / Tetraprism / Continuous Zoom+Piezo)
     this.btnOis.style.display =
       scale === 'macro' ||
       scale === 'lens' ||
@@ -404,7 +408,8 @@ export class ZeroTextUI {
       scale === 'lidar' ||
       scale === 'sma' ||
       scale === 'liquid' ||
-      scale === 'tetra'
+      scale === 'tetra' ||
+      scale === 'zoom'
         ? 'inline-flex'
         : 'none';
   }
