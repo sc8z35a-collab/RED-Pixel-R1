@@ -17,6 +17,7 @@ import { buildTetraprismAssembly } from './assemblies/TetraprismAssembly.js';
 import { buildContinuousZoomAssembly } from './assemblies/ContinuousZoomAssembly.js';
 import { buildMetalensAssembly } from './assemblies/MetalensAssembly.js';
 import { buildGlobalShutterAssembly } from './assemblies/GlobalShutterAssembly.js';
+import { buildFlagshipSmartphoneAssembly } from './assemblies/FlagshipSmartphoneAssembly.js';
 import {
   MACRO_PARTS,
   MICRO_PARTS,
@@ -34,6 +35,7 @@ import {
   CONTINUOUS_ZOOM_PARTS,
   METALENS_PARTS,
   GLOBAL_SHUTTER_PARTS,
+  FLAGSHIP_PHONE_PARTS,
   OVERVIEW_DOCS,
   ALL_PARTS_BY_ID
 } from './knowledge/sensorKnowledge.js';
@@ -45,7 +47,7 @@ const uiRoot = document.getElementById('ui-root');
 const engine = new CadEngine(viewportEl);
 const sim = new SimEffects(engine.scene);
 
-// Pre-build all 16 multiscale modes (464 independent dissectable 3D CAD parts!)
+// Pre-build all 17 multiscale modes (EXACTLY 500 independent dissectable 3D CAD parts!)
 const assemblies = {
   macro: buildMacroSensorAssembly(engine.materials),
   micro: buildMicroPixelAssembly(engine.materials),
@@ -62,7 +64,8 @@ const assemblies = {
   tetra: buildTetraprismAssembly(engine.materials),
   zoom: buildContinuousZoomAssembly(engine.materials),
   metalens: buildMetalensAssembly(engine.materials),
-  gshutter: buildGlobalShutterAssembly(engine.materials)
+  gshutter: buildGlobalShutterAssembly(engine.materials),
+  flagship: buildFlagshipSmartphoneAssembly(engine.materials)
 };
 
 const partDocsByScale = {
@@ -81,13 +84,14 @@ const partDocsByScale = {
   tetra: TETRAPRISM_PARTS,
   zoom: CONTINUOUS_ZOOM_PARTS,
   metalens: METALENS_PARTS,
-  gshutter: GLOBAL_SHUTTER_PARTS
+  gshutter: GLOBAL_SHUTTER_PARTS,
+  flagship: FLAGSHIP_PHONE_PARTS
 };
 
 Object.values(assemblies).forEach((asm) => engine.scene.add(asm.root));
 
-let currentScale = 'gshutter';
-let activeAsm = assemblies.gshutter;
+let currentScale = 'flagship';
+let activeAsm = assemblies.flagship;
 let targetExplode = 0;
 let currentExplode = 0;
 
@@ -127,35 +131,37 @@ const ui = new ZeroTextUI(uiRoot, {
   },
   onSnapView(preset) {
     const dist =
-      currentScale === 'gshutter' || currentScale === 'metalens'
-        ? 45
-        : currentScale === 'zoom'
+      currentScale === 'flagship'
+        ? 40
+        : currentScale === 'gshutter' || currentScale === 'metalens'
           ? 45
-          : currentScale === 'tetra'
-            ? 44
-            : currentScale === 'liquid'
-              ? 42
-              : currentScale === 'sma'
+          : currentScale === 'zoom'
+            ? 45
+            : currentScale === 'tetra'
+              ? 44
+              : currentScale === 'liquid'
                 ? 42
-                : currentScale === 'lidar'
-                  ? 40
-                  : currentScale === 'iris_nano'
-                    ? 34
-                    : currentScale === 'iris'
-                      ? 44
-                      : currentScale === 'aperture'
+                : currentScale === 'sma'
+                  ? 42
+                  : currentScale === 'lidar'
+                    ? 40
+                    : currentScale === 'iris_nano'
+                      ? 34
+                      : currentScale === 'iris'
                         ? 44
-                        : currentScale === 'periscope'
-                          ? 40
-                          : currentScale === 'deco'
-                            ? 42
-                            : currentScale === 'lens'
-                              ? 38
-                              : currentScale === 'macro'
-                                ? 36
-                                : currentScale === 'layer2'
-                                  ? 32
-                                  : 28;
+                        : currentScale === 'aperture'
+                          ? 44
+                          : currentScale === 'periscope'
+                            ? 40
+                            : currentScale === 'deco'
+                              ? 42
+                              : currentScale === 'lens'
+                                ? 38
+                                : currentScale === 'macro'
+                                  ? 36
+                                  : currentScale === 'layer2'
+                                    ? 32
+                                    : 28;
     engine.snapView(preset, dist, activeAsm.defaultTarget);
   },
   onSelectPartUI(partId) {
@@ -256,8 +262,8 @@ function switchScale(scale, instantCamera = false) {
   }
 }
 
-// Launch directly into Phase 15 Global Shutter Stacked CMOS (1/80,000s) & 1/8,000s Mechanical Carbon Curtain Shutter (16 Scales / 464 Parts!)
-switchScale('gshutter', true);
+// Launch directly into Phase 16 Complete Integrated Flagship Smartphone Camera (17 Scales / 500-Part Grand Finale!)
+switchScale('flagship', true);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -282,14 +288,16 @@ function animate(now) {
   sim.update(dt, elapsed, engine.partMap, currentExplode);
   const gridDrop =
     currentExplode *
-    (currentScale === 'gshutter' || currentScale === 'metalens'
-      ? 6.4
-      : currentScale === 'zoom'
+    (currentScale === 'flagship'
+      ? 6.8
+      : currentScale === 'gshutter' || currentScale === 'metalens'
         ? 6.4
-        : currentScale === 'tetra'
+        : currentScale === 'zoom'
           ? 6.4
-          : currentScale === 'liquid'
-            ? 6.2
+          : currentScale === 'tetra'
+            ? 6.4
+            : currentScale === 'liquid'
+              ? 6.2
             : currentScale === 'sma'
               ? 6.0
               : currentScale === 'lidar'

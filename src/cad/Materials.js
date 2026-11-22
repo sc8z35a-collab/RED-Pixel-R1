@@ -639,6 +639,106 @@ function createCarbonWeaveTexture() {
 }
 
 /**
+ * Phase 16: Strictly ZERO-TEXT LTPO Tandem OLED live camera viewfinder texture
+ * (geometric composition rule-of-thirds grid, horizon reticle, focus bracket, shutter ring).
+ */
+function createOledViewfinderTexture() {
+  const { c, ctx } = makeCanvas(1024, 512);
+  // Deep twilight sky / alpine horizon photographic preview gradient
+  const g = ctx.createLinearGradient(0, 0, 0, 512);
+  g.addColorStop(0, '#0f172a');
+  g.addColorStop(0.42, '#1e3a8a');
+  g.addColorStop(0.68, '#0284c7');
+  g.addColorStop(0.84, '#f59e0b');
+  g.addColorStop(1, '#1e293b');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  // Subtle geometric mountain silhouette
+  ctx.fillStyle = 'rgba(15,23,42,0.72)';
+  ctx.beginPath();
+  ctx.moveTo(0, 512);
+  ctx.lineTo(0, 390);
+  ctx.lineTo(220, 290);
+  ctx.lineTo(390, 355);
+  ctx.lineTo(610, 240);
+  ctx.lineTo(840, 360);
+  ctx.lineTo(1024, 310);
+  ctx.lineTo(1024, 512);
+  ctx.closePath();
+  ctx.fill();
+
+  // Rule-of-thirds geometric grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.24)';
+  ctx.lineWidth = 2;
+  for (const x of [341, 682]) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke();
+  }
+  for (const y of [170, 341]) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1024, y); ctx.stroke();
+  }
+
+  // Golden autofocus reticle brackets (center)
+  ctx.strokeStyle = '#fbbf24';
+  ctx.lineWidth = 4;
+  const bx = 462, by = 206, bs = 100, arm = 22;
+  ctx.beginPath();
+  ctx.moveTo(bx, by + arm); ctx.lineTo(bx, by); ctx.lineTo(bx + arm, by);
+  ctx.moveTo(bx + bs - arm, by); ctx.lineTo(bx + bs, by); ctx.lineTo(bx + bs, by + arm);
+  ctx.moveTo(bx, by + bs - arm); ctx.lineTo(bx, by + bs); ctx.lineTo(bx + arm, by + bs);
+  ctx.moveTo(bx + bs - arm, by + bs); ctx.lineTo(bx + bs, by + bs); ctx.lineTo(bx + bs, by + bs - arm);
+  ctx.stroke();
+
+  // Pure-geometric circular shutter trigger icon on right bezel bar (zero text!)
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.arc(942, 256, 36, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(942, 256, 27, 0, Math.PI * 2); ctx.fill();
+
+  return toTexture(c, true);
+}
+
+/**
+ * Phase 16: Strictly ZERO-TEXT high-density Silicon-Carbon (Si-C) stacked battery pouch texture.
+ */
+function createBatteryCellTexture() {
+  const { c, ctx } = makeCanvas(512, 512);
+  ctx.fillStyle = '#1e2430';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Subtle brushed aluminum-laminate pouch sheen
+  const g = ctx.createLinearGradient(0, 0, 512, 512);
+  g.addColorStop(0, '#2a3342');
+  g.addColorStop(0.5, '#191f2a');
+  g.addColorStop(1, '#262f3e');
+  ctx.fillStyle = g;
+  ctx.fillRect(14, 14, 484, 484);
+
+  // Dual-cell stacked division groove & metallic heat-seal perimeter seam
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(18, 18, 476, 476);
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(18, 256); ctx.lineTo(494, 256); ctx.stroke();
+
+  // Pure geometric lightning bolt emblem (zero text!)
+  ctx.fillStyle = '#38bdf8';
+  ctx.beginPath();
+  ctx.moveTo(270, 180);
+  ctx.lineTo(222, 266);
+  ctx.lineTo(258, 266);
+  ctx.lineTo(242, 336);
+  ctx.lineTo(294, 246);
+  ctx.lineTo(258, 246);
+  ctx.closePath();
+  ctx.fill();
+
+  return toTexture(c, true);
+}
+
+/**
  * Material Library Factory with shared clipping planes & clean PBR parameters.
  */
 export function createMaterialLibrary(clippingPlanes) {
@@ -655,6 +755,8 @@ export function createMaterialLibrary(clippingPlanes) {
   const metalensZoneTex = createMetalensZoneTexture();
   const colorRouterTex = createMetaColorRouterTexture();
   const carbonWeaveTex = createCarbonWeaveTexture();
+  const oledTex = createOledViewfinderTexture();
+  const batteryTex = createBatteryCellTexture();
 
   const base = {
     clippingPlanes,
@@ -2670,6 +2772,67 @@ export function createMaterialLibrary(clippingPlanes) {
       metalness: 0.90,
       roughness: 0.20,
       clearcoat: 0.55
+    }),
+
+    // === PHASE 16: COMPLETE INTEGRATED FLAGSHIP SMARTPHONE CAMERA SYSTEM (500-PART MILESTONE!) ===
+    fpTitaniumFrame: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xd0d7e0,
+      metalness: 0.94,
+      roughness: 0.24,
+      clearcoat: 0.42,
+      clearcoatRoughness: 0.20
+    }),
+    fpFrostedGlass: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe2e8f0,
+      emissive: 0xcbd5e1,
+      emissiveIntensity: 0.08,
+      metalness: 0.06,
+      roughness: 0.30,
+      transparent: true,
+      opacity: 0.36,
+      clearcoat: 0.85,
+      depthWrite: false
+    }),
+    fpBatteryPouch: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: batteryTex,
+      color: 0xffffff,
+      metalness: 0.52,
+      roughness: 0.34,
+      clearcoat: 0.35
+    }),
+    fpOledScreen: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: oledTex,
+      color: 0xffffff,
+      emissive: 0x1e293b,
+      emissiveIntensity: 0.28,
+      metalness: 0.08,
+      roughness: 0.06,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04
+    }),
+    fpVaporCopper: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xd97706,
+      emissive: 0x92400e,
+      emissiveIntensity: 0.10,
+      metalness: 0.96,
+      roughness: 0.18,
+      clearcoat: 0.55
+    }),
+    fpSocPackage: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1e293b,
+      emissive: 0x38bdf8,
+      emissiveIntensity: 0.14,
+      metalness: 0.68,
+      roughness: 0.18,
+      iridescence: 0.72,
+      iridescenceIOR: 1.9,
+      clearcoat: 0.92
     })
   };
 }

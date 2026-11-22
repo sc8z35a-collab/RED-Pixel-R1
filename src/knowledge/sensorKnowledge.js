@@ -12,6 +12,7 @@ import { TETRAPRISM_OVERVIEW_DOC, TETRAPRISM_PARTS } from './tetraprismKnowledge
 import { CONTINUOUS_ZOOM_OVERVIEW_DOC, CONTINUOUS_ZOOM_PARTS } from './continuousZoomKnowledge.js';
 import { METALENS_OVERVIEW_DOC, METALENS_PARTS } from './metalensKnowledge.js';
 import { GLOBAL_SHUTTER_OVERVIEW_DOC, GLOBAL_SHUTTER_PARTS } from './globalShutterKnowledge.js';
+import { FLAGSHIP_PHONE_OVERVIEW_DOC, FLAGSHIP_PHONE_PARTS } from './flagshipPhoneKnowledge.js';
 
 export {
   LAYER2_PARTS,
@@ -27,10 +28,12 @@ export {
   TETRAPRISM_PARTS,
   CONTINUOUS_ZOOM_PARTS,
   METALENS_PARTS,
-  GLOBAL_SHUTTER_PARTS
+  GLOBAL_SHUTTER_PARTS,
+  FLAGSHIP_PHONE_PARTS
 };
 
 export const OVERVIEW_DOCS = {
+  flagship: FLAGSHIP_PHONE_OVERVIEW_DOC,
   gshutter: GLOBAL_SHUTTER_OVERVIEW_DOC,
   metalens: METALENS_OVERVIEW_DOC,
   zoom: CONTINUOUS_ZOOM_OVERVIEW_DOC,
@@ -1001,6 +1004,7 @@ export const ALL_PARTS_BY_ID = Object.fromEntries(
     ...TETRAPRISM_PARTS,
     ...CONTINUOUS_ZOOM_PARTS,
     ...METALENS_PARTS,
-    ...GLOBAL_SHUTTER_PARTS
+    ...GLOBAL_SHUTTER_PARTS,
+    ...FLAGSHIP_PHONE_PARTS
   ].map((p) => [p.id, p])
 );

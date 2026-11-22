@@ -76,6 +76,9 @@ export class SimEffects {
     } else if (mode === 'gshutter') {
       this._buildGlobalShutterOptics();
       this._buildGuideLines(11.6, -8.6, [[-8.8, -5.8], [12.0, -5.8], [-8.8, 5.8], [12.0, 5.8]]);
+    } else if (mode === 'flagship') {
+      this._buildFlagshipOptics();
+      this._buildGuideLines(10.8, -7.8, [[-10.6, -5.2], [10.6, -5.2], [-10.6, 5.2], [10.6, 5.2]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -1134,6 +1137,118 @@ export class SimEffects {
     }
   }
 
+  _buildFlagshipOptics() {
+    const MAIN_X = -5.75, MAIN_Z = -1.75;
+    const ZOOM_X0 = -6.05, ZOOM_Z = 1.85;
+    const TETRA_X0 = -2.45, TETRA_Z = -1.78;
+    const LIQ_X = -7.75, LIQ_Z = 0.05;
+    const META_X = 8.45, META_Z = -2.85;
+    const LIDAR_X = -4.05, LIDAR_Z = 0.05;
+    const SOC_X = 4.65, SOC_Y = 0.56, SOC_Z = -2.35;
+
+    // 1. Camera 1: Main 1-Inch 23mm (1G7P + 6-Blade Iris + Global Shutter CMOS) — Emerald Green Converging Rays
+    for (const [ox, oz] of [[0, 0], [0.88, -0.45], [-0.88, 0.45]]) {
+      this._addRay([
+        new THREE.Vector3(MAIN_X + ox * 1.35, 7.6, MAIN_Z + oz * 1.35),
+        new THREE.Vector3(MAIN_X + ox * 0.96, 2.08, MAIN_Z + oz * 0.96),
+        new THREE.Vector3(MAIN_X + ox * 0.62, 1.64, MAIN_Z + oz * 0.62), // Through 6-Blade Variable Iris
+        new THREE.Vector3(MAIN_X + ox * 0.25, 0.98, MAIN_Z + oz * 0.25),
+        new THREE.Vector3(MAIN_X, 0.41, MAIN_Z)                          // Focus on 1-Inch GS CMOS!
+      ], 0x10b981, 0.86, 0.055, 3);
+    }
+
+    // 2. Camera 2: 85-170mm Continuous Optical Zoom Periscope — Sky-Blue 90° Folded Horizontal Rays -> Vertical 200MP CMOS!
+    for (const dz of [-0.32, 0.32]) {
+      this._addRay([
+        new THREE.Vector3(ZOOM_X0, 7.6, ZOOM_Z + dz),
+        new THREE.Vector3(ZOOM_X0, 2.08, ZOOM_Z + dz),
+        new THREE.Vector3(ZOOM_X0, 0.84, ZOOM_Z + dz),
+        new THREE.Vector3(ZOOM_X0, 0.72, ZOOM_Z + dz),      // Exact 45° Fold Prism Reflection!
+        new THREE.Vector3(ZOOM_X0 + 0.14, 0.72, ZOOM_Z + dz),
+        new THREE.Vector3(-4.85, 0.72, ZOOM_Z + dz * 0.88), // Fixed G1
+        new THREE.Vector3(-3.10, 0.72, ZOOM_Z + dz * 0.70), // Live Moving G2 Variator
+        new THREE.Vector3(-0.95, 0.72, ZOOM_Z + dz * 0.42), // Live Moving G3 Parfocal Compensator
+        new THREE.Vector3(0.45, 0.72, ZOOM_Z + dz * 0.18),  // Fixed G4
+        new THREE.Vector3(1.15, 0.72, ZOOM_Z)               // Vertical 200MP BSI CMOS!
+      ], 0x0ea5e9, 0.88, 0.054, 4);
+    }
+
+    // 3. Camera 3: 120mm f/2.8 4-Bounce Folded Tetraprism — Royal Indigo W-Path 4-Reflection Ray -> 3D Sensor-Shift CMOS!
+    this._addRay([
+      new THREE.Vector3(TETRA_X0, 7.4, TETRA_Z),
+      new THREE.Vector3(TETRA_X0, 2.02, TETRA_Z),
+      new THREE.Vector3(TETRA_X0, 0.30, TETRA_Z),           // Bounce 1: M1 Protected Silver Mirror
+      new THREE.Vector3(TETRA_X0 + 0.98, 1.24, TETRA_Z),    // Bounce 2: M2 Lossless TIR Roof
+      new THREE.Vector3(TETRA_X0 + 1.98, 0.12, TETRA_Z),    // Bounce 3: M3 Lossless TIR Floor
+      new THREE.Vector3(TETRA_X0 + 2.85, 1.12, TETRA_Z),    // Bounce 4: M4 Protected Silver Mirror
+      new THREE.Vector3(TETRA_X0 + 2.85, 0.12, TETRA_Z)     // Horizontal 3D Sensor-Shift CMOS!
+    ], 0x4f46e5, 0.90, 0.058, 4);
+
+    // 4. Camera 4: Bionic Electrowetting Liquid Lens (14mm / 3cm Macro) — Cyan Meniscus-Refracted Rays
+    for (const [ox, oz] of [[-0.45, 0.35], [0.45, -0.35]]) {
+      this._addRay([
+        new THREE.Vector3(LIQ_X + ox * 1.45, 7.0, LIQ_Z + oz * 1.45),
+        new THREE.Vector3(LIQ_X + ox * 0.85, 2.06, LIQ_Z + oz * 0.85),
+        new THREE.Vector3(LIQ_X + ox * 0.52, 1.48, LIQ_Z + oz * 0.52), // Live Oil-Water Meniscus!
+        new THREE.Vector3(LIQ_X, 0.40, LIQ_Z)
+      ], 0x06b6d4, 0.86, 0.050, 3);
+    }
+
+    // 5. Camera 5: Zero-Bump 1.6mm Flat TiO2 Metalens (Flush Top-Right Corner!) — Electric Violet Flat-Optics Focusing
+    for (const [ox, oz] of [[0, 0], [0.58, 0.35], [-0.58, -0.35]]) {
+      this._addRay([
+        new THREE.Vector3(META_X + ox, 6.4, META_Z + oz),
+        new THREE.Vector3(META_X + ox * 0.82, 0.88, META_Z + oz * 0.82), // Flat TiO2 M1
+        new THREE.Vector3(META_X + ox * 0.50, 0.66, META_Z + oz * 0.50), // Flat TiO2 M2
+        new THREE.Vector3(META_X + ox * 0.22, 0.46, META_Z + oz * 0.22), // RGB Nano-Color-Router
+        new THREE.Vector3(META_X, 0.33, META_Z)                          // TSV BSI CMOS!
+      ], 0x8b5cf6, 0.88, 0.052, 3);
+    }
+
+    // 6. Sensing 6: Quantum 940 nm dToF LiDAR — Crimson VCSEL Dot Fan Outbound + Magenta Echo Photon Inbound to SPAD!
+    const VX = LIDAR_X - 0.34, SX = LIDAR_X + 0.38;
+    for (const [fx, fz] of [[0, 0], [-1.25, 1.10], [1.15, -1.05]]) {
+      this._addRay([
+        new THREE.Vector3(VX, 1.72, LIDAR_Z),
+        new THREE.Vector3(VX + fx * 0.35, 3.2, LIDAR_Z + fz * 0.35),
+        new THREE.Vector3(VX + fx, 7.0, LIDAR_Z + fz)
+      ], 0xe11d48, 0.86, 0.048, 2);
+    }
+    this._addRay([
+      new THREE.Vector3(SX + 0.85, 7.0, LIDAR_Z + 0.75),
+      new THREE.Vector3(SX + 0.22, 3.1, LIDAR_Z + 0.18),
+      new THREE.Vector3(SX, 1.68, LIDAR_Z),
+      new THREE.Vector3(SX, 0.90, LIDAR_Z)
+    ], 0xd946ef, 0.86, 0.048, 2);
+
+    // 7. Unified Golden MIPI CSI-2 / SLVS-EC High-Speed Data Streams converging from ALL Cameras -> 3nm Camera SoC / Triple-ISP!
+    const mipiPaths = [
+      // Main 1-Inch GS CMOS -> Upper FPC Trunk -> 3nm SoC
+      [
+        new THREE.Vector3(MAIN_X + 0.8, 0.48, MAIN_Z),
+        new THREE.Vector3(-2.4, 0.62, -1.75),
+        new THREE.Vector3(1.8, 0.62, -1.85),
+        new THREE.Vector3(SOC_X, SOC_Y, SOC_Z)
+      ],
+      // Continuous Zoom Vertical 200MP CMOS -> Bridge FPC -> 3nm SoC
+      [
+        new THREE.Vector3(1.26, 0.68, ZOOM_Z),
+        new THREE.Vector3(2.85, 0.62, 0.45),
+        new THREE.Vector3(3.35, 0.62, -1.15),
+        new THREE.Vector3(SOC_X, SOC_Y, SOC_Z)
+      ],
+      // Zero-Bump Flat TiO2 Metalens CMOS -> Corner Bus FPC -> 3nm SoC
+      [
+        new THREE.Vector3(META_X, 0.38, META_Z),
+        new THREE.Vector3(6.8, 0.48, -2.85),
+        new THREE.Vector3(SOC_X, SOC_Y, SOC_Z)
+      ]
+    ];
+    for (const pts of mipiPaths) {
+      this._addRay(pts, 0xf59e0b, 0.88, 0.052, 3);
+    }
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -1205,6 +1320,7 @@ export class SimEffects {
     //  - Zoom: 85-170 mm Continuous Optical Zoom (G2 linear variator + G3 non-linear parfocal U-turn) + Twin 110 kHz Ultrasonic Piezo Tips + 10,000x Perovskite PZT Dipole Strain!
     //  - Metalens: Ultra-Fast MEMS Piezo-AF Z-Stroke + 20,000x Live Plane Wavefront -> Waveguide -> Converging Spherical Wavefront Focusing into Airy Disk!
     //  - GShutter: 1/8,000 s Carbon-Fiber Dual-Curtain Mechanical Traveling Slit + Parallelogram Links + Anti-Phase Counter-Balancer + 10,000x Simultaneous Global Electron Snapshot!
+    //  - Flagship: Complete Integrated Titanium Smartphone — ALL 8 Live Mechanisms Running Together (6-Blade Iris + 8-Wire SMA Glow + Mech Shutter Slit + 85-170mm Parfocal G2/G3 Zoom + 3D Tetraprism Sensor-Shift + Morphing Liquid Meniscus + 9-LED Adaptive Flash + 940nm VCSEL)!
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
     const decoAct = this.oisEnabled && this.mode === 'deco';
@@ -1219,6 +1335,7 @@ export class SimEffects {
     const zoomAct = this.oisEnabled && this.mode === 'zoom';
     const metaAct = this.oisEnabled && this.mode === 'metalens';
     const gsAct = this.oisEnabled && this.mode === 'gshutter';
+    const flagshipAct = this.oisEnabled && this.mode === 'flagship';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
@@ -1307,6 +1424,22 @@ export class SimEffects {
       }
     }
 
+    // Phase 16 Complete Integrated Flagship Smartphone — Simultaneous Multi-Subsystem Live Kinematics!
+    const fpIrisNorm = flagshipAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.35)) : null;
+    const fpSmaHeat = flagshipAct ? (0.5 + 0.5 * Math.sin(elapsed * 2.4)) : null;
+    const fpShutSweep = flagshipAct ? Math.sin(elapsed * 2.6) * 0.34 : 0;
+    const fpZoomU = flagshipAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.05)) : 0.5;
+    const fpZoomG2Dx = flagshipAct ? (fpZoomU - 0.5) * 1.24 : 0;
+    const fpZoomG3Dx = flagshipAct ? (-0.34 * Math.sin(fpZoomU * Math.PI) + 0.16 * (fpZoomU - 0.5)) : 0;
+    const fpTpDx = flagshipAct ? Math.sin(elapsed * 3.8) * 0.16 : 0;
+    const fpTpDy = flagshipAct ? Math.sin(elapsed * 2.0) * 0.12 : 0;
+    const fpTpDz = flagshipAct ? Math.cos(elapsed * 3.1) * 0.14 : 0;
+    const fpLiqScaleY = flagshipAct ? Math.sin(elapsed * 1.65) * 0.56 : 0.38;
+    const fpLiqTiltX = flagshipAct ? Math.sin(elapsed * 2.5) * 0.14 : 0;
+    const fpLiqTiltZ = flagshipAct ? Math.cos(elapsed * 2.1) * 0.14 : 0;
+    const fpFlashBlend = flagshipAct ? (0.5 + 0.5 * Math.sin(elapsed * 1.8)) : null;
+    const fpVcselPulse = flagshipAct ? (0.35 + 2.25 * Math.pow(0.5 + 0.5 * Math.sin(elapsed * 8.0), 8)) : 0.72;
+
     for (const entry of partsMap.values()) {
       const ex = entry.basePos.x + entry.explodeVec.x * explodeT;
       const ey = entry.basePos.y + entry.explodeVec.y * explodeT;
@@ -1373,6 +1506,13 @@ export class SimEffects {
       // Phase 14 Flat Metalens Ultra-Fast MEMS Piezo-AF Z-Stroke
       if (metaAct && entry.metaMemsAf) {
         dy += metaAfDy;
+      }
+
+      // Phase 16 Flagship Smartphone Integrated 3D Sensor-Shift Tetraprism CMOS
+      if (flagshipAct && entry.fpTetra3d) {
+        dx += fpTpDx;
+        dy += fpTpDy;
+        dz += fpTpDz;
       }
 
       entry.group.position.set(ex + dx, ey + dy, ez + dz);
@@ -1642,6 +1782,58 @@ export class SimEffects {
       }
       if (ud.gsElectronCloud) {
         ud.gsElectronCloud.position.y = gsElecDy;
+      }
+
+      // Live Phase 16 Complete Integrated Flagship Smartphone — ALL 8 Mechanisms Running Simultaneously!
+      if (ud.fpIrisBlades) {
+        for (const piv of ud.fpIrisBlades) {
+          const swing = flagshipAct ? (0.04 + fpIrisNorm * 0.48) : piv.userData.restSwing;
+          piv.rotation.y = piv.userData.baseAz + swing;
+        }
+      }
+      if (ud.fpSmaMat) {
+        if (flagshipAct) {
+          ud.fpSmaMat.color.lerpColors(this._smaCoolColor, this._smaHotColor, fpSmaHeat);
+          ud.fpSmaMat.emissive.lerpColors(this._smaCoolEmissive, this._smaHotEmissive, fpSmaHeat);
+          ud.fpSmaMat.emissiveIntensity = 0.25 + fpSmaHeat * 0.95;
+        } else {
+          ud.fpSmaMat.color.copy(this._smaHotColor);
+          ud.fpSmaMat.emissive.copy(this._smaHotEmissive);
+          ud.fpSmaMat.emissiveIntensity = 0.55;
+        }
+      }
+      if (ud.fpMechFront && ud.fpMechRear) {
+        if (flagshipAct) {
+          const midZ = (ud.fpMechFront.userData.restZ + ud.fpMechRear.userData.restZ) * 0.5;
+          ud.fpMechFront.position.z = midZ + 0.34 + fpShutSweep;
+          ud.fpMechRear.position.z = midZ - 0.34 + fpShutSweep;
+        } else {
+          ud.fpMechFront.position.z = ud.fpMechFront.userData.restZ;
+          ud.fpMechRear.position.z = ud.fpMechRear.userData.restZ;
+        }
+      }
+      if (ud.fpZoomG2 && ud.fpZoomG3) {
+        ud.fpZoomG2.position.x = fpZoomG2Dx;
+        ud.fpZoomG3.position.x = fpZoomG3Dx;
+      }
+      if (ud.fpLiquidMeniscus) {
+        const sy = Math.abs(fpLiqScaleY) < 0.03 ? (fpLiqScaleY >= 0 ? 0.03 : -0.03) : fpLiqScaleY;
+        ud.fpLiquidMeniscus.scale.set(1, sy, 1);
+        ud.fpLiquidMeniscus.rotation.set(fpLiqTiltX, 0, fpLiqTiltZ);
+      }
+      if (ud.fpFlashLeds) {
+        for (const led of ud.fpFlashLeds) {
+          if (flagshipAct) {
+            led.material.emissiveIntensity = led.userData.isCenter
+              ? 0.20 + fpFlashBlend * 2.15
+              : 0.20 + (1.0 - fpFlashBlend) * 1.65;
+          } else {
+            led.material.emissiveIntensity = led.userData.isCenter ? 0.65 : 0.40;
+          }
+        }
+      }
+      if (ud.fpVcselMat) {
+        ud.fpVcselMat.emissiveIntensity = fpVcselPulse;
       }
     }
 
