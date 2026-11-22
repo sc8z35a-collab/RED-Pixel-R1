@@ -5,10 +5,12 @@ import { PERISCOPE_OVERVIEW_DOC, PERISCOPE_PARTS } from './periscopeKnowledge.js
 import { APERTURE_OVERVIEW_DOC, APERTURE_PARTS } from './apertureLensKnowledge.js';
 import { IRIS_MICRO_OVERVIEW_DOC, IRIS_MICRO_PARTS } from './irisMicroKnowledge.js';
 import { IRIS_NANO_OVERVIEW_DOC, IRIS_NANO_PARTS } from './irisNanoKnowledge.js';
+import { LIDAR_OVERVIEW_DOC, LIDAR_PARTS } from './lidarKnowledge.js';
 
-export { LAYER2_PARTS, LENS_PARTS, DECO_PARTS, PERISCOPE_PARTS, APERTURE_PARTS, IRIS_MICRO_PARTS, IRIS_NANO_PARTS };
+export { LAYER2_PARTS, LENS_PARTS, DECO_PARTS, PERISCOPE_PARTS, APERTURE_PARTS, IRIS_MICRO_PARTS, IRIS_NANO_PARTS, LIDAR_PARTS };
 
 export const OVERVIEW_DOCS = {
+  lidar: LIDAR_OVERVIEW_DOC,
   iris_nano: IRIS_NANO_OVERVIEW_DOC,
   iris: IRIS_MICRO_OVERVIEW_DOC,
   aperture: APERTURE_OVERVIEW_DOC,
@@ -965,6 +967,7 @@ export const ALL_PARTS_BY_ID = Object.fromEntries(
     ...PERISCOPE_PARTS,
     ...APERTURE_PARTS,
     ...IRIS_MICRO_PARTS,
-    ...IRIS_NANO_PARTS
+    ...IRIS_NANO_PARTS,
+    ...LIDAR_PARTS
   ].map((p) => [p.id, p])
 );
