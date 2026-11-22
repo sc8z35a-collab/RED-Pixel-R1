@@ -1230,23 +1230,23 @@ export class SimEffects {
       new THREE.Vector3(SX, 0.90, LIDAR_Z)
     ], 0xd946ef, 0.86, 0.048, 2);
 
-    // 7. Unified Golden MIPI CSI-2 / SLVS-EC High-Speed Data Streams converging from ALL Cameras -> 3nm Camera SoC / Triple-ISP!
+    // 7. Unified Golden MIPI CSI-2 / SLVS-EC High-Speed Data Streams converging from ALL Cameras -> 2nm GAA Camera SoC / Triple-ISP!
     const mipiPaths = [
-      // Main 1-Inch GS CMOS -> Upper FPC Trunk -> 3nm SoC
+      // Main 1-Inch GS CMOS -> Upper FPC Trunk -> 2nm GAA SoC
       [
         new THREE.Vector3(MAIN_X + 0.8, 0.48, MAIN_Z),
         new THREE.Vector3(-2.4, 0.62, -1.75),
         new THREE.Vector3(1.8, 0.62, -1.85),
         new THREE.Vector3(SOC_X, SOC_Y, SOC_Z)
       ],
-      // Continuous Zoom Vertical 200MP CMOS -> Bridge FPC -> 3nm SoC
+      // Continuous Zoom Vertical 200MP CMOS -> Bridge FPC -> 2nm GAA SoC
       [
         new THREE.Vector3(1.26, 0.68, ZOOM_Z),
         new THREE.Vector3(2.85, 0.62, 0.45),
         new THREE.Vector3(3.35, 0.62, -1.15),
         new THREE.Vector3(SOC_X, SOC_Y, SOC_Z)
       ],
-      // Zero-Bump Flat TiO2 Metalens CMOS -> Corner Bus FPC -> 3nm SoC
+      // Zero-Bump Flat TiO2 Metalens CMOS -> Corner Bus FPC -> 2nm GAA SoC
       [
         new THREE.Vector3(META_X, 0.38, META_Z),
         new THREE.Vector3(6.8, 0.48, -2.85),
@@ -1256,6 +1256,27 @@ export class SimEffects {
     for (const pts of mipiPaths) {
       this._addRay(pts, 0xf59e0b, 0.88, 0.052, 3);
     }
+
+    // 8. Phase 19 Pure-Copper 3D Vapor Chamber Two-Phase Thermal Loop (Crimson Vapor Outbound + Sapphire Capillary Return!)
+    this._addRay([
+      new THREE.Vector3(MAIN_X + 0.6, -0.34, MAIN_Z + 0.5),
+      new THREE.Vector3(0.5, -0.34, -0.5),
+      new THREE.Vector3(SOC_X, -0.34, SOC_Z + 0.4),
+      new THREE.Vector3(7.4, -0.34, 1.8)
+    ], 0xef4444, 0.84, 0.048, 3);
+    this._addRay([
+      new THREE.Vector3(7.2, -0.40, 2.2),
+      new THREE.Vector3(1.4, -0.40, 1.4),
+      new THREE.Vector3(MAIN_X + 0.8, -0.40, MAIN_Z + 0.8)
+    ], 0x0ea5e9, 0.84, 0.044, 3);
+
+    // 9. Phase 18 Live MIPI DSI-2 10-bit 120Hz Viewfinder Feed (2nm Triple-ISP -> COP DDIC -> Front 6.8" Tandem LTPO OLED!)
+    this._addRay([
+      new THREE.Vector3(SOC_X + 0.55, 0.42, SOC_Z + 0.55),
+      new THREE.Vector3(8.45, -0.15, -0.95),
+      new THREE.Vector3(9.20, -0.88, 0.0),
+      new THREE.Vector3(1.5, -1.24, 0.0)
+    ], 0x10b981, 0.86, 0.048, 3);
   }
 
   _buildSocGaaPhysics() {
@@ -1592,7 +1613,7 @@ export class SimEffects {
       }
     }
 
-    // Phase 16 Complete Integrated Flagship Smartphone — Simultaneous Multi-Subsystem Live Kinematics!
+    // Complete Integrated Flagship Smartphone (Phase 1-19 Unified) — ALL 11 Simultaneous Subsystems Running Together!
     const fpIrisNorm = flagshipAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.35)) : null;
     const fpSmaHeat = flagshipAct ? (0.5 + 0.5 * Math.sin(elapsed * 2.4)) : null;
     const fpShutSweep = flagshipAct ? Math.sin(elapsed * 2.6) * 0.34 : 0;
@@ -1607,6 +1628,12 @@ export class SimEffects {
     const fpLiqTiltZ = flagshipAct ? Math.cos(elapsed * 2.1) * 0.14 : 0;
     const fpFlashBlend = flagshipAct ? (0.5 + 0.5 * Math.sin(elapsed * 1.8)) : null;
     const fpVcselPulse = flagshipAct ? (0.35 + 2.25 * Math.pow(0.5 + 0.5 * Math.sin(elapsed * 8.0), 8)) : 0.72;
+    const fpSocIspPulse = flagshipAct ? (0.38 + 0.92 * (0.5 + 0.5 * Math.sin(elapsed * 5.2))) : 0.44;
+    const fpSocNpuPulse = flagshipAct ? (0.38 + 1.02 * (0.5 + 0.5 * Math.cos(elapsed * 6.4))) : 0.48;
+    const fpVcPhase = flagshipAct ? (elapsed * 0.48) % 1.0 : 0.0;
+    const fpVcThermPulse = flagshipAct ? (0.28 + 0.46 * (0.5 + 0.5 * Math.sin(elapsed * 3.6))) : 0.38;
+    const fpOledEmlPulse = flagshipAct ? (0.55 + 0.90 * (0.5 + 0.5 * Math.sin(elapsed * 6.8))) : 0.72;
+    const fpOledCglPulse = flagshipAct ? (0.65 + 0.90 * (0.5 + 0.5 * Math.cos(elapsed * 5.8))) : 0.88;
 
     // Phase 17 Ultra-Ultra-High 100,000x 2 nm GAA Quantum Switching (V_GS ON -> Ballistic 3-Stack Flow <-> OFF -> 360° Zero-Leakage Pinch-Off!)
     if (this._gaaElecPhase === undefined) {
@@ -2033,6 +2060,35 @@ export class SimEffects {
       }
       if (ud.fpVcselMat) {
         ud.fpVcselMat.emissiveIntensity = fpVcselPulse;
+      }
+      if (ud.fpSocIspMat) {
+        ud.fpSocIspMat.emissiveIntensity = fpSocIspPulse;
+      }
+      if (ud.fpSocNpuMat) {
+        ud.fpSocNpuMat.emissiveIntensity = fpSocNpuPulse;
+      }
+      if (ud.fpVcThermMat) {
+        ud.fpVcThermMat.emissiveIntensity = fpVcThermPulse;
+      }
+      if (ud.fpVcVaporPackets) {
+        for (const vp of ud.fpVcVaporPackets) {
+          const p = (vp.userData.phase + fpVcPhase) % 1.0;
+          vp.position.x = -4.2 + p * 11.4;
+          vp.position.z = vp.userData.laneZ;
+        }
+      }
+      if (ud.fpVcLiquidPackets) {
+        for (const lp of ud.fpVcLiquidPackets) {
+          const p = (lp.userData.phase + fpVcPhase) % 1.0;
+          lp.position.x = 4.2 - p * 5.6;
+          lp.position.z = lp.userData.laneZ;
+        }
+      }
+      if (ud.fpOledEmlMat) {
+        ud.fpOledEmlMat.emissiveIntensity = fpOledEmlPulse;
+      }
+      if (ud.fpOledCglMat) {
+        ud.fpOledCglMat.emissiveIntensity = fpOledCglPulse;
       }
 
       // Live Phase 17 Ultra-Ultra-High 100,000x 2 nm GAA 3-Stack Nanosheet Quantum Switching (V_GS ON <-> OFF!) + ISP/NPU Compute Pulse!

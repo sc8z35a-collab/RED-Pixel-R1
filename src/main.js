@@ -102,8 +102,8 @@ const partDocsByScale = {
 
 Object.values(assemblies).forEach((asm) => engine.scene.add(asm.root));
 
-let currentScale = 'vapor_chamber';
-let activeAsm = assemblies.vapor_chamber;
+let currentScale = 'flagship';
+let activeAsm = assemblies.flagship;
 let targetExplode = 0;
 let currentExplode = 0;
 
@@ -276,8 +276,8 @@ function switchScale(scale, instantCamera = false) {
   }
 }
 
-// Launch directly into Phase 19 Ultra-Ultra-High Pure-Copper 3D Vapor Chamber (EXACTLY 20 Scales / 600 Parts Grand Milestone!)
-switchScale('vapor_chamber', true);
+// Launch directly into the Complete Integrated Flagship Smartphone RED-Pixel R1 (All 20 Scales / 600 Parts Unified!)
+switchScale('flagship', true);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {

@@ -31,9 +31,9 @@ function buildRod(pA, pB, radius, mat) {
 }
 
 /**
- * Phase 16 (17-SCALE / EXACTLY 500-PART GRAND FINALE MILESTONE!):
- * Complete Integrated Flagship Camera Smartphone ("RED-Pixel R1") uniting ALL 15 prior ultra-dissection phases
- * into ONE cohesive, collision-free, live-actuated Grade-5 Titanium smartphone CAD assembly (36 Independent Parts!):
+ * Complete Integrated Flagship Camera Smartphone ("RED-Pixel R1" — All 20 Scales / 600 Parts Unified!):
+ * Unites ALL 19 ultra-dissection phases (5 Cameras + Quantum LiDAR + 2nm GAA SoC/BSPDN + 6.8" Tandem LTPO OLED
+ * + 0.35mm Pure-Copper 3D Vapor Chamber) into ONE cohesive, collision-free, live-actuated Grade-5 Titanium CAD assembly (36 Independent Parts!):
  *
  *   - Exterior & Deco (01-06): Ti-6Al-4V Unibody Frame + 2-Stage Shutter Button, Cutaway AG Back Glass,
  *     72-Tooth Circular Titanium Deco, Gorilla Glass DX+ Cover, Adaptive 9-LED Matrix Flash, 14ch Multispectral & Zoom Mic
@@ -46,9 +46,11 @@ function buildRod(pA, pB, radius, mat) {
  *   - Camera 4 Bionic Liquid Lens 14mm/Macro (19-21): Hermetic EWOD Capsule + LIVE Morphing Oil-Water Meniscus + 50MP CMOS!
  *   - Camera 5 Zero-Bump Flat TiO2 Metalens (22-23): Ultra-Thin 1.6mm Flat TiO2 Doublet + MEMS Piezo-AF & TSV CMOS!
  *   - Sensing 6 Quantum 940nm dToF LiDAR (24-25): Multi-Junction VCSEL + ITO DOE + 3D BSI SPAD/10ps TDC!
- *   - Smartphone Core System (26-36): 3nm Camera SoC/Triple-ISP/NPU, 12-Layer Dual-Deck MLB, Unified MIPI/SLVS-EC FPC Harness,
- *     Actuator Driver PMIC Bank, Pure-Copper 3D Vapor Chamber, 5,500 mAh Si-C Battery, Qi2 Shielded Coil,
- *     X-Axis Haptic + USB-C 40Gbps, 5G mmWave Antennas, CNC Midframe & Front 6.8" LTPO OLED Viewfinder Display!
+ *   - Smartphone Core System (26-36): Phase 17 2nm GAA/BSPDN Camera SoC (Triple 18-bit ISP + 100 TOPS NPU + PoP LPDDR5X),
+ *     12-Layer Dual-Deck MLB, Unified MIPI/SLVS-EC FPC Harness, Actuator Driver PMIC Bank,
+ *     Phase 19 0.35mm Pure-Copper 3D Vapor Chamber (Live IR Map + #300 Mesh + Two-Phase Loop), 5,500 mAh Si-C Battery,
+ *     Qi2 Shielded Coil, X-Axis Haptic + USB-C 40Gbps, 5G mmWave Antennas, CNC Midframe &
+ *     Phase 18 Front 6.8" Tandem LTPO OLED Viewfinder (COE + MLA + Y-OCTA + Dual-Stack EML/CGL + 3D Ultrasonic FP + COP)!
  */
 export function buildFlagshipSmartphoneAssembly(mats) {
   const root = new THREE.Group();
@@ -655,16 +657,41 @@ export function buildFlagshipSmartphoneAssembly(mats) {
   // GROUP 7: COMPUTE SoC/ISP, THERMAL VAPOR CHAMBER, BATTERY & OLED DISPLAY (26-36)
   // =========================================================================
 
-  // 26. 3nm Flagship Camera SoC + Triple 18-bit ISP + Computational-Optics NPU (PoP Package at X = +4.65, Z = -2.35)
+  // 26. Phase 17 Integrated 2nm GAA + BSPDN Flagship Camera SoC (Triple 18-bit ISP + 100 TOPS NPU + Cutaway PoP LPDDR5X at X = +4.65, Z = -2.35)
   const socGrp = new THREE.Group();
+  const fpSocIspMat = mats.gaaIspBlock.clone();
+  const fpSocNpuMat = mats.gaaNpuSystolic.clone();
   {
-    const pkg = new THREE.Mesh(new THREE.BoxGeometry(2.65, 0.32, 2.65), mats.fpSocPackage);
-    pkg.position.set(4.65, 0.32, -2.35);
-    const trim = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.05, 2.15), mats.goldBond);
-    trim.position.set(4.65, 0.50, -2.35);
-    const core = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.06, 1.85), mats.fpSocPackage);
-    core.position.set(4.65, 0.54, -2.35);
-    socGrp.add(pkg, trim, core);
+    const SX = 4.65, SZ = -2.35;
+    // 14-Layer ABF Build-Up Package Substrate & Underground Backside Power Delivery (BSPDN) Copper Rail Frame
+    const abf = new THREE.Mesh(new THREE.BoxGeometry(2.72, 0.11, 2.72), mats.gaaAbfSub);
+    abf.position.set(SX, 0.215, SZ);
+    const bspdnRim = new THREE.Mesh(new THREE.BoxGeometry(2.48, 0.055, 2.48), mats.gaaBspdnCopper);
+    bspdnRim.position.set(SX, 0.295, SZ);
+    // Iridescent 2nm GAA 3-Stack Nanosheet Silicon Die Floorplan
+    const die = new THREE.Mesh(new THREE.BoxGeometry(2.30, 0.09, 2.30), mats.gaaSocDie);
+    die.position.set(SX, 0.365, SZ);
+    // Exposed Live Accelerator Blocks on Front Half (+Z side) of 2nm Die: Triple 18-bit ISP + 100 TOPS NPU + 48MB SRAM
+    const ispBlk = new THREE.Mesh(new THREE.BoxGeometry(0.94, 0.07, 0.90), fpSocIspMat);
+    ispBlk.position.set(SX - 0.54, 0.445, SZ + 0.48);
+    const npuBlk = new THREE.Mesh(new THREE.BoxGeometry(0.94, 0.07, 0.90), fpSocNpuMat);
+    npuBlk.position.set(SX + 0.54, 0.445, SZ + 0.48);
+    const sramBlk = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.06, 0.52), mats.gaaSramBank);
+    sramBlk.position.set(SX - 0.52, 0.44, SZ - 0.32);
+    // Cutaway Top PoP 16GB LPDDR5X DRAM Cap & Gold TMV Perimeter Interposer (covers rear half so 2nm die stays visible!)
+    const tmvRim = new THREE.Mesh(new THREE.BoxGeometry(2.44, 0.04, 1.12), mats.goldBond);
+    tmvRim.position.set(SX, 0.46, SZ - 0.62);
+    const popCap = new THREE.Mesh(new THREE.BoxGeometry(2.36, 0.13, 1.06), mats.fpSocPackage);
+    popCap.position.set(SX, 0.545, SZ - 0.62);
+    // Perimeter micro-solder balls along exposed front edge
+    for (let i = -3; i <= 3; i++) {
+      const b = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), mats.solderTin);
+      b.position.set(SX + i * 0.34, 0.165, SZ + 1.26);
+      socGrp.add(b);
+    }
+    socGrp.add(abf, bspdnRim, die, ispBlk, npuBlk, sramBlk, tmvRim, popCap);
+    socGrp.userData.fpSocIspMat = fpSocIspMat;
+    socGrp.userData.fpSocNpuMat = fpSocNpuMat;
   }
   register('fp_stacked_soc_isp_npu', socGrp, [1.6, 2.2, -1.4]);
 
@@ -723,14 +750,68 @@ export function buildFlagshipSmartphoneAssembly(mats) {
   }
   register('fp_camera_driver_pmic_bank', pmicGrp, [0.8, 1.8, -0.4]);
 
-  // 30. Ultra-Thin 0.35mm Pure-Copper 3D Vapor Chamber (VC) & Graphite Thermal Spreader
+  // 30. Phase 19 Integrated 0.35mm Pure-Copper (C1020) 3D Vapor Chamber + Live IR Thermal Map + Sintered Wick Two-Phase Loop
   const vcGrp = new THREE.Group();
+  const fpVcThermMat = mats.vcThermalMap.clone();
+  const fpVcVaporPackets = [];
+  const fpVcLiquidPackets = [];
   {
-    const cu = new THREE.Mesh(new THREE.BoxGeometry(13.6, 0.14, 7.2), mats.fpVaporCopper);
-    cu.position.set(1.2, -0.46, -0.15);
-    const graph = new THREE.Mesh(new THREE.BoxGeometry(12.8, 0.05, 6.4), mats.susDarkInner);
-    graph.position.set(1.2, -0.36, -0.15);
-    vcGrp.add(cu, graph);
+    // Stamped C1020 Oxygen-Free Pure-Copper 3D Vapor Chamber Base Shell (spans 1" CMOS <-> 2nm SoC <-> Battery Condenser!)
+    const cu = new THREE.Mesh(new THREE.BoxGeometry(13.8, 0.11, 7.2), mats.fpVaporCopper);
+    cu.position.set(1.2, -0.525, -0.15);
+    // Laser-Welded Perimeter Flange Rails + Vacuum Degassing Pinch-Off Stub (+X rear corner)
+    const rimFront = new THREE.Mesh(new THREE.BoxGeometry(14.0, 0.04, 0.24), mats.copperPad);
+    rimFront.position.set(1.2, -0.455, 3.45);
+    const rimBack = new THREE.Mesh(new THREE.BoxGeometry(14.0, 0.04, 0.24), mats.copperPad);
+    rimBack.position.set(1.2, -0.455, -3.75);
+    const pinchOff = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.07, 0.38), mats.copperPad);
+    pinchOff.position.set(8.35, -0.505, -2.95);
+    // Framing Multi-Layer Synthetic Graphite Strips bordering the IR thermal window
+    const grTop = new THREE.Mesh(new THREE.BoxGeometry(12.8, 0.035, 0.42), mats.susDarkInner);
+    grTop.position.set(1.2, -0.448, -3.32);
+    const grBot = new THREE.Mesh(new THREE.BoxGeometry(12.8, 0.035, 0.42), mats.susDarkInner);
+    grBot.position.set(1.2, -0.448, 3.02);
+    // Live IR Thermal Equilibrium Overlay (crimson hotspot beneath 1" CMOS & 2nm SoC -> emerald/blue battery condenser!)
+    const thermPlate = new THREE.Mesh(new THREE.BoxGeometry(12.6, 0.024, 5.8), fpVcThermMat);
+    thermPlate.position.set(1.2, -0.442, -0.15);
+    // Secondary Pure-Copper SoC Evaporator Thermal Pedestal directly beneath 2nm GAA SoC (X = 4.65, Z = -2.35)
+    const socEvap = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.04, 2.5), mats.vcSinterCopper);
+    socEvap.position.set(4.65, -0.425, -2.35);
+    // Cutaway Sintered Wick & #300 Woven Copper Mesh Window + 12 Anti-Collapse Micro-Pillars
+    const meshWin = new THREE.Mesh(new THREE.BoxGeometry(6.0, 0.028, 2.15), mats.vcMeshWick);
+    meshWin.position.set(1.4, -0.415, 1.35);
+    const pGeo = new THREE.CylinderGeometry(0.085, 0.105, 0.11, 10);
+    for (let ix = 0; ix < 4; ix++) {
+      for (let iz = 0; iz < 3; iz++) {
+        const pil = new THREE.Mesh(pGeo, mats.vcSinterCopper);
+        pil.position.set(-0.9 + ix * 1.55, -0.395, 0.62 + iz * 0.72);
+        vcGrp.add(pil);
+      }
+    }
+    // Live Two-Phase Loop Particles (6 Crimson Vapor Packets spreading right + 6 Sapphire Capillary Return Packets left!)
+    const vGeo = new THREE.SphereGeometry(0.095, 10, 10);
+    const lGeo = new THREE.SphereGeometry(0.082, 10, 10);
+    for (let i = 0; i < 6; i++) {
+      const vp = new THREE.Mesh(vGeo, mats.vcVaporPacket);
+      const vz = -2.2 + (i % 3) * 2.15;
+      vp.position.set(-4.2 + i * 2.1, -0.372, vz);
+      vp.userData.phase = i / 6;
+      vp.userData.laneZ = vz;
+      fpVcVaporPackets.push(vp);
+      vcGrp.add(vp);
+
+      const lp = new THREE.Mesh(lGeo, mats.vcLiquidPacket);
+      const lz = 0.62 + (i % 3) * 0.72;
+      lp.position.set(4.1 - i * 1.1, -0.405, lz);
+      lp.userData.phase = (i + 0.5) / 6;
+      lp.userData.laneZ = lz;
+      fpVcLiquidPackets.push(lp);
+      vcGrp.add(lp);
+    }
+    vcGrp.add(cu, rimFront, rimBack, pinchOff, grTop, grBot, thermPlate, socEvap, meshWin);
+    vcGrp.userData.fpVcThermMat = fpVcThermMat;
+    vcGrp.userData.fpVcVaporPackets = fpVcVaporPackets;
+    vcGrp.userData.fpVcLiquidPackets = fpVcLiquidPackets;
   }
   register('fp_copper_vapor_chamber', vcGrp, [0.4, -1.0, 0.0]);
 
@@ -808,8 +889,10 @@ export function buildFlagshipSmartphoneAssembly(mats) {
   }
   register('fp_midframe_magnesium_chassis', midGrp, [0.0, -2.2, 0.0]);
 
-  // 36. Front 6.8" 1-120Hz LTPO Tandem OLED Live Camera Viewfinder Display (Faces -Y, visible when orbiting or exploding!)
+  // 36. Phase 18 Integrated Front 6.8" 1-120Hz Tandem LTPO OLED Viewfinder (COE + MLA + Y-OCTA + Dual-Stack EML/CGL + 3D Ultrasonic FP + COP)
   const oledGrp = new THREE.Group();
+  const fpOledEmlMat = mats.oledEmlGlow.clone();
+  const fpOledCglMat = mats.oledCglMagenta.clone();
   {
     const bezelShape = makeRoundedRectShape(PHONE_W - 0.42, PHONE_D - 0.42, PHONE_R - 0.18);
     const bGeo = new THREE.ExtrudeGeometry(bezelShape, { depth: 0.24, bevelEnabled: false });
@@ -818,11 +901,56 @@ export function buildFlagshipSmartphoneAssembly(mats) {
     bezel.position.set(0, -0.94, 0);
     oledGrp.add(bezel);
 
+    // Subtle MLA + COE Polarizer-Less Optical Extraction Perimeter Frame on Front Face (-Y)
+    const mlaOuter = makeRoundedRectShape(PHONE_W - 0.62, PHONE_D - 0.62, PHONE_R - 0.24);
+    const mlaInner = makeRoundedRectShape(PHONE_W - 1.12, PHONE_D - 1.02, PHONE_R - 0.42);
+    mlaOuter.holes.push(mlaInner);
+    const mlaGeo = new THREE.ExtrudeGeometry(mlaOuter, { depth: 0.035, bevelEnabled: false });
+    mlaGeo.rotateX(Math.PI / 2);
+    const mlaRim = new THREE.Mesh(mlaGeo, mats.oledMlaGlass);
+    mlaRim.position.set(0, -1.185, 0);
+    oledGrp.add(mlaRim);
+
     // Live zero-text camera viewfinder screen facing outward (-Y) & visible on underside!
     const screen = new THREE.Mesh(new THREE.PlaneGeometry(PHONE_W - 1.15, PHONE_D - 1.05), mats.fpOledScreen);
     screen.rotation.x = Math.PI / 2; // Normal points -Y (front face of phone!)
-    screen.position.set(0, -1.20, 0);
+    screen.position.set(0, -1.205, 0);
     oledGrp.add(screen);
+
+    // Inner (+Y) Backside Copper Thermal Foil (visible cleanly when exploding!)
+    const cuFoil = new THREE.Mesh(new THREE.BoxGeometry(PHONE_W - 1.8, 0.032, PHONE_D - 1.6), mats.fpVaporCopper);
+    cuFoil.position.set(-0.2, -0.922, 0);
+    oledGrp.add(cuFoil);
+
+    // Phase 18 In-Display 3D Ultrasonic Fingerprint Sensor (PZT Transducer + Gold ASIC Ring in thumb zone!)
+    const fpPad = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.055, 1.85), mats.goldBond);
+    fpPad.position.set(5.45, -0.892, 0.0);
+    const fpPzt = new THREE.Mesh(new THREE.BoxGeometry(1.52, 0.065, 1.52), mats.zmPztCeramic);
+    fpPzt.position.set(5.45, -0.878, 0.0);
+    oledGrp.add(fpPad, fpPzt);
+
+    // Phase 18 COP (Chip-On-Plastic) U-Fold Flex Ribbon & 1-120 Hz LTPO DDIC along chin edge (+X)
+    const copFlex = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.045, 5.2), mats.fpcPolyimide);
+    copFlex.position.set(9.28, -0.895, 0.0);
+    const ddic = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.075, 3.4), mats.icPackageDark);
+    ddic.position.set(9.18, -0.875, 0.0);
+    oledGrp.add(copFlex, ddic);
+
+    // Stepped Tandem Dual-Stack Quantum Cutaway Strip on Inner Panel Surface (EML-1 + Magenta CGL + EML-2 + Diamond PenTile + Y-OCTA!)
+    const penStrip = new THREE.Mesh(new THREE.BoxGeometry(9.6, 0.032, 2.0), mats.oledDiamondSub);
+    penStrip.position.set(-2.6, -0.895, 2.35);
+    const yoctaStrip = new THREE.Mesh(new THREE.BoxGeometry(9.2, 0.020, 1.75), mats.oledYoctaMesh);
+    yoctaStrip.position.set(-2.6, -0.872, 2.35);
+    const eml1Band = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.036, 0.42), fpOledEmlMat);
+    eml1Band.position.set(-2.6, -0.890, -2.65);
+    const cglBand = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.042, 0.34), fpOledCglMat);
+    cglBand.position.set(-2.6, -0.884, -2.18);
+    const eml2Band = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.036, 0.42), fpOledEmlMat);
+    eml2Band.position.set(-2.6, -0.890, -1.72);
+    oledGrp.add(penStrip, yoctaStrip, eml1Band, cglBand, eml2Band);
+
+    oledGrp.userData.fpOledEmlMat = fpOledEmlMat;
+    oledGrp.userData.fpOledCglMat = fpOledCglMat;
   }
   register('fp_ltpo_oled_display', oledGrp, [0.0, -4.0, 0.0]);
 
