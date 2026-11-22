@@ -1244,6 +1244,142 @@ export function createMaterialLibrary(clippingPlanes) {
       color: 0x334155,
       metalness: 0.24,
       roughness: 0.46
+    }),
+
+    // === PHASE 4: EXTERIOR CAMERA DECO, COVER GLASS DX+, IP68 & AUX SENSORS ===
+    decoTitanium: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x8b939e,
+      metalness: 0.88,
+      roughness: 0.28,
+      clearcoat: 0.24
+    }),
+    decoBezelPvd: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1e242c,
+      metalness: 0.92,
+      roughness: 0.22,
+      clearcoat: 0.48
+    }),
+    decoBackGlass: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xdbe2ec,
+      metalness: 0.08,
+      roughness: 0.42,
+      clearcoat: 0.36,
+      transparent: true,
+      opacity: 0.82
+    }),
+    decoWaterproofOring: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xf97316,
+      metalness: 0.04,
+      roughness: 0.54
+    }),
+    decoEptfeVent: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xf8fafc,
+      metalness: 0.02,
+      roughness: 0.78
+    }),
+    decoPoronFoam: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x14171f,
+      metalness: 0.02,
+      roughness: 0.96
+    }),
+    decoOleophobic: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      metalness: 0.06,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.20,
+      clearcoat: 1.0,
+      iridescence: 0.88,
+      iridescenceIOR: 1.38,
+      depthWrite: false
+    }),
+    decoArDxCoat: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x10b981,
+      metalness: 0.14,
+      roughness: 0.05,
+      transparent: true,
+      opacity: 0.30,
+      clearcoat: 1.0,
+      iridescence: 1.0,
+      iridescenceIOR: 1.54,
+      depthWrite: false
+    }),
+    decoGorillaDx: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe0f2fe,
+      metalness: 0.04,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.42,
+      clearcoat: 1.0,
+      iridescence: 0.38,
+      iridescenceIOR: 1.52,
+      depthWrite: false
+    }),
+    decoIrBlackWindow: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1e1b4b,
+      metalness: 0.16,
+      roughness: 0.08,
+      transparent: true,
+      opacity: 0.72,
+      clearcoat: 1.0,
+      iridescence: 0.65
+    }),
+    decoVcselLaser: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xe11d48,
+      emissive: 0xbe123c,
+      emissiveIntensity: 0.48,
+      metalness: 0.65,
+      roughness: 0.18
+    }),
+    decoDoeGrating: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf59e0b,
+      metalness: 0.25,
+      roughness: 0.12,
+      transparent: true,
+      opacity: 0.70,
+      clearcoat: 1.0,
+      iridescence: 1.0,
+      iridescenceIOR: 1.65
+    }),
+    decoSpadArray: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x312e81,
+      metalness: 0.68,
+      roughness: 0.18,
+      iridescence: 0.72,
+      iridescenceIOR: 2.0
+    }),
+    decoFresnelLens: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xfef3c7,
+      metalness: 0.05,
+      roughness: 0.08,
+      transparent: true,
+      opacity: 0.56,
+      clearcoat: 1.0,
+      iridescence: 0.45,
+      depthWrite: false
+    }),
+    decoOpalDiffuser: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf1f5f9,
+      metalness: 0.02,
+      roughness: 0.36,
+      transparent: true,
+      opacity: 0.78,
+      clearcoat: 0.55
     })
   };
 }

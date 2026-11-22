@@ -5,11 +5,13 @@ import { buildMacroSensorAssembly } from './assemblies/MacroSensorAssembly.js';
 import { buildMicroPixelAssembly } from './assemblies/MicroPixelAssembly.js';
 import { buildLayer2TransistorAssembly } from './assemblies/Layer2TransistorAssembly.js';
 import { buildLensActuatorAssembly } from './assemblies/LensActuatorAssembly.js';
+import { buildCameraDecoAssembly } from './assemblies/CameraDecoAssembly.js';
 import {
   MACRO_PARTS,
   MICRO_PARTS,
   LAYER2_PARTS,
   LENS_PARTS,
+  DECO_PARTS,
   OVERVIEW_DOCS,
   ALL_PARTS_BY_ID
 } from './knowledge/sensorKnowledge.js';
@@ -21,25 +23,27 @@ const uiRoot = document.getElementById('ui-root');
 const engine = new CadEngine(viewportEl);
 const sim = new SimEffects(engine.scene);
 
-// Pre-build all 4 scales for seamless Macro <-> Micro Pixel <-> Layer-2 Nanoscale <-> Optical Lens & VCM navigation
+// Pre-build all 5 scales from 10nm SOI FinFET up to the exterior CNC Titanium Camera Deco!
 const assemblies = {
   macro: buildMacroSensorAssembly(engine.materials),
   micro: buildMicroPixelAssembly(engine.materials),
   layer2: buildLayer2TransistorAssembly(engine.materials),
-  lens: buildLensActuatorAssembly(engine.materials)
+  lens: buildLensActuatorAssembly(engine.materials),
+  deco: buildCameraDecoAssembly(engine.materials)
 };
 
 const partDocsByScale = {
   macro: MACRO_PARTS,
   micro: MICRO_PARTS,
   layer2: LAYER2_PARTS,
-  lens: LENS_PARTS
+  lens: LENS_PARTS,
+  deco: DECO_PARTS
 };
 
 Object.values(assemblies).forEach((asm) => engine.scene.add(asm.root));
 
-let currentScale = 'lens';
-let activeAsm = assemblies.lens;
+let currentScale = 'deco';
+let activeAsm = assemblies.deco;
 let targetExplode = 0;
 let currentExplode = 0;
 
@@ -78,7 +82,8 @@ const ui = new ZeroTextUI(uiRoot, {
     engine.animateCameraTo(activeAsm.defaultCameraPos, activeAsm.defaultTarget, 520);
   },
   onSnapView(preset) {
-    const dist = currentScale === 'macro' ? 36 : currentScale === 'lens' ? 38 : currentScale === 'layer2' ? 32 : 28;
+    const dist =
+      currentScale === 'deco' ? 42 : currentScale === 'lens' ? 38 : currentScale === 'macro' ? 36 : currentScale === 'layer2' ? 32 : 28;
     engine.snapView(preset, dist, activeAsm.defaultTarget);
   },
   onSelectPartUI(partId) {
@@ -152,8 +157,8 @@ function switchScale(scale, instantCamera = false) {
   }
 }
 
-// Launch directly into the new ultra-detailed Optical 1G7P Lens, Variable Aperture & VCM/OIS CAD space
-switchScale('lens', true);
+// Launch directly into the topmost Phase 4 Exterior Camera Deco, Cover Glass DX+, IP68 & Aux Sensors layer
+switchScale('deco', true);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -178,7 +183,15 @@ function animate(now) {
   sim.update(dt, elapsed, engine.partMap, currentExplode);
   const gridDrop =
     currentExplode *
-    (currentScale === 'lens' ? 7.6 : currentScale === 'layer2' ? 8.0 : currentScale === 'macro' ? 9.6 : 9.4);
+    (currentScale === 'deco'
+      ? 8.8
+      : currentScale === 'lens'
+        ? 7.6
+        : currentScale === 'layer2'
+          ? 8.0
+          : currentScale === 'macro'
+            ? 9.6
+            : 9.4);
   engine.setGridElevation(activeAsm.gridY - gridDrop);
   engine.update(now);
 }

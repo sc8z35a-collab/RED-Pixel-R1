@@ -27,6 +27,14 @@ Dedicated standalone optical + mechatronic layer sitting above the 1-inch sensor
 - **Closed-Loop Ball-Guide AF VCM Actuator (6 parts)**: Cutaway V-Groove AF Lens Carrier/Bobbin, 4-Side Self-Bonding Copper AF Voice Coils, 6× Y-TZP ZrO₂ Ceramic V-Groove Guide Balls, 2× Permalloy Magnetic Attraction Preload Yokes, 4× Multi-Pole N52 NdFeB Shared Magnets, Closed-Loop AF Z-Axis Hall/TMR Position Sensor IC
 - **Lens-Shift OIS, Suspension & Electronics (6 parts)**: Cutaway OIS Fixed Housing Base with Drop-Shock Stoppers, 4× Bottom Fine Pattern OIS Coils (FP-Coil, CIPA 4.5-stop), 4× Cu-Ni-Si Alloy Suspension Wires (parallel-link + power feed), Upper & Lower Etched BeCu Flexure Leaf Springs + UV Silicone Damper Gel, 2× OIS X/Y Hall Sensors & Single-Chip Closed-Loop PID Driver IC + MLCCs, Actuator Control Polyimide FPC & ENIG Interface Pads
 
+## Phase 4 — Topmost Exterior Camera Deco, Cover Glass DX+, IP68 Sealing & Auxiliary Sensors (24 Independent Parts, 1 unit = 1 mm)
+The outermost physical layer sitting directly above the 1G7P Lens & VCM module (124 total independent dissectable parts across all 5 multiscale modes) with beginner-friendly Japanese explanations:
+- **Exterior Titanium Deco & IP68 Sealing (6 parts)**: Frosted AG Rear Back Glass (Cutaway), CNC Grade-5 Titanium (`Ti-6Al-4V`) Camera Island Plateau, PVD Black-Chrome 72-Tooth Knurled Bezel Ring (+0.35 mm bumper & filter groove), IP68 Silicone O-Rings & Waterproof Acrylic Seals, 0.2 μm Pore ePTFE Breathable Barometric Vent Membrane, High-Density PORON Light-Seal Foam & Isolation Barriers
+- **Multi-Layer Cover Glass Stack (4 parts)**: Fluoropolymer Oleophobic Anti-Fingerprint Coat (with micro-beading droplets), Broadband AR Interference Film, Corning Gorilla® Glass DX+ Optical Cover Slab (98% transmittance), Rear Silk-Screen Matte-Black Masking (`OD > 5.0`)
+- **dToF LiDAR Laser AF Module (4 parts)**: 940 nm Near-IR Pass Black Window (Cutaway), 940 nm Class-1 VCSEL Laser Chip, Golden Nano-Grating DOE Dot Projector (up to 1,536 zones), BSI SPAD Single-Photon Avalanche Diode Array (`~10–30 ps` TDC timing)
+- **Adaptive 9-LED True Tone Matrix Flash (4 parts)**: Sculpted 7-Ring Concentric Micro-Fresnel Diffuser Lens, 3×3 9-Element Warm/Cool Adaptive LED Matrix (live Wide ↔ Telephoto pattern switching), High-Reflectance Conical Reflector Cup & AlN Ceramic Submount, Constant-Current Boost Driver IC
+- **Multispectral Color/Flicker, Zoom MEMS Mic & Thermal/FPC (6 parts)**: Wide-Angle Opal Ambient Diffuser Window, 11–14ch Multispectral Color & Flicker Detector IC (rainbow spectral bands), Acoustic Slit & Dual SUS/ePTFE Waterproof Mesh, High-SNR Rear Directional Zoom MEMS Microphone (`SNR 70 dB / AOP 135 dB SPL`), High-Conductivity Artificial Graphite Thermal Spreader & Copper Foil, Unified Polyimide Auxiliary Sensor FPC & BTB Connector
+
 ## Development
 ```bash
 npm install

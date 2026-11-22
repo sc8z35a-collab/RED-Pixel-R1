@@ -39,6 +39,9 @@ export class SimEffects {
     } else if (mode === 'lens') {
       this._buildLensOptics();
       this._buildGuideLines(14.0, -12.4, [[-9.2, -9.2], [9.2, -9.2], [-9.2, 9.2], [9.2, 9.2]]);
+    } else if (mode === 'deco') {
+      this._buildDecoSensing();
+      this._buildGuideLines(12.2, -12.0, [[-13.5, -13.5], [13.5, -13.5], [-13.5, 13.5], [13.5, 13.5]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -309,6 +312,73 @@ export class SimEffects {
     this.opticsGroup.add(focalDisc, focalRim);
   }
 
+  _buildDecoSensing() {
+    // 1. Main Lens Incoming Visible Light (98% Transmittance through Gorilla Glass DX+ AR Stack)
+    const MAIN_X = -2.8, MAIN_Z = -1.0;
+    const mainRays = [
+      { ox: 0, oz: 0, col: 0x10b981 },
+      { ox: 3.1, oz: 0, col: 0x0ea5e9 },
+      { ox: -3.1, oz: 0, col: 0x0ea5e9 },
+      { ox: 0, oz: 3.1, col: 0x22c55e },
+      { ox: 0, oz: -3.1, col: 0x22c55e }
+    ];
+    for (const r of mainRays) {
+      this._addRay([
+        new THREE.Vector3(MAIN_X + r.ox * 1.18, 9.8, MAIN_Z + r.oz * 1.18),
+        new THREE.Vector3(MAIN_X + r.ox, 2.2, MAIN_Z + r.oz),
+        new THREE.Vector3(MAIN_X + r.ox * 0.92, 1.4, MAIN_Z + r.oz * 0.92),
+        new THREE.Vector3(MAIN_X + r.ox * 0.65, -4.5, MAIN_Z + r.oz * 0.65)
+      ], r.col, 0.80, 0.08, 3);
+    }
+
+    // 2. 940 nm dToF LiDAR Laser Fan (VCSEL -> DOE Diffractive Dot Fan -> Returning to SPAD!)
+    const VX = 7.1 - 0.85, VZ = -4.4;
+    const SX = 7.1 + 0.88, SZ = -4.4;
+    const doeFans = [
+      [0, 0], [2.4, 2.0], [-2.2, 2.2], [2.4, -2.0], [-2.0, -2.2]
+    ];
+    for (const [fx, fz] of doeFans) {
+      this._addRay([
+        new THREE.Vector3(VX, 0.45, VZ),
+        new THREE.Vector3(VX, 1.05, VZ),
+        new THREE.Vector3(VX + fx * 0.35, 3.6, VZ + fz * 0.35),
+        new THREE.Vector3(VX + fx, 9.6, VZ + fz)
+      ], 0xe11d48, 0.85, 0.065, 3);
+    }
+    // Returning reflected single-photon paths entering SPAD receiver array
+    for (const [rx, rz] of [[1.8, 1.6], [-1.2, -1.6]]) {
+      this._addRay([
+        new THREE.Vector3(SX + rx, 9.6, SZ + rz),
+        new THREE.Vector3(SX + rx * 0.35, 3.8, SZ + rz * 0.35),
+        new THREE.Vector3(SX, 1.5, SZ),
+        new THREE.Vector3(SX, 0.45, SZ)
+      ], 0xa855f7, 0.82, 0.065, 3);
+    }
+
+    // 3. Adaptive 9-LED True Tone Flash Beam Cone through Concentric Fresnel Lens
+    const FX = 7.0, FZ = 3.8;
+    for (const [dx, dz, col] of [[0, 0, 0xfef08a], [2.6, 1.8, 0xf59e0b], [-2.2, 2.2, 0xfbbf24], [2.2, -2.0, 0xfbbf24]]) {
+      this._addRay([
+        new THREE.Vector3(FX + dx * 0.15, 0.55, FZ + dz * 0.15),
+        new THREE.Vector3(FX + dx * 0.35, 1.75, FZ + dz * 0.35),
+        new THREE.Vector3(FX + dx * 1.15, 9.2, FZ + dz * 1.15)
+      ], col, 0.80, 0.075, 2);
+    }
+
+    // 4. Multispectral Ambient Light (Violet-Cyan) & Zoom MEMS Mic Acoustic Input Waves (Teal)
+    this._addRay([
+      new THREE.Vector3(1.2 + 1.8, 8.8, 8.8 + 1.8),
+      new THREE.Vector3(1.2, 1.6, 8.8),
+      new THREE.Vector3(1.2, 0.4, 8.8)
+    ], 0x8b5cf6, 0.82, 0.07, 2);
+
+    this._addRay([
+      new THREE.Vector3(-5.6 - 2.0, 8.2, 8.2 + 2.2),
+      new THREE.Vector3(-5.6, 1.5, 8.2),
+      new THREE.Vector3(-5.6, -0.2, 8.2)
+    ], 0x06b6d4, 0.82, 0.07, 2);
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -354,19 +424,23 @@ export class SimEffects {
       }
     }
 
-    // Apply exploded offset + real-time mechanical actuation:
-    //  - Macro mode: 3D Sensor-Shift OIS (IBIS) XY + Roll
-    //  - Lens mode: Synchronized 6-Blade Stepless Variable Aperture (f/1.63 <-> f/4.0)
-    //               + Closed-Loop Ball-Guide AF Z-Focus Stroke + Lens-Shift OIS XY
+    // Apply exploded offset + real-time mode-specific live hardware actuation:
+    //  - Macro: 3D Sensor-Shift OIS (IBIS) XY + Roll
+    //  - Lens: 6-Blade Stepless Iris (f/1.63 <-> f/4.0) + Ball-Guide AF Z + OIS XY
+    //  - Deco: Adaptive 9-LED Flash (Wide outer-8 <-> Telephoto center spot) + 940nm VCSEL Laser pulse
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
+    const decoAct = this.oisEnabled && this.mode === 'deco';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
     const oisRoll = macroOis ? Math.sin(elapsed * 2.2) * 0.045 : 0;
     const afStrokeY = lensAct ? Math.sin(elapsed * 1.9) * 0.42 : 0;
-    // Stepless iris modulation 0.02 (f/1.63 wide open) <-> 0.50 rad (f/4.0 closed)
     const irisNorm = lensAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.35)) : null;
+
+    // Adaptive flash cycle: 0 = Wide-Angle Outer 8 LEDs, 1 = Telephoto Center Spot LED
+    const flashBlend = decoAct ? (0.5 + 0.5 * Math.sin(elapsed * 1.6)) : null;
+    const vcselPulse = decoAct ? (0.45 + 0.95 * Math.pow(0.5 + 0.5 * Math.sin(elapsed * 9.0), 4)) : 0.48;
 
     for (const entry of partsMap.values()) {
       const ex = entry.basePos.x + entry.explodeVec.x * explodeT;
@@ -387,12 +461,30 @@ export class SimEffects {
         entry.group.rotation.y = 0;
       }
 
-      // Live 6-blade stepless variable aperture articulation
+      // Live 6-blade stepless variable aperture articulation (Lens mode)
       if (entry.group.userData.irisBlades) {
         for (const pivot of entry.group.userData.irisBlades) {
           const swing = lensAct ? (0.02 + irisNorm * 0.48) : pivot.userData.restSwing;
           pivot.rotation.y = pivot.userData.baseAzimuth + swing;
         }
+      }
+
+      // Live 9-LED Adaptive True Tone Flash pattern switching (Deco mode)
+      if (entry.group.userData.flashLeds) {
+        for (const led of entry.group.userData.flashLeds) {
+          if (decoAct) {
+            led.material.emissiveIntensity = led.userData.isCenter
+              ? 0.15 + flashBlend * 2.2
+              : 0.15 + (1.0 - flashBlend) * 1.65;
+          } else {
+            led.material.emissiveIntensity = led.userData.isCenter ? 0.55 : 0.35;
+          }
+        }
+      }
+
+      // Live 940nm VCSEL Laser pulse modulation (Deco mode)
+      if (entry.group.userData.vcselMat) {
+        entry.group.userData.vcselMat.emissiveIntensity = vcselPulse;
       }
     }
 

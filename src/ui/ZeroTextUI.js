@@ -2,11 +2,12 @@ import * as THREE from 'three';
 
 // Pure Geometric SVG Pictograms — STRICT ZERO-TEXT UI
 const ICONS = {
-  // Scale Switch (Macro Module / Micro 2x2 Pixel / Layer-2 SOI FinFET / Optical 1G7P Lens & VCM)
+  // Scale Switch (Macro / Micro Pixel / Layer-2 FinFET / Optical Lens & VCM / Exterior Camera Deco)
   macro: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><rect x="7.5" y="8" width="9" height="8" rx="1"/><circle cx="12" cy="12" r="1.8"/><path d="M9 20v2M15 20v2"/></svg>`,
   micro: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="16.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="7.5" cy="16.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="16.5" cy="16.5" r="1.3" fill="currentColor" stroke="none"/></svg>`,
   layer2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5h18"/><path d="M5.5 16.5v-5.5h3v5.5M10.5 16.5v-5.5h3v5.5M15.5 16.5v-5.5h3v5.5"/><rect x="4" y="7" width="16" height="4" rx="1.2" fill="currentColor" fill-opacity="0.18"/><line x1="12" y1="3.5" x2="12" y2="7"/><line x1="12" y1="16.5" x2="12" y2="20.5"/></svg>`,
   lens: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></svg>`,
+  deco: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><circle cx="10.2" cy="11.4" r="4.2"/><circle cx="17.2" cy="9.2" r="1.5" fill="currentColor" stroke="none"/><circle cx="17.2" cy="14.2" r="1.5"/><circle cx="12.5" cy="17.8" r="1" fill="currentColor" stroke="none"/></svg>`,
 
   // Explode
   assembled: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>`,
@@ -133,13 +134,14 @@ export class ZeroTextUI {
   _buildDOM() {
     this.root.innerHTML = '';
 
-    // 1. TOP-LEFT SCALE SWITCH (Macro Module <-> Micro 2x2 Pixel <-> Layer-2 Nanoscale <-> Optical Lens & VCM)
+    // 1. TOP-LEFT SCALE SWITCH (Macro <-> Micro Pixel <-> Layer-2 FinFET <-> Optical Lens <-> Exterior Deco)
     const scaleDock = this._el('div', 'scale-dock cad-glass');
     this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'));
     this.btnMicro = this._iconBtn(ICONS.micro, () => this.cb.onSwitchScale('micro'));
     this.btnLayer2 = this._iconBtn(ICONS.layer2, () => this.cb.onSwitchScale('layer2'));
-    this.btnLens = this._iconBtn(ICONS.lens, () => this.cb.onSwitchScale('lens'), 'active');
-    scaleDock.append(this.btnMacro, this.btnMicro, this.btnLayer2, this.btnLens);
+    this.btnLens = this._iconBtn(ICONS.lens, () => this.cb.onSwitchScale('lens'));
+    this.btnDeco = this._iconBtn(ICONS.deco, () => this.cb.onSwitchScale('deco'), 'active');
+    scaleDock.append(this.btnMacro, this.btnMicro, this.btnLayer2, this.btnLens, this.btnDeco);
     this.root.appendChild(scaleDock);
 
     // 2. LEFT VISUAL LAYER DISSECTION DOCK (ZERO TEXT — Color Bars + Category Glyphs + Eye Toggles)
@@ -340,8 +342,9 @@ export class ZeroTextUI {
     this.btnMicro.classList.toggle('active', scale === 'micro');
     this.btnLayer2.classList.toggle('active', scale === 'layer2');
     this.btnLens.classList.toggle('active', scale === 'lens');
-    // Live mechanical actuation (Sensor-Shift OIS in macro / 6-Blade Iris + AF + OIS in lens)
-    this.btnOis.style.display = (scale === 'macro' || scale === 'lens') ? 'inline-flex' : 'none';
+    this.btnDeco.classList.toggle('active', scale === 'deco');
+    // Live demo button (OIS in macro / Iris+AF+OIS in lens / 9-LED Flash+LiDAR pulse in deco)
+    this.btnOis.style.display = (scale === 'macro' || scale === 'lens' || scale === 'deco') ? 'inline-flex' : 'none';
   }
 
   setIsolateUI(active) {
