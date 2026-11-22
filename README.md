@@ -147,6 +147,7 @@ Zooms straight inside the `RED-Pixel R1` flagship camera brain from real-scale `
 
 ## Integrated Default Launch — `RED-Pixel R1` Complete Smartphone Camera System (`flagship`, Synced across Phases 1–19 / 20 Scales / 600 Parts)
 - Launches directly into the full Grade-5 Titanium `RED-Pixel R1` flagship smartphone combining all 5 cameras + quantum dToF LiDAR with the upgraded Phase 17 cutaway `2 nm GAA/BSPDN` Camera SoC (pulsing Triple `18-bit` ISP + `100 TOPS` NPU + `PoP LPDDR5X`), Phase 18 Front `6.8"` Tandem `LTPO` OLED Viewfinder (`COE/MLA` rim + inner `3D` Ultrasonic Fingerprint + `COP` DDIC + Dual-Stack `EML/CGL` & `Y-OCTA` cutaway), and Phase 19 `0.35 mm` Pure-Copper 3D Vapor Chamber (live IR thermal map + `#300` sintered copper mesh window + 12-particle two-phase heat-pipe loop). All 11 subsystems animate simultaneously!
+- **Auto-Fullscreen, Mobile-Specialized Ultra-Compact UI & Explode-Only Zen Mode**: Full-bleed `100dvh` + `viewport-fit=cover` + silent boot & first-gesture Fullscreen API (with manual toggle), micro-sized mobile portrait & landscape CAD toolbars (`24–25 px` icons, sticky flagship button in scrollable scale dock, collapsed-by-default bottom-sheet info panel & slide-in left layers rail, automatic portrait camera framing), plus one-tap **Explode-Only Zen Mode** hiding every UI panel except the floating Explode bar (`Z` shortcut / restore button).
 
 ## Live Demo
 - GitHub Pages: https://sc8z35a-collab.github.io/RED-Pixel-R1/

@@ -66,6 +66,13 @@ const ICONS = {
   viewTop: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/></svg>`,
   viewSide: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="1.5"/><line x1="3" y1="12" x2="21" y2="12" stroke-opacity="0.45"/></svg>`,
 
+  // Fullscreen, Explode-Only Zen Mode & Mobile Layer Drawer Icons (Zero Text!)
+  fullscreen: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>`,
+  fullscreenExit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M15 20v-5h5M9 20v-5H4"/></svg>`,
+  zenOn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="18" height="12.5" rx="2.2" stroke-dasharray="2.6 2.2" stroke-opacity="0.65"/><line x1="4.5" y1="20" x2="19.5" y2="20" stroke-width="2.1"/><circle cx="11" cy="20" r="2.2" fill="currentColor" stroke="none"/></svg>`,
+  zenOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="4" rx="1"/><rect x="3" y="9.5" width="5" height="11.5" rx="1"/><rect x="10.5" y="9.5" width="10.5" height="7" rx="1" fill="currentColor" fill-opacity="0.22"/><line x1="10.5" y1="20" x2="21" y2="20" stroke-width="2"/></svg>`,
+  layers: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 21 7.5 12 12 3 7.5 12 3"/><polyline points="3 12 12 16.5 21 12"/><polyline points="3 16.5 12 21 21 16.5"/></svg>`,
+
   // Part Category Micro-Glyphs for Layer Dissection Stack
   glyphs: {
     frame: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="12" height="12" rx="2"/><rect x="5" y="5" width="6" height="6" rx="0.8"/></svg>`,
@@ -123,7 +130,12 @@ export class ZeroTextUI {
     this.partsList = [];
     this.selectedId = null;
     this.hiddenSet = new Set();
-    this.infoOpen = true;
+    const compact = this.isCompactViewport();
+    this.infoOpen = !compact;
+    this.layersOpen = !compact;
+    this.zenMode = false;
+    this.isFullscreen = false;
+    this.userExitedFullscreen = false;
     this.activeClipAxis = null;
     this.shadingMode = 'solid';
     this.isOrtho = false;
@@ -134,6 +146,87 @@ export class ZeroTextUI {
 
     this._buildDOM();
     this._setupGizmo();
+    this._setupAutoFullscreen();
+  }
+
+  isCompactViewport() {
+    return window.innerWidth <= 900 || window.innerHeight <= 520;
+  }
+
+  _setupAutoFullscreen() {
+    const getFsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+
+    const syncFsState = () => {
+      const nowFs = Boolean(getFsEl());
+      if (this.isFullscreen && !nowFs) {
+        this.userExitedFullscreen = true;
+      }
+      this.isFullscreen = nowFs;
+      if (this.btnFullscreen) {
+        this.btnFullscreen.innerHTML = nowFs ? ICONS.fullscreenExit : ICONS.fullscreen;
+        this.btnFullscreen.classList.toggle('active', nowFs);
+      }
+    };
+
+    document.addEventListener('fullscreenchange', syncFsState);
+    document.addEventListener('webkitfullscreenchange', syncFsState);
+
+    // 1. Silent automatic fullscreen attempt immediately on load (no-ops cleanly if browser requires gesture)
+    this.requestFullscreen(true);
+
+    // 2. Seamless first-gesture auto-fullscreen fallback for mobile & desktop browsers
+    const onFirstGesture = () => {
+      if (!getFsEl() && !this.userExitedFullscreen) {
+        this.requestFullscreen(true);
+      }
+    };
+    window.addEventListener('pointerdown', onFirstGesture, { once: true, capture: true, passive: true });
+    window.addEventListener('keydown', onFirstGesture, { once: true, capture: true, passive: true });
+
+    // Keep compact responsive panel defaults tidy when rotating or resizing across breakpoint
+    window.addEventListener('resize', () => {
+      if (!this.isCompactViewport() && !this.zenMode) {
+        this.layerDock.classList.remove('mobile-open');
+      }
+    });
+  }
+
+  requestFullscreen(silent = false) {
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (!req) return;
+    try {
+      const p = req.call(el, { navigationUI: 'hide' });
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          if (!silent) {
+            try {
+              const p2 = req.call(el);
+              if (p2 && typeof p2.catch === 'function') p2.catch(() => {});
+            } catch {}
+          }
+        });
+      }
+    } catch {
+      // Silently ignore browser gesture restrictions
+    }
+  }
+
+  toggleFullscreen() {
+    const getFsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+    if (getFsEl()) {
+      this.userExitedFullscreen = true;
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) {
+        try {
+          const p = exit.call(document);
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        } catch {}
+      }
+    } else {
+      this.userExitedFullscreen = false;
+      this.requestFullscreen(false);
+    }
   }
 
   _el(tag, className, html = '') {
@@ -158,6 +251,7 @@ export class ZeroTextUI {
 
     // 1. TOP-LEFT SCALE SWITCH (EXACTLY 20 Multiscale Modes — EXACTLY 600 Independent 3D CAD Parts!)
     const scaleDock = this._el('div', 'scale-dock cad-glass');
+    this.scaleDock = scaleDock;
     this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'));
     this.btnMicro = this._iconBtn(ICONS.micro, () => this.cb.onSwitchScale('micro'));
     this.btnLayer2 = this._iconBtn(ICONS.layer2, () => this.cb.onSwitchScale('layer2'));
@@ -177,7 +271,7 @@ export class ZeroTextUI {
     this.btnSocGaa = this._iconBtn(ICONS.socGaa, () => this.cb.onSwitchScale('soc_gaa'));
     this.btnOledTandem = this._iconBtn(ICONS.oledTandem, () => this.cb.onSwitchScale('oled_tandem'));
     this.btnVaporChamber = this._iconBtn(ICONS.vaporChamber, () => this.cb.onSwitchScale('vapor_chamber'));
-    const sep = this._el('div', 'dock-divider');
+    const sep = this._el('div', 'dock-divider scale-sep');
     this.btnFlagship = this._iconBtn(ICONS.flagship, () => this.cb.onSwitchScale('flagship'), 'flagship-btn active');
     scaleDock.append(
       this.btnMacro,
@@ -206,6 +300,7 @@ export class ZeroTextUI {
 
     // 2. LEFT VISUAL LAYER DISSECTION DOCK (ZERO TEXT — Show All / Isolate / Ghost Focus / Onion-Peel / Unpeel)
     const layerDock = this._el('div', 'layer-dock cad-glass');
+    this.layerDock = layerDock;
     const layerHead = this._el('div', 'layer-dock-head');
     this.btnShowAll = this._iconBtn(ICONS.eye, () => this.cb.onShowAll(), 'wide');
     const headGrid = this._el('div', 'layer-head-grid');
@@ -240,25 +335,77 @@ export class ZeroTextUI {
     topRight.append(presetDock, gizmoShell);
     this.root.appendChild(topRight);
 
-    // 4. BOTTOM FLOATING CAD TOOLBAR (100% ZERO-TEXT ICON CONTROLS)
+    // 4. BOTTOM FLOATING CAD TOOLBAR (100% ZERO-TEXT, MOBILE-OPTIMIZED + EXPLODE-ONLY ZEN MODE)
     const bottomDock = this._el('div', 'bottom-dock cad-glass');
 
-    // 4a. Explode Slider Group
-    const explodeGroup = this._el('div', 'slider-wrap');
+    // 4a. Primary Explode Row (ALWAYS pinned & the sole surviving bar in Explode-Only Zen Mode!)
+    const bottomExplodeRow = this._el('div', 'bottom-explode-row');
+    const explodeGroup = this._el('div', 'slider-wrap explode-wrap');
     const btnAssemble = this._iconBtn(ICONS.assembled, () => this.setExplodeUI(0, true), 'sm');
     this.explodeSlider = document.createElement('input');
     this.explodeSlider.type = 'range';
     this.explodeSlider.min = '0';
     this.explodeSlider.max = '100';
     this.explodeSlider.value = '0';
-    this.explodeSlider.className = 'cad-range';
+    this.explodeSlider.className = 'cad-range explode-range';
     this.explodeSlider.addEventListener('input', () => {
       this.cb.onExplodeChange(Number(this.explodeSlider.value) / 100);
     });
     const btnExplodeFull = this._iconBtn(ICONS.exploded, () => this.setExplodeUI(1, true), 'sm');
     explodeGroup.append(btnAssemble, this.explodeSlider, btnExplodeFull);
 
-    // 4b. 3-Axis Real-time Section Cut Group
+    this.btnZen = this._iconBtn(ICONS.zenOn, () => this.setZenMode(!this.zenMode), 'sm btn-zen');
+    bottomExplodeRow.append(explodeGroup, this._el('div', 'dock-divider zen-keep'), this.btnZen);
+
+    // 4b. Secondary Tools Row (smooth horizontal touch-scroll on compact mobile, hidden in Zen Mode!)
+    const bottomToolsRow = this._el('div', 'bottom-tools-row');
+
+    // Primary Quick Controls (placed first for zero-scroll 1-tap access on phones!)
+    const simGroup = this._el('div', 'dock-group');
+    this.btnRays = this._iconBtn(ICONS.rays, () => {
+      this.opticsOn = !this.opticsOn;
+      this.btnRays.classList.toggle('active-blue', this.opticsOn);
+      this.cb.onOpticsToggle(this.opticsOn);
+    }, 'sm btn-rays');
+
+    this.btnOis = this._iconBtn(ICONS.ois, () => {
+      this.oisOn = !this.oisOn;
+      this.btnOis.classList.toggle('active-amber', this.oisOn);
+      this.cb.onOisToggle(this.oisOn);
+    }, 'sm btn-ois');
+
+    this.btnInfoToggle = this._iconBtn(ICONS.book, () => {
+      this.setInfoOpen(!this.infoOpen);
+    }, `sm btn-info${this.infoOpen ? ' active' : ''}`);
+
+    this.btnLayers = this._iconBtn(ICONS.layers, () => {
+      this.setLayersOpen(!this.layersOpen);
+    }, 'sm btn-layers mobile-only');
+
+    this.btnFullscreen = this._iconBtn(ICONS.fullscreen, () => {
+      this.toggleFullscreen();
+    }, 'sm btn-fullscreen');
+
+    this.btnReset = this._iconBtn(ICONS.reset, () => this.cb.onResetView(), 'sm btn-reset');
+
+    this.btnProj = this._iconBtn(ICONS.persp, () => {
+      this.isOrtho = !this.isOrtho;
+      this.btnProj.innerHTML = this.isOrtho ? ICONS.ortho : ICONS.persp;
+      this.btnProj.classList.toggle('active', this.isOrtho);
+      this.cb.onProjectionToggle(this.isOrtho);
+    }, 'sm btn-proj');
+
+    simGroup.append(
+      this.btnRays,
+      this.btnOis,
+      this.btnInfoToggle,
+      this.btnLayers,
+      this.btnFullscreen,
+      this.btnReset,
+      this.btnProj
+    );
+
+    // 3-Axis Real-time Section Cut Group
     const clipGroup = this._el('div', 'dock-group');
     this.btnClipX = this._iconBtn(ICONS.cutX, () => this._toggleClipAxis('x'), 'sm');
     this.btnClipY = this._iconBtn(ICONS.cutY, () => this._toggleClipAxis('y'), 'sm');
@@ -277,7 +424,7 @@ export class ZeroTextUI {
     });
     clipGroup.append(this.btnClipX, this.btnClipY, this.btnClipZ, this.clipSlider);
 
-    // 4c. Shading Mode Group
+    // Shading Mode Group
     const shadeGroup = this._el('div', 'dock-group');
     this.shadeBtns = {
       solid: this._iconBtn(ICONS.solid, () => this.setShadingUI('solid', true), 'sm active'),
@@ -287,48 +434,23 @@ export class ZeroTextUI {
     };
     shadeGroup.append(this.shadeBtns.solid, this.shadeBtns.cad, this.shadeBtns.xray, this.shadeBtns.wire);
 
-    // 4d. Projection & Physics Simulations Group
-    const simGroup = this._el('div', 'dock-group');
-    this.btnProj = this._iconBtn(ICONS.persp, () => {
-      this.isOrtho = !this.isOrtho;
-      this.btnProj.innerHTML = this.isOrtho ? ICONS.ortho : ICONS.persp;
-      this.btnProj.classList.toggle('active', this.isOrtho);
-      this.cb.onProjectionToggle(this.isOrtho);
-    }, 'sm');
-
-    this.btnRays = this._iconBtn(ICONS.rays, () => {
-      this.opticsOn = !this.opticsOn;
-      this.btnRays.classList.toggle('active-blue', this.opticsOn);
-      this.cb.onOpticsToggle(this.opticsOn);
-    }, 'sm');
-
-    this.btnOis = this._iconBtn(ICONS.ois, () => {
-      this.oisOn = !this.oisOn;
-      this.btnOis.classList.toggle('active-amber', this.oisOn);
-      this.cb.onOisToggle(this.oisOn);
-    }, 'sm');
-
-    this.btnReset = this._iconBtn(ICONS.reset, () => this.cb.onResetView(), 'sm');
-
-    this.btnInfoToggle = this._iconBtn(ICONS.book, () => {
-      this.setInfoOpen(!this.infoOpen);
-    }, 'sm active');
-
-    simGroup.append(this.btnProj, this.btnRays, this.btnOis, this.btnReset, this.btnInfoToggle);
-
-    bottomDock.append(
-      explodeGroup,
+    bottomToolsRow.append(
+      simGroup,
       this._el('div', 'dock-divider'),
       clipGroup,
       this._el('div', 'dock-divider'),
-      shadeGroup,
-      this._el('div', 'dock-divider'),
-      simGroup
+      shadeGroup
+    );
+
+    bottomDock.append(
+      bottomExplodeRow,
+      this._el('div', 'dock-divider bottom-main-sep'),
+      bottomToolsRow
     );
     this.root.appendChild(bottomDock);
 
-    // 5. RIGHT EXPLANATION DRAWER (THE ONLY UI ELEMENT CONTAINING TEXT)
-    this.infoPanel = this._el('aside', 'info-panel cad-glass');
+    // 5. RIGHT EXPLANATION DRAWER / MOBILE BOTTOM SHEET (THE ONLY UI ELEMENT CONTAINING TEXT)
+    this.infoPanel = this._el('aside', `info-panel cad-glass${this.infoOpen ? '' : ' collapsed'}`);
 
     const infoHead = this._el('div', 'info-head');
     this.infoColorBar = this._el('div', 'info-color-bar');
@@ -424,6 +546,14 @@ export class ZeroTextUI {
     this.btnOledTandem.classList.toggle('active', scale === 'oled_tandem');
     this.btnVaporChamber.classList.toggle('active', scale === 'vapor_chamber');
     this.btnFlagship.classList.toggle('active', scale === 'flagship');
+
+    const activeBtn = this.scaleDock?.querySelector('.icon-btn.active');
+    if (activeBtn && typeof activeBtn.scrollIntoView === 'function') {
+      try {
+        activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+      } catch {}
+    }
+
     // Live demo button (all kinetic / active optical / semiconductor physics modes!)
     this.btnOis.style.display =
       scale === 'macro' ||
@@ -464,9 +594,34 @@ export class ZeroTextUI {
   }
 
   setInfoOpen(open) {
+    if (this.zenMode && open) return;
     this.infoOpen = open;
     this.infoPanel.classList.toggle('collapsed', !open);
     this.btnInfoToggle.classList.toggle('active', open);
+    // On tight portrait phones, close layers rail when opening info sheet to keep viewport breathable
+    if (open && this.isCompactViewport() && this.layersOpen) {
+      this.setLayersOpen(false);
+    }
+  }
+
+  setLayersOpen(open) {
+    this.layersOpen = open;
+    this.layerDock.classList.toggle('mobile-open', open);
+    if (this.btnLayers) {
+      this.btnLayers.classList.toggle('active', open);
+    }
+    if (open && this.isCompactViewport() && this.infoOpen) {
+      this.setInfoOpen(false);
+    }
+  }
+
+  setZenMode(active) {
+    this.zenMode = active;
+    this.root.classList.toggle('zen-mode', active);
+    if (this.btnZen) {
+      this.btnZen.innerHTML = active ? ICONS.zenOff : ICONS.zenOn;
+      this.btnZen.classList.toggle('active-blue', active);
+    }
   }
 
   populateLayers(partsList) {

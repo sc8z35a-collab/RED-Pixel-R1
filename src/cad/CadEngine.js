@@ -34,7 +34,9 @@ export class CadEngine {
 
     // Dual Cameras (Perspective & Orthographic CAD views)
     this.aspect = this.width / this.height;
-    this.perspCamera = new THREE.PerspectiveCamera(34, this.aspect, 0.05, 500);
+    this.baseFov = 34;
+    const initialFov = this._computeResponsiveFov(this.aspect);
+    this.perspCamera = new THREE.PerspectiveCamera(initialFov, this.aspect, 0.05, 500);
     this.perspCamera.position.set(24, 19, 25);
 
     this.orthoFrustum = 26;
@@ -51,7 +53,7 @@ export class CadEngine {
     this.isOrtho = false;
     this.camera = this.perspCamera;
 
-    // Smooth CAD OrbitControls
+    // Smooth CAD OrbitControls (tuned for both mouse and mobile multi-touch!)
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.075;
@@ -59,7 +61,7 @@ export class CadEngine {
     this.controls.zoomSpeed = 1.1;
     this.controls.panSpeed = 0.85;
     this.controls.minDistance = 2.0;
-    this.controls.maxDistance = 120;
+    this.controls.maxDistance = 140;
     this.controls.target.set(0, 1.0, 0);
 
     // Three-axis real-time section clipping planes (inactive initially)
@@ -195,8 +197,41 @@ export class CadEngine {
     this.scene.add(this.sectionHelper);
   }
 
+  _computeResponsiveFov(aspect) {
+    if (aspect >= 1.0) return this.baseFov;
+    const baseRad = THREE.MathUtils.degToRad(this.baseFov);
+    const boosted = 2 * Math.atan(Math.tan(baseRad * 0.5) / Math.max(aspect, 0.56));
+    return Math.min(54, THREE.MathUtils.radToDeg(boosted));
+  }
+
+  getResponsiveView(basePos, baseTarget) {
+    const pos = basePos.clone();
+    const target = baseTarget.clone();
+    const isCompact = this.width <= 900 || this.height <= 520;
+    if (isCompact) {
+      // On mobile/compact screens, info panel starts collapsed -> center model horizontally!
+      const shiftX = target.x * 0.85;
+      target.x -= shiftX;
+      pos.x -= shiftX;
+      if (this.aspect < 1.0) {
+        // Pull back smoothly in portrait so wide multi-zone/smartphone models frame edge-to-edge!
+        const pull = THREE.MathUtils.clamp(0.70 / Math.max(this.aspect, 0.42), 1.08, 1.46);
+        const offset = pos.clone().sub(target).multiplyScalar(pull);
+        pos.copy(target).add(offset);
+      }
+    }
+    return { pos, target };
+  }
+
   _bindEvents() {
-    window.addEventListener('resize', () => this.resize());
+    const onViewportChange = () => this.resize();
+    window.addEventListener('resize', onViewportChange);
+    window.addEventListener('orientationchange', () => setTimeout(onViewportChange, 120));
+    document.addEventListener('fullscreenchange', onViewportChange);
+    document.addEventListener('webkitfullscreenchange', onViewportChange);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', onViewportChange);
+    }
 
     const dom = this.renderer.domElement;
     dom.addEventListener('pointerdown', (e) => {
@@ -205,6 +240,7 @@ export class CadEngine {
     });
 
     dom.addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'touch') return;
       const rect = dom.getBoundingClientRect();
       this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -214,7 +250,11 @@ export class CadEngine {
     dom.addEventListener('pointerup', (e) => {
       const dx = e.clientX - this.pointerDownPos.x;
       const dy = e.clientY - this.pointerDownPos.y;
-      if (Math.hypot(dx, dy) < 5) {
+      const tapSlop = e.pointerType === 'touch' ? 9 : 5;
+      if (Math.hypot(dx, dy) < tapSlop) {
+        const rect = dom.getBoundingClientRect();
+        this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         const hitId = this._raycastPart();
         this.selectPart(hitId);
       }
@@ -224,8 +264,9 @@ export class CadEngine {
   resize() {
     this.width = this.container.clientWidth || window.innerWidth;
     this.height = this.container.clientHeight || window.innerHeight;
-    this.aspect = this.width / this.height;
+    this.aspect = this.width / Math.max(1, this.height);
 
+    this.perspCamera.fov = this._computeResponsiveFov(this.aspect);
     this.perspCamera.aspect = this.aspect;
     this.perspCamera.updateProjectionMatrix();
 
