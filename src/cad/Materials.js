@@ -739,6 +739,107 @@ function createBatteryCellTexture() {
 }
 
 /**
+ * Phase 17: Strictly ZERO-TEXT 2 nm Flagship Camera SoC Die lithography floorplan texture
+ * (Triple 18-bit ISP, 100 TOPS NPU systolic matrix, 48 MB 6T-SRAM banks, MIPI/SLVS-EC SerDes).
+ */
+function createSocDieFloorplanTexture() {
+  const { c, ctx } = makeCanvas(512, 512);
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Subtle iridescent die wafer background grid
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.16)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 512; i += 16) {
+    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 512); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
+  }
+
+  // Top-left: Triple 18-bit ISP pipelines (3 parallel cyan-blue compute columns)
+  for (let i = 0; i < 3; i++) {
+    const x = 24 + i * 74;
+    ctx.fillStyle = '#0369a1';
+    ctx.fillRect(x, 28, 62, 196);
+    ctx.fillStyle = '#38bdf8';
+    for (let y = 36; y < 216; y += 14) {
+      ctx.fillRect(x + 6, y, 50, 7);
+    }
+  }
+
+  // Top-right: 100 TOPS Tensor NPU 8x8 Systolic Matrix Array (electric violet-magenta)
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(262, 28, 224, 212);
+  for (let r = 0; r < 8; r++) {
+    for (let col = 0; col < 8; col++) {
+      ctx.fillStyle = ((r + col) & 1) === 0 ? '#a855f7' : '#d946ef';
+      ctx.fillRect(272 + col * 26, 38 + r * 24, 20, 18);
+    }
+  }
+
+  // Bottom-left: 48 MB 6T-SRAM System-Level Cache (ultra-dense emerald macro strips)
+  ctx.fillStyle = '#065f46';
+  ctx.fillRect(24, 248, 222, 236);
+  for (let r = 0; r < 14; r++) {
+    ctx.fillStyle = r % 2 === 0 ? '#10b981' : '#34d399';
+    ctx.fillRect(34, 258 + r * 16, 202, 10);
+  }
+
+  // Bottom-right: 6-Port MIPI CSI-2 / SLVS-EC High-Speed SerDes PHY & NoC Fabric (gold-amber)
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(262, 260, 224, 224);
+  for (let p = 0; p < 6; p++) {
+    const y = 272 + p * 34;
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(274, y, 148, 22);
+    ctx.fillStyle = '#fde68a';
+    ctx.fillRect(430, y + 3, 44, 16);
+  }
+
+  // Gold peripheral power/guard seal ring
+  ctx.strokeStyle = '#fbbf24';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(8, 8, 496, 496);
+
+  return toTexture(c, true);
+}
+
+/**
+ * Phase 17: Strictly ZERO-TEXT 16-Layer Ajinomoto Build-up Film (ABF) package substrate texture.
+ */
+function createAbfSubstrateTexture() {
+  const { c, ctx } = makeCanvas(512, 512);
+  ctx.fillStyle = '#0b4a3e';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Radial fan-out copper differential micro-traces (zero text!)
+  ctx.strokeStyle = '#14b8a6';
+  ctx.lineWidth = 3;
+  for (let i = 0; i < 32; i++) {
+    const a = (i / 32) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(256 + Math.cos(a) * 90, 256 + Math.sin(a) * 90);
+    ctx.lineTo(256 + Math.cos(a) * 238, 256 + Math.sin(a) * 238);
+    ctx.stroke();
+  }
+
+  // Outer perimeter Through-Mold-Via (TMV) ENIG gold ball landing pads
+  ctx.fillStyle = '#eab308';
+  for (let i = 28; i <= 484; i += 24) {
+    ctx.beginPath(); ctx.arc(i, 24, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(i, 488, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(24, i, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(488, i, 5, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Central C4 flip-chip micro-bump landing cavity outline
+  ctx.strokeStyle = '#34d399';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(112, 112, 288, 288);
+
+  return toTexture(c, true);
+}
+
+/**
  * Material Library Factory with shared clipping planes & clean PBR parameters.
  */
 export function createMaterialLibrary(clippingPlanes) {
@@ -757,6 +858,8 @@ export function createMaterialLibrary(clippingPlanes) {
   const carbonWeaveTex = createCarbonWeaveTexture();
   const oledTex = createOledViewfinderTexture();
   const batteryTex = createBatteryCellTexture();
+  const socDieTex = createSocDieFloorplanTexture();
+  const abfSubTex = createAbfSubstrateTexture();
 
   const base = {
     clippingPlanes,
@@ -2833,6 +2936,154 @@ export function createMaterialLibrary(clippingPlanes) {
       iridescence: 0.72,
       iridescenceIOR: 1.9,
       clearcoat: 0.92
+    }),
+
+    // === PHASE 17: 2nm CAMERA SoC & 100,000x ATOMIC GAA 3-STACK NANOSHEET + BSPDN ===
+    gaaSocDie: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: socDieTex,
+      color: 0xffffff,
+      emissive: 0x1e293b,
+      emissiveIntensity: 0.22,
+      metalness: 0.58,
+      roughness: 0.14,
+      iridescence: 0.85,
+      iridescenceIOR: 2.1,
+      clearcoat: 1.0
+    }),
+    gaaAbfSub: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: abfSubTex,
+      color: 0xffffff,
+      metalness: 0.22,
+      roughness: 0.34,
+      clearcoat: 0.55
+    }),
+    gaaIspBlock: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x0ea5e9,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.44,
+      metalness: 0.38,
+      roughness: 0.16,
+      clearcoat: 0.9
+    }),
+    gaaNpuSystolic: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xa855f7,
+      emissive: 0x7e22ce,
+      emissiveIntensity: 0.48,
+      metalness: 0.36,
+      roughness: 0.16,
+      clearcoat: 0.92
+    }),
+    gaaSramBank: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x10b981,
+      emissive: 0x059669,
+      emissiveIntensity: 0.34,
+      metalness: 0.38,
+      roughness: 0.20,
+      clearcoat: 0.82
+    }),
+    gaaNanosheetSi: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.28,
+      metalness: 0.12,
+      roughness: 0.10,
+      transparent: true,
+      opacity: 0.52,
+      iridescence: 0.92,
+      iridescenceIOR: 2.4,
+      clearcoat: 1.0,
+      depthWrite: false
+    }),
+    gaaSiAtomSphere: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe0f2fe,
+      emissive: 0x38bdf8,
+      emissiveIntensity: 0.55,
+      metalness: 0.35,
+      roughness: 0.12,
+      clearcoat: 1.0
+    }),
+    gaaHfo2HighK: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x6366f1,
+      emissive: 0x4f46e5,
+      emissiveIntensity: 0.45,
+      metalness: 0.16,
+      roughness: 0.14,
+      transparent: true,
+      opacity: 0.50,
+      clearcoat: 1.0,
+      depthWrite: false
+    }),
+    gaaWfmMetal: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf59e0b,
+      emissive: 0xd97706,
+      emissiveIntensity: 0.26,
+      metalness: 0.88,
+      roughness: 0.20,
+      clearcoat: 0.72
+    }),
+    gaaTungstenGate: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x475569,
+      emissive: 0x1e293b,
+      emissiveIntensity: 0.14,
+      metalness: 0.92,
+      roughness: 0.22,
+      clearcoat: 0.50
+    }),
+    gaaInnerSpacer: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x14b8a6,
+      emissive: 0x0f766e,
+      emissiveIntensity: 0.24,
+      metalness: 0.18,
+      roughness: 0.28,
+      clearcoat: 0.65
+    }),
+    gaaEpiSdCrystal: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x10b981,
+      emissive: 0x047857,
+      emissiveIntensity: 0.26,
+      metalness: 0.42,
+      roughness: 0.16,
+      iridescence: 0.68,
+      clearcoat: 0.92
+    }),
+    gaaRutheniumM0: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xc084fc,
+      emissive: 0x7c3aed,
+      emissiveIntensity: 0.24,
+      metalness: 0.92,
+      roughness: 0.18,
+      clearcoat: 0.75
+    }),
+    gaaBspdnCopper: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xea580c,
+      emissive: 0xc2410c,
+      emissiveIntensity: 0.28,
+      metalness: 0.94,
+      roughness: 0.18,
+      clearcoat: 0.65
+    }),
+    gaaElectronPacket: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xfef08a,
+      emissive: 0xf59e0b,
+      emissiveIntensity: 0.98,
+      metalness: 0.12,
+      roughness: 0.08,
+      clearcoat: 1.0
     })
   };
 }

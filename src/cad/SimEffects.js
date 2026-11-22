@@ -79,6 +79,9 @@ export class SimEffects {
     } else if (mode === 'flagship') {
       this._buildFlagshipOptics();
       this._buildGuideLines(10.8, -7.8, [[-10.6, -5.2], [10.6, -5.2], [-10.6, 5.2], [10.6, 5.2]]);
+    } else if (mode === 'soc_gaa') {
+      this._buildSocGaaPhysics();
+      this._buildGuideLines(10.5, -9.2, [[-10.6, -5.2], [12.4, -5.2], [-10.6, 5.2], [12.4, 5.2]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -1249,6 +1252,56 @@ export class SimEffects {
     }
   }
 
+  _buildSocGaaPhysics() {
+    const X_PKG = -5.6;
+    const X_GAA = 7.4;
+
+    // 1. LEFT ZONE: 120 Gbps Emerald MIPI Camera Data Intake -> PHY -> 48MB SRAM -> Triple 18-bit ISP -> 100 TOPS NPU -> PoP LPDDR5X!
+    this._addRay([
+      new THREE.Vector3(X_PKG + 5.2, 1.15, 2.2),          // External 5-Camera MIPI FPC entry
+      new THREE.Vector3(X_PKG + 1.8, 1.18, 1.8),          // 6-Port MIPI/SLVS-EC PHY
+      new THREE.Vector3(X_PKG - 1.4, 1.20, 1.6),          // 48 MB 6T-SRAM Ring Buffer
+      new THREE.Vector3(X_PKG - 1.4, 1.24, -1.45),        // Triple 18-bit RAW ISP!
+      new THREE.Vector3(X_PKG + 1.5, 1.26, -1.45),        // 100 TOPS Tensor NPU Systolic Array!
+      new THREE.Vector3(X_PKG + 1.5, 1.85, -4.25),        // Climb vertical TMV micro-solder ball!
+      new THREE.Vector3(X_PKG - 1.5, 2.75, -2.55)         // Stored in PoP 16 GB LPDDR5X DRAM!
+    ], 0x10b981, 0.88, 0.068, 4);
+
+    // 2. Golden 100,000x Atomic Magnification Callout Arc bridging the 2nm SoC Die -> Right 100,000x GAA Transistor!
+    this._addRay([
+      new THREE.Vector3(X_PKG + 2.15, 1.05, 0.65),        // Gold reticle on 2 nm SoC Die
+      new THREE.Vector3(0.4, 3.85, 0.45),                 // Sweeping studio callout arc
+      new THREE.Vector3(X_GAA - 2.68, 1.55, 0.0)          // Landing cleanly on the 100,000x GAA Transistor!
+    ], 0xf59e0b, 0.72, 0.044, 3);
+
+    // 3. RIGHT ZONE (100,000x): BLAZING CRIMSON BACKSIDE POWER DELIVERY (BSPDN) CURRENT SHOOTING UPWARD FROM UNDERGROUND COPPER -> nTSV -> SOURCE!
+    this._addRay([
+      new THREE.Vector3(X_GAA - 2.68, -2.78, 3.6),        // Underground Pure-Copper BSPDN VDD Rail!
+      new THREE.Vector3(X_GAA - 2.68, -2.78, 0.0),        // Directly beneath Source
+      new THREE.Vector3(X_GAA - 2.68, -1.52, 0.0),        // Shooting UP through Self-Aligned nTSV Pillar!
+      new THREE.Vector3(X_GAA - 2.68, -0.35, 0.0)         // Directly into underside of Source Epitaxial Crystal!
+    ], 0xe11d48, 0.92, 0.088, 4);
+
+    // 4. RIGHT ZONE (100,000x): 3 PARALLEL SUN-GOLD BALLISTIC ELECTRON STREAMS THROUGH ALL THREE 5 nm SILICON NANOSHEETS!
+    for (const ny of [-0.25, 0.65, 1.55]) {
+      this._addRay([
+        new THREE.Vector3(X_GAA - 2.55, ny, 0.32),
+        new THREE.Vector3(X_GAA, ny, 0.32),               // Threading dead-center through 360° HfO2 + WFM Gate!
+        new THREE.Vector3(X_GAA + 2.55, ny, 0.32)
+      ], 0xfbbf24, 0.90, 0.064, 3);
+    }
+
+    // 5. RIGHT ZONE (100,000x): ELECTRIC-CYAN FRONT-SIDE SIGNAL OUTPUT CLIMBING FROM DRAIN -> TS -> M0 RUTHENIUM -> M1-M2 COPPER!
+    this._addRay([
+      new THREE.Vector3(X_GAA + 2.68, 1.55, 0.0),         // Faceted Epitaxial Drain Crystal
+      new THREE.Vector3(X_GAA + 2.68, 2.75, 0.0),         // Wrap-Around TiSi2 & Co/Mo Trench Contact (TS)
+      new THREE.Vector3(X_GAA + 2.68, 3.32, 0.0),         // 13.5 nm EUV Barrierless M0 Ruthenium Rail!
+      new THREE.Vector3(X_GAA + 3.00, 3.84, 0.0),         // M1 Front-Side Copper Signal Rail
+      new THREE.Vector3(X_GAA + 3.00, 4.44, 0.0),         // M2 Copper Signal Highway
+      new THREE.Vector3(X_GAA - 4.10, 4.44, 0.0)          // Streaming cleanly to neighboring ISP/NPU logic!
+    ], 0x06b6d4, 0.90, 0.075, 4);
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -1336,6 +1389,7 @@ export class SimEffects {
     const metaAct = this.oisEnabled && this.mode === 'metalens';
     const gsAct = this.oisEnabled && this.mode === 'gshutter';
     const flagshipAct = this.oisEnabled && this.mode === 'flagship';
+    const socGaaAct = this.oisEnabled && this.mode === 'soc_gaa';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
@@ -1439,6 +1493,26 @@ export class SimEffects {
     const fpLiqTiltZ = flagshipAct ? Math.cos(elapsed * 2.1) * 0.14 : 0;
     const fpFlashBlend = flagshipAct ? (0.5 + 0.5 * Math.sin(elapsed * 1.8)) : null;
     const fpVcselPulse = flagshipAct ? (0.35 + 2.25 * Math.pow(0.5 + 0.5 * Math.sin(elapsed * 8.0), 8)) : 0.72;
+
+    // Phase 17 Ultra-Ultra-High 100,000x 2 nm GAA Quantum Switching (V_GS ON -> Ballistic 3-Stack Flow <-> OFF -> 360° Zero-Leakage Pinch-Off!)
+    if (this._gaaElecPhase === undefined) {
+      this._gaaElecPhase = 0;
+      this._gaaOnCol = new THREE.Color(0x10b981);
+      this._gaaOffCol = new THREE.Color(0xe11d48);
+      this._gaaRestCol = new THREE.Color(0x6366f1);
+      this._gaaRingRest = new THREE.Color(0x38bdf8);
+    }
+    const gaaCycle = socGaaAct ? (elapsed * 0.42) % 1.0 : 0.0;
+    const gaaGateOn = socGaaAct && gaaCycle < 0.68;
+    if (socGaaAct) {
+      if (gaaGateOn) {
+        this._gaaElecPhase = (this._gaaElecPhase + dt * 0.62) % 1.0;
+      }
+    } else {
+      this._gaaElecPhase = 0;
+    }
+    const gaaIspPulse = socGaaAct ? (0.35 + 0.95 * (0.5 + 0.5 * Math.sin(elapsed * 5.4))) : 0.44;
+    const gaaNpuPulse = socGaaAct ? (0.35 + 1.05 * (0.5 + 0.5 * Math.cos(elapsed * 6.8))) : 0.48;
 
     for (const entry of partsMap.values()) {
       const ex = entry.basePos.x + entry.explodeVec.x * explodeT;
@@ -1834,6 +1908,47 @@ export class SimEffects {
       }
       if (ud.fpVcselMat) {
         ud.fpVcselMat.emissiveIntensity = fpVcselPulse;
+      }
+
+      // Live Phase 17 Ultra-Ultra-High 100,000x 2 nm GAA 3-Stack Nanosheet Quantum Switching (V_GS ON <-> OFF!) + ISP/NPU Compute Pulse!
+      if (ud.gaaIspMat) {
+        ud.gaaIspMat.emissiveIntensity = gaaIspPulse;
+      }
+      if (ud.gaaNpuMat) {
+        ud.gaaNpuMat.emissiveIntensity = gaaNpuPulse;
+      }
+      if (ud.gaaGateFieldMat) {
+        if (socGaaAct) {
+          ud.gaaGateFieldMat.color.copy(gaaGateOn ? this._gaaOnCol : this._gaaOffCol);
+          ud.gaaGateFieldMat.emissive.copy(gaaGateOn ? this._gaaOnCol : this._gaaOffCol);
+          ud.gaaGateFieldMat.emissiveIntensity = gaaGateOn ? 0.92 : 0.78;
+        } else {
+          ud.gaaGateFieldMat.color.copy(this._gaaRestCol);
+          ud.gaaGateFieldMat.emissive.copy(this._gaaRestCol);
+          ud.gaaGateFieldMat.emissiveIntensity = 0.45;
+        }
+      }
+      if (ud.gaaGateRings) {
+        for (const ring of ud.gaaGateRings) {
+          if (socGaaAct) {
+            ring.material.color.copy(gaaGateOn ? this._gaaOnCol : this._gaaOffCol);
+            ring.material.emissive.copy(gaaGateOn ? this._gaaOnCol : this._gaaOffCol);
+            ring.material.emissiveIntensity = gaaGateOn ? 1.35 : 0.95;
+          } else {
+            ring.material.color.copy(this._gaaRingRest);
+            ring.material.emissive.copy(this._gaaRingRest);
+            ring.material.emissiveIntensity = 0.78;
+          }
+        }
+      }
+      if (ud.gaaElectrons) {
+        for (const em of ud.gaaElectrons) {
+          const d = em.userData;
+          const p = socGaaAct ? ((d.basePhase + this._gaaElecPhase) % 1.0) : d.basePhase;
+          em.position.set(d.xMin + p * d.xSpan, d.baseY, d.laneZ);
+          const sc = socGaaAct ? (gaaGateOn ? 1.15 : 0.78) : 1.0;
+          em.scale.set(sc, sc, sc);
+        }
       }
     }
 
