@@ -19,6 +19,9 @@ const ICONS = {
   zoom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="2.5 8 7.5 8 7.5 14.5" fill="currentColor" fill-opacity="0.18"/><path d="M5 4v7.2h15.5"/><line x1="11.2" y1="7.5" x2="11.2" y2="15"/><line x1="16.2" y1="7.5" x2="16.2" y2="15"/><path d="M9.5 18.5h8.2M11.3 16.7l-1.8 1.8 1.8 1.8M15.9 16.7l1.8 1.8-1.8 1.8"/><rect x="20" y="7.5" width="2" height="7.5" rx="0.7" fill="currentColor" stroke="none"/></svg>`,
   metalens: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="11" x2="21" y2="11"/><line x1="5.5" y1="6.5" x2="5.5" y2="11"/><line x1="8.8" y1="5.2" x2="8.8" y2="11" stroke-width="2"/><line x1="12" y1="4.5" x2="12" y2="11" stroke-width="2.6"/><line x1="15.2" y1="5.2" x2="15.2" y2="11" stroke-width="2"/><line x1="18.5" y1="6.5" x2="18.5" y2="11"/><path d="M5.5 13.5c2.2 3.2 10.8 3.2 13 0"/><circle cx="12" cy="19.5" r="1.7" fill="currentColor" stroke="none"/></svg>`,
   gshutter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><rect x="3" y="4" width="18" height="5.2" rx="1" fill="currentColor" fill-opacity="0.22"/><rect x="3" y="14.8" width="18" height="5.2" rx="1" fill="currentColor" fill-opacity="0.22"/><line x1="3" y1="9.2" x2="21" y2="9.2"/><line x1="3" y1="14.8" x2="21" y2="14.8"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>`,
+  socGaa: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="3.5" width="7" height="14.5" rx="1.2" fill="currentColor" fill-opacity="0.18"/><line x1="3" y1="7" x2="21" y2="7" stroke-width="2.1"/><line x1="3" y1="11" x2="21" y2="11" stroke-width="2.1"/><line x1="3" y1="15" x2="21" y2="15" stroke-width="2.1"/><line x1="4" y1="20.5" x2="20" y2="20.5" stroke-width="2.4"/><line x1="6.5" y1="15" x2="6.5" y2="20.5"/></svg>`,
+  oledTandem: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7.5a7 4.2 0 0 1 14 0"/><rect x="4" y="9" width="16" height="3.2" rx="1" fill="currentColor" fill-opacity="0.24"/><line x1="3" y1="14" x2="21" y2="14" stroke-dasharray="2.2 1.8"/><rect x="4" y="15.8" width="16" height="3.2" rx="1" fill="currentColor" fill-opacity="0.24"/><line x1="4" y1="21" x2="20" y2="21" stroke-width="2"/></svg>`,
+  vaporChamber: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M6.5 9.5h10l-2-2M17.5 14.5h-10l2 2"/><circle cx="7" cy="14.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="17" cy="9.5" r="1.2" fill="currentColor" stroke="none"/></svg>`,
   flagship: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.2" width="12" height="19.6" rx="2.6"/><circle cx="12" cy="8.2" r="3.8" fill="currentColor" fill-opacity="0.16"/><circle cx="10.7" cy="7.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="13.5" cy="7.4" r="0.85" fill="currentColor" stroke="none"/><rect x="10.2" y="9.4" width="3.6" height="1.2" rx="0.5" fill="currentColor" stroke="none"/><line x1="10" y1="19.2" x2="14" y2="19.2"/></svg>`,
 
   // Explode
@@ -106,7 +109,9 @@ const ICONS = {
     mosfet: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4v8M6 4v8M6 8h7M11 4v8"/></svg>`,
     routes: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h5v8h7M2 12h3V8h9"/></svg>`,
     bond: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="4" height="4" fill="currentColor"/><rect x="9" y="3" width="4" height="4" fill="currentColor"/><rect x="3" y="9" width="4" height="4" fill="currentColor"/><rect x="9" y="9" width="4" height="4" fill="currentColor"/></svg>`,
-    prism: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="3 4 12 4 12 13" fill="currentColor" fill-opacity="0.18"/><path d="M7.5 1.5V8.5H14.5"/></svg>`
+    prism: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="3 4 12 4 12 13" fill="currentColor" fill-opacity="0.18"/><path d="M7.5 1.5V8.5H14.5"/></svg>`,
+    target: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2" fill="currentColor" stroke="none"/></svg>`,
+    bolt: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="9 1.5 3.5 9 8 9 7 14.5 12.5 7 8 7" fill="currentColor" fill-opacity="0.22"/></svg>`
   }
 };
 
@@ -114,7 +119,7 @@ export class ZeroTextUI {
   constructor(rootEl, callbacks) {
     this.root = rootEl;
     this.cb = callbacks;
-    this.scale = 'flagship';
+    this.scale = 'vapor_chamber';
     this.partsList = [];
     this.selectedId = null;
     this.hiddenSet = new Set();
@@ -151,7 +156,7 @@ export class ZeroTextUI {
   _buildDOM() {
     this.root.innerHTML = '';
 
-    // 1. TOP-LEFT SCALE SWITCH (17 Multiscale Modes — EXACTLY 500 Independent 3D CAD Parts!)
+    // 1. TOP-LEFT SCALE SWITCH (EXACTLY 20 Multiscale Modes — EXACTLY 600 Independent 3D CAD Parts!)
     const scaleDock = this._el('div', 'scale-dock cad-glass');
     this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'));
     this.btnMicro = this._iconBtn(ICONS.micro, () => this.cb.onSwitchScale('micro'));
@@ -169,8 +174,11 @@ export class ZeroTextUI {
     this.btnZoom = this._iconBtn(ICONS.zoom, () => this.cb.onSwitchScale('zoom'));
     this.btnMetalens = this._iconBtn(ICONS.metalens, () => this.cb.onSwitchScale('metalens'));
     this.btnGshutter = this._iconBtn(ICONS.gshutter, () => this.cb.onSwitchScale('gshutter'));
+    this.btnSocGaa = this._iconBtn(ICONS.socGaa, () => this.cb.onSwitchScale('soc_gaa'));
+    this.btnOledTandem = this._iconBtn(ICONS.oledTandem, () => this.cb.onSwitchScale('oled_tandem'));
+    this.btnVaporChamber = this._iconBtn(ICONS.vaporChamber, () => this.cb.onSwitchScale('vapor_chamber'), 'active');
     const sep = this._el('div', 'dock-divider');
-    this.btnFlagship = this._iconBtn(ICONS.flagship, () => this.cb.onSwitchScale('flagship'), 'active');
+    this.btnFlagship = this._iconBtn(ICONS.flagship, () => this.cb.onSwitchScale('flagship'));
     scaleDock.append(
       this.btnMacro,
       this.btnMicro,
@@ -188,6 +196,9 @@ export class ZeroTextUI {
       this.btnZoom,
       this.btnMetalens,
       this.btnGshutter,
+      this.btnSocGaa,
+      this.btnOledTandem,
+      this.btnVaporChamber,
       sep,
       this.btnFlagship
     );
@@ -409,6 +420,9 @@ export class ZeroTextUI {
     this.btnZoom.classList.toggle('active', scale === 'zoom');
     this.btnMetalens.classList.toggle('active', scale === 'metalens');
     this.btnGshutter.classList.toggle('active', scale === 'gshutter');
+    this.btnSocGaa.classList.toggle('active', scale === 'soc_gaa');
+    this.btnOledTandem.classList.toggle('active', scale === 'oled_tandem');
+    this.btnVaporChamber.classList.toggle('active', scale === 'vapor_chamber');
     this.btnFlagship.classList.toggle('active', scale === 'flagship');
     // Live demo button (all kinetic / active optical / semiconductor physics modes!)
     this.btnOis.style.display =
@@ -426,6 +440,9 @@ export class ZeroTextUI {
       scale === 'zoom' ||
       scale === 'metalens' ||
       scale === 'gshutter' ||
+      scale === 'soc_gaa' ||
+      scale === 'oled_tandem' ||
+      scale === 'vapor_chamber' ||
       scale === 'flagship'
         ? 'inline-flex'
         : 'none';

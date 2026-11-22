@@ -18,6 +18,9 @@ import { buildContinuousZoomAssembly } from './assemblies/ContinuousZoomAssembly
 import { buildMetalensAssembly } from './assemblies/MetalensAssembly.js';
 import { buildGlobalShutterAssembly } from './assemblies/GlobalShutterAssembly.js';
 import { buildFlagshipSmartphoneAssembly } from './assemblies/FlagshipSmartphoneAssembly.js';
+import { buildSocGaaAssembly } from './assemblies/SocGaaAssembly.js';
+import { buildOledTandemAssembly } from './assemblies/OledTandemAssembly.js';
+import { buildVaporChamberAssembly } from './assemblies/VaporChamberAssembly.js';
 import {
   MACRO_PARTS,
   MICRO_PARTS,
@@ -36,6 +39,9 @@ import {
   METALENS_PARTS,
   GLOBAL_SHUTTER_PARTS,
   FLAGSHIP_PHONE_PARTS,
+  SOC_GAA_PARTS,
+  OLED_TANDEM_PARTS,
+  VAPOR_CHAMBER_PARTS,
   OVERVIEW_DOCS,
   ALL_PARTS_BY_ID
 } from './knowledge/sensorKnowledge.js';
@@ -47,7 +53,7 @@ const uiRoot = document.getElementById('ui-root');
 const engine = new CadEngine(viewportEl);
 const sim = new SimEffects(engine.scene);
 
-// Pre-build all 17 multiscale modes (EXACTLY 500 independent dissectable 3D CAD parts!)
+// Pre-build all 20 multiscale modes (EXACTLY 600 independent dissectable 3D CAD parts!!)
 const assemblies = {
   macro: buildMacroSensorAssembly(engine.materials),
   micro: buildMicroPixelAssembly(engine.materials),
@@ -65,6 +71,9 @@ const assemblies = {
   zoom: buildContinuousZoomAssembly(engine.materials),
   metalens: buildMetalensAssembly(engine.materials),
   gshutter: buildGlobalShutterAssembly(engine.materials),
+  soc_gaa: buildSocGaaAssembly(engine.materials),
+  oled_tandem: buildOledTandemAssembly(engine.materials),
+  vapor_chamber: buildVaporChamberAssembly(engine.materials),
   flagship: buildFlagshipSmartphoneAssembly(engine.materials)
 };
 
@@ -85,13 +94,16 @@ const partDocsByScale = {
   zoom: CONTINUOUS_ZOOM_PARTS,
   metalens: METALENS_PARTS,
   gshutter: GLOBAL_SHUTTER_PARTS,
+  soc_gaa: SOC_GAA_PARTS,
+  oled_tandem: OLED_TANDEM_PARTS,
+  vapor_chamber: VAPOR_CHAMBER_PARTS,
   flagship: FLAGSHIP_PHONE_PARTS
 };
 
 Object.values(assemblies).forEach((asm) => engine.scene.add(asm.root));
 
-let currentScale = 'flagship';
-let activeAsm = assemblies.flagship;
+let currentScale = 'vapor_chamber';
+let activeAsm = assemblies.vapor_chamber;
 let targetExplode = 0;
 let currentExplode = 0;
 
@@ -133,8 +145,10 @@ const ui = new ZeroTextUI(uiRoot, {
     const dist =
       currentScale === 'flagship'
         ? 40
-        : currentScale === 'gshutter' || currentScale === 'metalens'
-          ? 45
+        : currentScale === 'soc_gaa' || currentScale === 'oled_tandem' || currentScale === 'vapor_chamber'
+          ? 38
+          : currentScale === 'gshutter' || currentScale === 'metalens'
+            ? 45
           : currentScale === 'zoom'
             ? 45
             : currentScale === 'tetra'
@@ -262,8 +276,8 @@ function switchScale(scale, instantCamera = false) {
   }
 }
 
-// Launch directly into Phase 16 Complete Integrated Flagship Smartphone Camera (17 Scales / 500-Part Grand Finale!)
-switchScale('flagship', true);
+// Launch directly into Phase 19 Ultra-Ultra-High Pure-Copper 3D Vapor Chamber (EXACTLY 20 Scales / 600 Parts Grand Milestone!)
+switchScale('vapor_chamber', true);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -290,8 +304,10 @@ function animate(now) {
     currentExplode *
     (currentScale === 'flagship'
       ? 6.8
-      : currentScale === 'gshutter' || currentScale === 'metalens'
-        ? 6.4
+      : currentScale === 'soc_gaa' || currentScale === 'oled_tandem' || currentScale === 'vapor_chamber'
+        ? 6.2
+        : currentScale === 'gshutter' || currentScale === 'metalens'
+          ? 6.4
         : currentScale === 'zoom'
           ? 6.4
           : currentScale === 'tetra'
