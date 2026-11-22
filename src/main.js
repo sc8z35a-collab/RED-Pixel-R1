@@ -12,6 +12,7 @@ import { buildIrisMicroAssembly } from './assemblies/IrisMicroAssembly.js';
 import { buildIrisNanoAssembly } from './assemblies/IrisNanoAssembly.js';
 import { buildLidarPhotonicsAssembly } from './assemblies/LidarPhotonicsAssembly.js';
 import { buildSmaMuscleAssembly } from './assemblies/SmaMuscleAssembly.js';
+import { buildLiquidLensAssembly } from './assemblies/LiquidLensAssembly.js';
 import {
   MACRO_PARTS,
   MICRO_PARTS,
@@ -24,6 +25,7 @@ import {
   IRIS_NANO_PARTS,
   LIDAR_PARTS,
   SMA_PARTS,
+  LIQUID_PARTS,
   OVERVIEW_DOCS,
   ALL_PARTS_BY_ID
 } from './knowledge/sensorKnowledge.js';
@@ -35,7 +37,7 @@ const uiRoot = document.getElementById('ui-root');
 const engine = new CadEngine(viewportEl);
 const sim = new SimEffects(engine.scene);
 
-// Pre-build all 11 multiscale modes (304 independent dissectable 3D CAD parts!)
+// Pre-build all 12 multiscale modes (336 independent dissectable 3D CAD parts!)
 const assemblies = {
   macro: buildMacroSensorAssembly(engine.materials),
   micro: buildMicroPixelAssembly(engine.materials),
@@ -47,7 +49,8 @@ const assemblies = {
   iris: buildIrisMicroAssembly(engine.materials),
   iris_nano: buildIrisNanoAssembly(engine.materials),
   lidar: buildLidarPhotonicsAssembly(engine.materials),
-  sma: buildSmaMuscleAssembly(engine.materials)
+  sma: buildSmaMuscleAssembly(engine.materials),
+  liquid: buildLiquidLensAssembly(engine.materials)
 };
 
 const partDocsByScale = {
@@ -61,13 +64,14 @@ const partDocsByScale = {
   iris: IRIS_MICRO_PARTS,
   iris_nano: IRIS_NANO_PARTS,
   lidar: LIDAR_PARTS,
-  sma: SMA_PARTS
+  sma: SMA_PARTS,
+  liquid: LIQUID_PARTS
 };
 
 Object.values(assemblies).forEach((asm) => engine.scene.add(asm.root));
 
-let currentScale = 'sma';
-let activeAsm = assemblies.sma;
+let currentScale = 'liquid';
+let activeAsm = assemblies.liquid;
 let targetExplode = 0;
 let currentExplode = 0;
 
@@ -107,27 +111,29 @@ const ui = new ZeroTextUI(uiRoot, {
   },
   onSnapView(preset) {
     const dist =
-      currentScale === 'sma'
+      currentScale === 'liquid'
         ? 42
-        : currentScale === 'lidar'
-          ? 40
-          : currentScale === 'iris_nano'
-            ? 34
-            : currentScale === 'iris'
-              ? 44
-              : currentScale === 'aperture'
+        : currentScale === 'sma'
+          ? 42
+          : currentScale === 'lidar'
+            ? 40
+            : currentScale === 'iris_nano'
+              ? 34
+              : currentScale === 'iris'
                 ? 44
-                : currentScale === 'periscope'
-                  ? 40
-                  : currentScale === 'deco'
-                    ? 42
-                    : currentScale === 'lens'
-                      ? 38
-                      : currentScale === 'macro'
-                        ? 36
-                        : currentScale === 'layer2'
-                          ? 32
-                          : 28;
+                : currentScale === 'aperture'
+                  ? 44
+                  : currentScale === 'periscope'
+                    ? 40
+                    : currentScale === 'deco'
+                      ? 42
+                      : currentScale === 'lens'
+                        ? 38
+                        : currentScale === 'macro'
+                          ? 36
+                          : currentScale === 'layer2'
+                            ? 32
+                            : 28;
     engine.snapView(preset, dist, activeAsm.defaultTarget);
   },
   onSelectPartUI(partId) {
@@ -228,8 +234,8 @@ function switchScale(scale, instantCamera = false) {
   }
 }
 
-// Launch directly into Phase 10 Zero-Magnet 8-Wire SMA Artificial-Muscle Actuator & Crystal-Phase Metallurgy (30 Parts)
-switchScale('sma', true);
+// Launch directly into Phase 11 Zero-Gear 4-Quadrant Electrowetting Liquid Lens & 500x EDL Nano-Anatomy (32 Parts)
+switchScale('liquid', true);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -254,27 +260,29 @@ function animate(now) {
   sim.update(dt, elapsed, engine.partMap, currentExplode);
   const gridDrop =
     currentExplode *
-    (currentScale === 'sma'
-      ? 6.0
-      : currentScale === 'lidar'
-        ? 6.4
-        : currentScale === 'iris_nano'
-          ? 5.0
-          : currentScale === 'iris'
-            ? 6.8
-            : currentScale === 'aperture'
-              ? 9.2
-              : currentScale === 'periscope'
-                ? 6.4
-                : currentScale === 'deco'
-                  ? 8.8
-                  : currentScale === 'lens'
-                    ? 7.6
-                    : currentScale === 'layer2'
-                      ? 8.0
-                      : currentScale === 'macro'
-                        ? 9.6
-                        : 9.4);
+    (currentScale === 'liquid'
+      ? 6.2
+      : currentScale === 'sma'
+        ? 6.0
+        : currentScale === 'lidar'
+          ? 6.4
+          : currentScale === 'iris_nano'
+            ? 5.0
+            : currentScale === 'iris'
+              ? 6.8
+              : currentScale === 'aperture'
+                ? 9.2
+                : currentScale === 'periscope'
+                  ? 6.4
+                  : currentScale === 'deco'
+                    ? 8.8
+                    : currentScale === 'lens'
+                      ? 7.6
+                      : currentScale === 'layer2'
+                        ? 8.0
+                        : currentScale === 'macro'
+                          ? 9.6
+                          : 9.4);
   engine.setGridElevation(activeAsm.gridY - gridDrop);
   engine.update(now);
 }

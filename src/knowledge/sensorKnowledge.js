@@ -7,6 +7,7 @@ import { IRIS_MICRO_OVERVIEW_DOC, IRIS_MICRO_PARTS } from './irisMicroKnowledge.
 import { IRIS_NANO_OVERVIEW_DOC, IRIS_NANO_PARTS } from './irisNanoKnowledge.js';
 import { LIDAR_OVERVIEW_DOC, LIDAR_PARTS } from './lidarKnowledge.js';
 import { SMA_OVERVIEW_DOC, SMA_PARTS } from './smaMuscleKnowledge.js';
+import { LIQUID_OVERVIEW_DOC, LIQUID_PARTS } from './liquidLensKnowledge.js';
 
 export {
   LAYER2_PARTS,
@@ -17,10 +18,12 @@ export {
   IRIS_MICRO_PARTS,
   IRIS_NANO_PARTS,
   LIDAR_PARTS,
-  SMA_PARTS
+  SMA_PARTS,
+  LIQUID_PARTS
 };
 
 export const OVERVIEW_DOCS = {
+  liquid: LIQUID_OVERVIEW_DOC,
   sma: SMA_OVERVIEW_DOC,
   lidar: LIDAR_OVERVIEW_DOC,
   iris_nano: IRIS_NANO_OVERVIEW_DOC,
@@ -981,6 +984,7 @@ export const ALL_PARTS_BY_ID = Object.fromEntries(
     ...IRIS_MICRO_PARTS,
     ...IRIS_NANO_PARTS,
     ...LIDAR_PARTS,
-    ...SMA_PARTS
+    ...SMA_PARTS,
+    ...LIQUID_PARTS
   ].map((p) => [p.id, p])
 );

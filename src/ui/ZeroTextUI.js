@@ -14,6 +14,7 @@ const ICONS = {
   irisNano: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5L7.5 11L12 7.5"/><circle cx="7.5" cy="12.5" r="2.6" fill="currentColor" fill-opacity="0.22"/><path d="M3 17.5L7.5 14L12 17.5"/><path d="M13.5 7.5h7.5M13.5 11h6.2l1.8 1.5-1.8 1.5h-6.2M13.5 17.5h7.5"/></svg>`,
   lidar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13.5" width="6.5" height="6.5" rx="1.2"/><rect x="14.5" y="13.5" width="6.5" height="6.5" rx="1.2" fill="currentColor" fill-opacity="0.18"/><line x1="12" y1="12.5" x2="12" y2="20.5"/><path d="M6.2 13.5L3.8 4.5M6.2 13.5V3.5M6.2 13.5L8.8 4.5"/><path d="M15.2 4.5L17.8 13.5M20.2 4.5L17.8 13.5"/><circle cx="17.8" cy="16.8" r="1.4" fill="currentColor" stroke="none"/></svg>`,
   sma: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.4" fill="currentColor" fill-opacity="0.16"/><line x1="4" y1="5.5" x2="17" y2="7.5"/><line x1="20" y1="5.5" x2="7" y2="7.5"/><line x1="4" y1="18.5" x2="17" y2="16.5"/><line x1="20" y1="18.5" x2="7" y2="16.5"/><circle cx="4" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="20" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="18.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="20" cy="18.5" r="1.2" fill="currentColor" stroke="none"/></svg>`,
+  liquid: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5h15l-2.4 13H6.9l-2.4-13z"/><path d="M5.8 12.8c2.6-3.4 9.8-3.4 12.4 0" fill="currentColor" fill-opacity="0.22"/><line x1="2.2" y1="12" x2="4.6" y2="12"/><line x1="19.4" y1="12" x2="21.8" y2="12"/></svg>`,
 
   // Explode
   assembled: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>`,
@@ -108,7 +109,7 @@ export class ZeroTextUI {
   constructor(rootEl, callbacks) {
     this.root = rootEl;
     this.cb = callbacks;
-    this.scale = 'sma';
+    this.scale = 'liquid';
     this.partsList = [];
     this.selectedId = null;
     this.hiddenSet = new Set();
@@ -145,7 +146,7 @@ export class ZeroTextUI {
   _buildDOM() {
     this.root.innerHTML = '';
 
-    // 1. TOP-LEFT SCALE SWITCH (11 Multiscale Modes — 304 Independent 3D CAD Parts!)
+    // 1. TOP-LEFT SCALE SWITCH (12 Multiscale Modes — 336 Independent 3D CAD Parts!)
     const scaleDock = this._el('div', 'scale-dock cad-glass');
     this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'));
     this.btnMicro = this._iconBtn(ICONS.micro, () => this.cb.onSwitchScale('micro'));
@@ -157,7 +158,8 @@ export class ZeroTextUI {
     this.btnIris = this._iconBtn(ICONS.iris, () => this.cb.onSwitchScale('iris'));
     this.btnIrisNano = this._iconBtn(ICONS.irisNano, () => this.cb.onSwitchScale('iris_nano'));
     this.btnLidar = this._iconBtn(ICONS.lidar, () => this.cb.onSwitchScale('lidar'));
-    this.btnSma = this._iconBtn(ICONS.sma, () => this.cb.onSwitchScale('sma'), 'active');
+    this.btnSma = this._iconBtn(ICONS.sma, () => this.cb.onSwitchScale('sma'));
+    this.btnLiquid = this._iconBtn(ICONS.liquid, () => this.cb.onSwitchScale('liquid'), 'active');
     scaleDock.append(
       this.btnMacro,
       this.btnMicro,
@@ -169,7 +171,8 @@ export class ZeroTextUI {
       this.btnIris,
       this.btnIrisNano,
       this.btnLidar,
-      this.btnSma
+      this.btnSma,
+      this.btnLiquid
     );
     this.root.appendChild(scaleDock);
 
@@ -384,7 +387,8 @@ export class ZeroTextUI {
     this.btnIrisNano.classList.toggle('active', scale === 'iris_nano');
     this.btnLidar.classList.toggle('active', scale === 'lidar');
     this.btnSma.classList.toggle('active', scale === 'sma');
-    // Live demo button (OIS / Iris+AF+OIS / Flash+LiDAR / Prism-Tilt / Deep Iris / Micro-Iris / Sub-Micron / Quantum LiDAR / 8-Wire SMA Muscle)
+    this.btnLiquid.classList.toggle('active', scale === 'liquid');
+    // Live demo button (OIS / Iris+AF+OIS / Flash+LiDAR / Prism-Tilt / Deep Iris / Micro-Iris / Sub-Micron / Quantum LiDAR / SMA / Liquid Lens)
     this.btnOis.style.display =
       scale === 'macro' ||
       scale === 'lens' ||
@@ -394,7 +398,8 @@ export class ZeroTextUI {
       scale === 'iris' ||
       scale === 'iris_nano' ||
       scale === 'lidar' ||
-      scale === 'sma'
+      scale === 'sma' ||
+      scale === 'liquid'
         ? 'inline-flex'
         : 'none';
   }
