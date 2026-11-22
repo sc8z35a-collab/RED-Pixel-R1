@@ -42,6 +42,9 @@ export class SimEffects {
     } else if (mode === 'deco') {
       this._buildDecoSensing();
       this._buildGuideLines(12.2, -12.0, [[-13.5, -13.5], [13.5, -13.5], [-13.5, 13.5], [13.5, 13.5]]);
+    } else if (mode === 'periscope') {
+      this._buildPeriscopeOptics();
+      this._buildPeriscopeGuideLines();
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -379,6 +382,119 @@ export class SimEffects {
     ], 0x06b6d4, 0.82, 0.07, 2);
   }
 
+  _buildPeriscopeOptics() {
+    const PRISM_X = -8.8;
+    const SENSOR_X = 10.02;
+
+    // Helper for razor-sharp 90° mirror reflection bounce on 45° hypotenuse (x - PRISM_X) + y = 0
+    const addFoldedRay = (pts, col, opacity = 0.84, rad = 0.068, pulses = 3) => {
+      this._addRay(pts, col, opacity, rad, pulses);
+    };
+
+    // 1. On-Axis Emerald Green Telephoto Rays (0° field):
+    //    Enter vertically downward (+Y -> -Y), strike 45° silver hypotenuse at (PRISM_X + dx, -dx, dz),
+    //    fold sharply 90° along +X through G1 -> FCD100 ED -> G3 Flint -> G4 Macro -> G5 Flattener -> Vertical 200MP Sensor!
+    const axialOffsets = [
+      { dx: 0.0, dz: 0.0 },
+      { dx: -1.55, dz: 0.0 },
+      { dx: 1.55, dz: 0.0 },
+      { dx: 0.0, dz: 1.95 },
+      { dx: 0.0, dz: -1.95 }
+    ];
+    for (const o of axialOffsets) {
+      const hx = PRISM_X + o.dx;
+      const hy = -o.dx;
+      const hz = o.dz;
+      addFoldedRay([
+        new THREE.Vector3(hx, 9.6, hz),
+        new THREE.Vector3(hx, 4.38, hz),       // Rectangular AR entrance window
+        new THREE.Vector3(hx, hy + 0.14, hz),  // Sharp corner lead-in knot
+        new THREE.Vector3(hx, hy, hz),         // Exact 45° Ag mirror reflection point!
+        new THREE.Vector3(hx + 0.14, hy, hz),  // Sharp 90° corner lead-out knot
+        new THREE.Vector3(-4.35, hy * 0.96, hz * 0.96), // G1 front D-cut
+        new THREE.Vector3(-1.35, hy * 0.78, hz * 0.78), // G2 HOYA FCD100 Fluorite ED!
+        new THREE.Vector3(0.45, hy * 0.68, hz * 0.68),  // G3 Flint APO doublet
+        new THREE.Vector3(2.45, hy * 0.50, hz * 0.50),  // G4 Floating Tele-Macro
+        new THREE.Vector3(4.45, hy * 0.30, hz * 0.30),  // G5 Rear Field Flattener
+        new THREE.Vector3(8.75, hy * 0.08, hz * 0.08),  // Vertical Blue-Glass IRCF
+        new THREE.Vector3(SENSOR_X, 0.0, 0.0)           // Vertical 1/1.4" 200MP CMOS center
+      ], 0x10b981, 0.84, 0.068, 3);
+    }
+
+    // 2. Upper-Field Royal Blue Telephoto Rays (+4.5° narrow telephoto FOV -> focuses on lower-front sensor quadrant)
+    for (const off of [-0.95, 0.95]) {
+      const hx = PRISM_X + off * 0.85;
+      const hy = -off * 0.85;
+      addFoldedRay([
+        new THREE.Vector3(hx - 0.85, 9.6, -0.65),
+        new THREE.Vector3(hx - 0.32, 4.38, -0.22),
+        new THREE.Vector3(hx - 0.04, hy + 0.14, 0.02),
+        new THREE.Vector3(hx, hy, 0.05),
+        new THREE.Vector3(hx + 0.14, hy - 0.04, 0.10),
+        new THREE.Vector3(-4.35, hy * 0.85 - 0.45, 0.55),
+        new THREE.Vector3(-1.35, hy * 0.58 - 0.95, 1.15),
+        new THREE.Vector3(2.45, hy * 0.30 - 1.55, 2.05),
+        new THREE.Vector3(4.45, hy * 0.15 - 1.88, 2.55),
+        new THREE.Vector3(SENSOR_X, -2.15, 3.05)
+      ], 0x2563eb, 0.82, 0.062, 3);
+    }
+
+    // 3. Lower-Field Crimson Red Telephoto Rays (-4.5° FOV -> focuses on upper-rear sensor quadrant)
+    for (const off of [-0.95, 0.95]) {
+      const hx = PRISM_X + off * 0.85;
+      const hy = -off * 0.85;
+      addFoldedRay([
+        new THREE.Vector3(hx + 0.85, 9.6, 0.65),
+        new THREE.Vector3(hx + 0.32, 4.38, 0.22),
+        new THREE.Vector3(hx + 0.04, hy + 0.14, -0.02),
+        new THREE.Vector3(hx, hy, -0.05),
+        new THREE.Vector3(hx + 0.14, hy + 0.04, -0.10),
+        new THREE.Vector3(-4.35, hy * 0.85 + 0.45, -0.55),
+        new THREE.Vector3(-1.35, hy * 0.58 + 0.95, -1.15),
+        new THREE.Vector3(2.45, hy * 0.30 + 1.55, -2.05),
+        new THREE.Vector3(4.45, hy * 0.15 + 1.88, -2.55),
+        new THREE.Vector3(SENSOR_X, 2.15, -3.05)
+      ], 0xef4444, 0.82, 0.062, 3);
+    }
+
+    // Translucent Vertical Focal-Plane Highlight Frame on the 1/1.4" 200MP CMOS Active Surface
+    const focalBorderGeo = new THREE.EdgesGeometry(new THREE.PlaneGeometry(9.1, 6.8));
+    focalBorderGeo.rotateY(-Math.PI / 2);
+    const focalBorder = new THREE.LineSegments(
+      focalBorderGeo,
+      new THREE.LineBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.72 })
+    );
+    focalBorder.position.set(SENSOR_X - 0.02, 0, 0);
+    focalBorder.userData.ignorePick = true;
+    this.opticsGroup.add(focalBorder);
+  }
+
+  _buildPeriscopeGuideLines() {
+    const lineMat = new THREE.LineDashedMaterial({
+      color: 0x94a3b8,
+      dashSize: 0.48,
+      gapSize: 0.36,
+      transparent: true,
+      opacity: 0.55
+    });
+    const segments = [
+      // Horizontal folded optical axis spanning prism -> D-cut lenses -> vertical 200MP sensor -> heatsink
+      [new THREE.Vector3(-16.5, 0, 0), new THREE.Vector3(22.5, 0, 0)],
+      // Vertical incoming optical axis through entrance window -> 45° prism -> Pitch OIS coil
+      [new THREE.Vector3(-8.8, -11.0, 0), new THREE.Vector3(-8.8, 13.5, 0)],
+      // Vertical alignment axes at outer module corners
+      [new THREE.Vector3(-13.5, -10.5, -6.2), new THREE.Vector3(-13.5, 11.5, -6.2)],
+      [new THREE.Vector3(12.2, -10.5, -6.2), new THREE.Vector3(12.2, 11.5, -6.2)]
+    ];
+    for (const [p0, p1] of segments) {
+      const geo = new THREE.BufferGeometry().setFromPoints([p0, p1]);
+      const line = new THREE.Line(geo, lineMat);
+      line.computeLineDistances();
+      line.userData.ignorePick = true;
+      this.guideGroup.add(line);
+    }
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -428,15 +544,22 @@ export class SimEffects {
     //  - Macro: 3D Sensor-Shift OIS (IBIS) XY + Roll
     //  - Lens: 6-Blade Stepless Iris (f/1.63 <-> f/4.0) + Ball-Guide AF Z + OIS XY
     //  - Deco: Adaptive 9-LED Flash (Wide outer-8 <-> Telephoto center spot) + 940nm VCSEL Laser pulse
+    //  - Periscope: 2-Axis Prism-Tilt OIS (Pitch+Yaw) + 3.1 mm Horizontal Floating Tele-Macro AF + 0.5x Rolling ZrO2 Balls!
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
     const decoAct = this.oisEnabled && this.mode === 'deco';
+    const periAct = this.oisEnabled && this.mode === 'periscope';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
     const oisRoll = macroOis ? Math.sin(elapsed * 2.2) * 0.045 : 0;
     const afStrokeY = lensAct ? Math.sin(elapsed * 1.9) * 0.42 : 0;
     const irisNorm = lensAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.35)) : null;
+
+    // Periscope live actuation kinematics (zero collisions verified across full 3.1 mm stroke!)
+    const periStrokeX = periAct ? (0.45 + 1.55 * Math.sin(elapsed * 1.35)) : 0;
+    const prismPitch = periAct ? Math.sin(elapsed * 3.1) * 0.088 : 0; // ±5.0° visual pitch tilt around Z
+    const prismYaw = periAct ? Math.cos(elapsed * 2.15) * 0.072 : 0;   // ±4.1° visual yaw tilt around Y
 
     // Adaptive flash cycle: 0 = Wide-Angle Outer 8 LEDs, 1 = Telephoto Center Spot LED
     const flashBlend = decoAct ? (0.5 + 0.5 * Math.sin(elapsed * 1.6)) : null;
@@ -447,18 +570,27 @@ export class SimEffects {
       const ey = entry.basePos.y + entry.explodeVec.y * explodeT;
       const ez = entry.basePos.z + entry.explodeVec.z * explodeT;
 
-      const dx = (entry.oisMoving && (macroOis || lensAct)) ? oisX : 0;
+      let dx = (entry.oisMoving && (macroOis || lensAct)) ? oisX : 0;
       const dy = (entry.afMoving && lensAct) ? afStrokeY : 0;
       const dz = (entry.oisMoving && (macroOis || lensAct)) ? oisZ : 0;
 
+      // Periscope horizontal long-stroke floating tele-macro AF + 0.5x rolling ceramic ball bearings
+      if (periAct && entry.afMoving) {
+        dx += periStrokeX;
+      } else if (periAct && entry.afBallRolling) {
+        dx += periStrokeX * 0.5;
+      }
+
       entry.group.position.set(ex + dx, ey + dy, ez + dz);
 
-      if (entry.oisMoving && macroOis) {
-        entry.group.rotation.y = oisRoll;
+      if (entry.prismTiltMoving) {
+        entry.group.rotation.set(0, prismYaw, prismPitch);
+      } else if (entry.oisMoving && macroOis) {
+        entry.group.rotation.set(0, oisRoll, 0);
       } else if (entry.group.userData.isIrisCamRing) {
-        entry.group.rotation.y = lensAct ? (irisNorm - 0.5) * 0.30 : 0;
+        entry.group.rotation.set(0, lensAct ? (irisNorm - 0.5) * 0.30 : 0, 0);
       } else {
-        entry.group.rotation.y = 0;
+        entry.group.rotation.set(0, 0, 0);
       }
 
       // Live 6-blade stepless variable aperture articulation (Lens mode)

@@ -35,6 +35,17 @@ The outermost physical layer sitting directly above the 1G7P Lens & VCM module (
 - **Adaptive 9-LED True Tone Matrix Flash (4 parts)**: Sculpted 7-Ring Concentric Micro-Fresnel Diffuser Lens, 3×3 9-Element Warm/Cool Adaptive LED Matrix (live Wide ↔ Telephoto pattern switching), High-Reflectance Conical Reflector Cup & AlN Ceramic Submount, Constant-Current Boost Driver IC
 - **Multispectral Color/Flicker, Zoom MEMS Mic & Thermal/FPC (6 parts)**: Wide-Angle Opal Ambient Diffuser Window, 11–14ch Multispectral Color & Flicker Detector IC (rainbow spectral bands), Acoustic Slit & Dual SUS/ePTFE Waterproof Mesh, High-SNR Rear Directional Zoom MEMS Microphone (`SNR 70 dB / AOP 135 dB SPL`), High-Conductivity Artificial Graphite Thermal Spreader & Copper Foil, Unified Polyimide Auxiliary Sensor FPC & BTB Connector
 
+## Phase 5 — Periscope Telephoto Prism Mechanism, D-Cut FCD100 APO & 200MP Vertical Sensor (28 Independent Parts, 1 unit = 1 mm)
+Ultra-deep dissection of a flagship folded periscope telephoto module (**152 total independent dissectable 3D CAD parts across all 6 modes**) with both primary-source optical/mechatronic specs and beginner-friendly Japanese explanations:
+- **Housing, Entrance Window & Stray-Light Traps (4 parts)**: Non-Magnetic SUS304 Cutaway EMI Shield Can, Rectangular AR Entrance Window & Glare-Stop Mask, Matte-Black LCP Optical Tunnel Housing with 14 Sawtooth Knife-Edge Baffle Ribs, High-Rigidity SUS Baseplate & Artificial Graphite Thermal Sheet
+- **High-Index 45° TIR Prism & 2-Axis Prism-Tilt OIS (8 parts)**: High-Index Optical Glass 45° Right-Angle TIR Prism (`H-ZF52 / L-LAH58`, `n_d = 1.85`), 45° Protected Silver (`Ag`) + Dielectric Mirror Coating (`R > 99.2%`), Entrance/Exit Broadband AR Coats & Blackened Non-Optical Sides, Moving Prism Cradle Holder (live Pitch/Yaw tilt), 2-Axis Universal Gimbal Frame & 3× `ZrO₂` Ceramic Fulcrum Pivot Balls, Dual-Pole N52H Magnets & Zero-Backlash Magnetic Preload Pulling Plate, Orthogonal Pitch/Yaw Tilt OIS Voice Coils + FPC, 2-Axis Closed-Loop Hall/TMR Angle Sensors (`0.001°` resolution)
+- **D-Cut APO Telephoto & Floating Tele-Macro Lenses (7 parts)**: Fixed Front Large-Aperture D-Cut Glass Aspheric `G1`, **HOYA FCD100 Fluorite-Grade Ultra-Low-Dispersion ED D-Cut Glass `G2` (`n_d = 1.437, ν_d = 95.10`)**, High-Index Flint APO Chromatic-Corrector D-Cut Concave `G3`, Floating Tele-Macro Aspheric D-Cut `G4` (`10 cm` macro), Rear Gullwing D-Cut Field Flattener `G5`, 4× Ultra-Thin Matte-Black D-Cut Inter-Lens Shading Baffles, Cutaway Floating Linear D-Cut Lens Barrel Carriage
+- **Long-Stroke Linear Ball-Guide VCM Actuator (5 parts)**: Twin Hardened Martensitic Stainless (`SUS440C`) V-Groove + Kinematic Flat Linear Guide Rails, 6× `Y-TZP ZrO₂` Ceramic Rolling Guide Balls (kinematically animated at `0.5×` carriage velocity), Long-Stroke Flat Linear AF Voice Coil, Multi-Pole N52H Linear Magnet Array, Magnetic Preload Side Yoke & Long-Stroke Linear TMR Magnetic Encoder Strip (`0.3 μm` resolution)
+- **90° Vertical 1/1.4" 200MP CMOS Sensor & L-Rigid-Flex (4 parts)**: Vertical `Cu²⁺` Blue-Glass IRCF + 50-Layer IR Coating, 90° Upright 1/1.4" 200MP Stacked BSI CMOS Sensor (`ISOCELL HP9`-class, `9.1 × 6.8 mm` active area, `0.56 μm` pitch) + 28 Gold Wire-Bond Loops, Vertical CNC Oxygen-Free Copper Heatsink Backplate & TIM Pad, 90° L-Bent Rigid-Flex PCB + Dual Closed-Loop OIS/AF Driver ASIC + EEPROM + `01005` MLCCs + MIPI CSI-2 BTB Connector
+
+## Live Demo
+- GitHub Pages: https://sc8z35a-collab.github.io/RED-Pixel-R1/
+
 ## Development
 ```bash
 npm install

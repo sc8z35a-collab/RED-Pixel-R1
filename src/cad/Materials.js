@@ -1380,6 +1380,76 @@ export function createMaterialLibrary(clippingPlanes) {
       transparent: true,
       opacity: 0.78,
       clearcoat: 0.55
+    }),
+
+    // === PHASE 5: PERISCOPE TELEPHOTO PRISM, D-CUT FCD100 APO & LINEAR VCM ===
+    periPrismGlass: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xdbf4ff,
+      metalness: 0.05,
+      roughness: 0.03,
+      transparent: true,
+      opacity: 0.38,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.03,
+      iridescence: 0.52,
+      iridescenceIOR: 1.85,
+      depthWrite: false
+    }),
+    periSilverMirror: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf1f5f9,
+      metalness: 0.99,
+      roughness: 0.04,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.03,
+      iridescence: 0.22,
+      iridescenceIOR: 1.5
+    }),
+    periFcd100Glass: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x5eead4,
+      metalness: 0.05,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.52,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.03,
+      iridescence: 0.82,
+      iridescenceIOR: 1.44,
+      depthWrite: false
+    }),
+    periArGreenCoat: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x34d399,
+      metalness: 0.16,
+      roughness: 0.05,
+      transparent: true,
+      opacity: 0.28,
+      clearcoat: 1.0,
+      iridescence: 1.0,
+      iridescenceIOR: 1.48,
+      depthWrite: false
+    }),
+    periCopperHeatsink: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xd97745,
+      metalness: 0.94,
+      roughness: 0.24,
+      clearcoat: 0.24
+    }),
+    periHardenedRail: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe2e8f0,
+      metalness: 0.98,
+      roughness: 0.10,
+      clearcoat: 0.55
+    }),
+    periTmrStrip: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x0f766e,
+      metalness: 0.58,
+      roughness: 0.28
     })
   };
 }

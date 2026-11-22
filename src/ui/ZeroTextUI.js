@@ -8,6 +8,7 @@ const ICONS = {
   layer2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5h18"/><path d="M5.5 16.5v-5.5h3v5.5M10.5 16.5v-5.5h3v5.5M15.5 16.5v-5.5h3v5.5"/><rect x="4" y="7" width="16" height="4" rx="1.2" fill="currentColor" fill-opacity="0.18"/><line x1="12" y1="3.5" x2="12" y2="7"/><line x1="12" y1="16.5" x2="12" y2="20.5"/></svg>`,
   lens: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></svg>`,
   deco: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><circle cx="10.2" cy="11.4" r="4.2"/><circle cx="17.2" cy="9.2" r="1.5" fill="currentColor" stroke="none"/><circle cx="17.2" cy="14.2" r="1.5"/><circle cx="12.5" cy="17.8" r="1" fill="currentColor" stroke="none"/></svg>`,
+  periscope: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 8 12 8 12 16" fill="currentColor" fill-opacity="0.16"/><path d="M8 2.5V12H19.5"/><line x1="16" y1="8.5" x2="16" y2="15.5"/><rect x="19.5" y="7.5" width="2.2" height="9" rx="0.8" fill="currentColor" stroke="none"/></svg>`,
 
   // Explode
   assembled: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>`,
@@ -90,7 +91,8 @@ const ICONS = {
     via: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="8" y1="2.5" x2="8" y2="13.5"/><circle cx="8" cy="2.5" r="1.4" fill="currentColor"/><circle cx="8" cy="13.5" r="1.4" fill="currentColor"/></svg>`,
     mosfet: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4v8M6 4v8M6 8h7M11 4v8"/></svg>`,
     routes: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h5v8h7M2 12h3V8h9"/></svg>`,
-    bond: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="4" height="4" fill="currentColor"/><rect x="9" y="3" width="4" height="4" fill="currentColor"/><rect x="3" y="9" width="4" height="4" fill="currentColor"/><rect x="9" y="9" width="4" height="4" fill="currentColor"/></svg>`
+    bond: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="4" height="4" fill="currentColor"/><rect x="9" y="3" width="4" height="4" fill="currentColor"/><rect x="3" y="9" width="4" height="4" fill="currentColor"/><rect x="9" y="9" width="4" height="4" fill="currentColor"/></svg>`,
+    prism: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="3 4 12 4 12 13" fill="currentColor" fill-opacity="0.18"/><path d="M7.5 1.5V8.5H14.5"/></svg>`
   }
 };
 
@@ -98,7 +100,7 @@ export class ZeroTextUI {
   constructor(rootEl, callbacks) {
     this.root = rootEl;
     this.cb = callbacks;
-    this.scale = 'macro';
+    this.scale = 'periscope';
     this.partsList = [];
     this.selectedId = null;
     this.hiddenSet = new Set();
@@ -134,14 +136,15 @@ export class ZeroTextUI {
   _buildDOM() {
     this.root.innerHTML = '';
 
-    // 1. TOP-LEFT SCALE SWITCH (Macro <-> Micro Pixel <-> Layer-2 FinFET <-> Optical Lens <-> Exterior Deco)
+    // 1. TOP-LEFT SCALE SWITCH (Macro / Micro / Layer-2 / Optical Lens / Exterior Deco / Periscope Prism)
     const scaleDock = this._el('div', 'scale-dock cad-glass');
     this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'));
     this.btnMicro = this._iconBtn(ICONS.micro, () => this.cb.onSwitchScale('micro'));
     this.btnLayer2 = this._iconBtn(ICONS.layer2, () => this.cb.onSwitchScale('layer2'));
     this.btnLens = this._iconBtn(ICONS.lens, () => this.cb.onSwitchScale('lens'));
-    this.btnDeco = this._iconBtn(ICONS.deco, () => this.cb.onSwitchScale('deco'), 'active');
-    scaleDock.append(this.btnMacro, this.btnMicro, this.btnLayer2, this.btnLens, this.btnDeco);
+    this.btnDeco = this._iconBtn(ICONS.deco, () => this.cb.onSwitchScale('deco'));
+    this.btnPeriscope = this._iconBtn(ICONS.periscope, () => this.cb.onSwitchScale('periscope'), 'active');
+    scaleDock.append(this.btnMacro, this.btnMicro, this.btnLayer2, this.btnLens, this.btnDeco, this.btnPeriscope);
     this.root.appendChild(scaleDock);
 
     // 2. LEFT VISUAL LAYER DISSECTION DOCK (ZERO TEXT — Color Bars + Category Glyphs + Eye Toggles)
@@ -343,8 +346,10 @@ export class ZeroTextUI {
     this.btnLayer2.classList.toggle('active', scale === 'layer2');
     this.btnLens.classList.toggle('active', scale === 'lens');
     this.btnDeco.classList.toggle('active', scale === 'deco');
-    // Live demo button (OIS in macro / Iris+AF+OIS in lens / 9-LED Flash+LiDAR pulse in deco)
-    this.btnOis.style.display = (scale === 'macro' || scale === 'lens' || scale === 'deco') ? 'inline-flex' : 'none';
+    this.btnPeriscope.classList.toggle('active', scale === 'periscope');
+    // Live demo button (OIS in macro / Iris+AF+OIS in lens / Flash+LiDAR in deco / Prism-Tilt OIS+Tele-Macro in periscope)
+    this.btnOis.style.display =
+      scale === 'macro' || scale === 'lens' || scale === 'deco' || scale === 'periscope' ? 'inline-flex' : 'none';
   }
 
   setIsolateUI(active) {
