@@ -6,10 +6,22 @@ import { APERTURE_OVERVIEW_DOC, APERTURE_PARTS } from './apertureLensKnowledge.j
 import { IRIS_MICRO_OVERVIEW_DOC, IRIS_MICRO_PARTS } from './irisMicroKnowledge.js';
 import { IRIS_NANO_OVERVIEW_DOC, IRIS_NANO_PARTS } from './irisNanoKnowledge.js';
 import { LIDAR_OVERVIEW_DOC, LIDAR_PARTS } from './lidarKnowledge.js';
+import { SMA_OVERVIEW_DOC, SMA_PARTS } from './smaMuscleKnowledge.js';
 
-export { LAYER2_PARTS, LENS_PARTS, DECO_PARTS, PERISCOPE_PARTS, APERTURE_PARTS, IRIS_MICRO_PARTS, IRIS_NANO_PARTS, LIDAR_PARTS };
+export {
+  LAYER2_PARTS,
+  LENS_PARTS,
+  DECO_PARTS,
+  PERISCOPE_PARTS,
+  APERTURE_PARTS,
+  IRIS_MICRO_PARTS,
+  IRIS_NANO_PARTS,
+  LIDAR_PARTS,
+  SMA_PARTS
+};
 
 export const OVERVIEW_DOCS = {
+  sma: SMA_OVERVIEW_DOC,
   lidar: LIDAR_OVERVIEW_DOC,
   iris_nano: IRIS_NANO_OVERVIEW_DOC,
   iris: IRIS_MICRO_OVERVIEW_DOC,
@@ -968,6 +980,7 @@ export const ALL_PARTS_BY_ID = Object.fromEntries(
     ...APERTURE_PARTS,
     ...IRIS_MICRO_PARTS,
     ...IRIS_NANO_PARTS,
-    ...LIDAR_PARTS
+    ...LIDAR_PARTS,
+    ...SMA_PARTS
   ].map((p) => [p.id, p])
 );
