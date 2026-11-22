@@ -314,7 +314,11 @@ html, body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.1s ease;
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.2s ease,
+    box-shadow 0.22s ease,
+    color 0.16s ease;
   padding: 0;
   flex-shrink: 0;
 }
@@ -328,10 +332,11 @@ html, body {
 .icon-btn:hover {
   background: rgba(15, 23, 42, 0.06);
   color: #0f172a;
+  transform: translateY(-1px);
 }
 
 .icon-btn:active {
-  transform: scale(0.94);
+  transform: scale(0.90);
 }
 
 .icon-btn.active {
@@ -382,6 +387,18 @@ html, body {
   box-shadow: 0 3px 10px rgba(217, 119, 6, 0.28);
 }
 
+@keyframes cinemaRingPulse {
+  0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.50), 0 3px 12px rgba(37, 99, 235, 0.32); }
+  70% { box-shadow: 0 0 0 8px rgba(124, 58, 237, 0), 0 3px 14px rgba(37, 99, 235, 0.38); }
+  100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0), 0 3px 12px rgba(37, 99, 235, 0.32); }
+}
+
+.icon-btn.active-cinema {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #ffffff;
+  animation: cinemaRingPulse 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
 .icon-btn svg {
   width: 18px;
   height: 18px;
@@ -422,6 +439,11 @@ html, body {
   cursor: pointer;
 }
 
+.cad-range.explode-range {
+  height: 5px;
+  background: linear-gradient(90deg, #1d4ed8 0%, #0ea5e9 var(--p, 0%), rgba(15, 23, 42, 0.13) var(--p, 0%));
+}
+
 .cad-range.short {
   width: 72px;
 }
@@ -432,23 +454,29 @@ html, body {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #111827;
+  background: #0f172a;
   border: 2px solid #ffffff;
-  box-shadow: 0 1px 5px rgba(15, 23, 42, 0.35);
-  transition: transform 0.12s ease;
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.38);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+}
+
+.cad-range.explode-range::-webkit-slider-thumb {
+  background: linear-gradient(135deg, #0f172a, #1d4ed8);
+  box-shadow: 0 1px 8px rgba(37, 99, 235, 0.44);
 }
 
 .cad-range::-webkit-slider-thumb:hover {
-  transform: scale(1.18);
+  transform: scale(1.22);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.55);
 }
 
 .cad-range::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #111827;
+  background: #0f172a;
   border: 2px solid #ffffff;
-  box-shadow: 0 1px 5px rgba(15, 23, 42, 0.35);
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.38);
 }
 
 .cad-range.clip-x::-webkit-slider-thumb { background: #dc2626; }
@@ -688,13 +716,61 @@ html, body {
 }
 
 /* =====================================================
-   EXPLODE-ONLY ZEN MODE (HIDE ALL UI EXCEPT EXPLODE BAR)
+   LUXURY PANEL REVEAL & SILKY DIRECTIONAL ZEN MODE
    ===================================================== */
 
-#ui-root.zen-mode .scale-dock,
-#ui-root.zen-mode .layer-dock,
-#ui-root.zen-mode .top-right-stack,
-#ui-root.zen-mode .info-panel,
+@keyframes panelReveal {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.info-body.panel-reveal {
+  animation: panelReveal 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scale-dock,
+.top-right-stack,
+.bottom-dock {
+  transition:
+    transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.26s ease,
+    border-radius 0.3s ease,
+    padding 0.3s ease;
+}
+
+#ui-root.zen-mode .scale-dock {
+  transform: translateY(-150%) scale(0.95);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#ui-root.zen-mode .layer-dock {
+  transform: translateX(-150%) !important;
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none !important;
+}
+
+#ui-root.zen-mode .top-right-stack {
+  transform: translate(35%, -150%) scale(0.92);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#ui-root.zen-mode .info-panel {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none !important;
+}
+
 #ui-root.zen-mode .bottom-main-sep,
 #ui-root.zen-mode .bottom-tools-row {
   display: none !important;
@@ -709,6 +785,7 @@ html, body {
   border-radius: 999px !important;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
   gap: 6px !important;
+  box-shadow: 0 8px 32px -8px rgba(15, 23, 42, 0.16), 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 #ui-root.zen-mode .bottom-explode-row {
@@ -716,7 +793,7 @@ html, body {
 }
 
 #ui-root.zen-mode .explode-range {
-  width: clamp(148px, 48vw, 240px) !important;
+  width: clamp(132px, 44vw, 224px) !important;
   flex: 0 0 auto !important;
 }
 

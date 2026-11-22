@@ -98,10 +98,17 @@ export class CadEngine {
     this.selectionOutlineGroup = new THREE.Group();
     this.scene.add(this.selectionOutlineGroup);
 
+    // 3D Click/Selection Holographic Shockwave Burst Group
+    this.burstGroup = new THREE.Group();
+    this.scene.add(this.burstGroup);
+    this.burstRings = [];
+    this.cinemaAngle = 0;
+
     // Callbacks
     this.onPartSelect = null;
     this.onPartHover = null;
     this.onCameraSync = null;
+    this.onUserCameraInteract = null;
 
     // Events
     this._bindEvents();
@@ -237,7 +244,12 @@ export class CadEngine {
     dom.addEventListener('pointerdown', (e) => {
       this.pointerDownPos.set(e.clientX, e.clientY);
       this.cameraTween = null;
+      if (this.onUserCameraInteract) this.onUserCameraInteract();
     });
+    dom.addEventListener('wheel', () => {
+      this.cameraTween = null;
+      if (this.onUserCameraInteract) this.onUserCameraInteract();
+    }, { passive: true });
 
     dom.addEventListener('pointermove', (e) => {
       if (e.pointerType === 'touch') return;
@@ -385,10 +397,51 @@ export class CadEngine {
     } else {
       this._refreshHighlightAppearance();
     }
+    if (this.selectedId) {
+      this.triggerSelectionBurst(this.selectedId);
+    }
     if (focusCamera && this.selectedId) {
       this.focusOnPart(this.selectedId);
     }
     if (this.onPartSelect) this.onPartSelect(this.selectedId);
+  }
+
+  triggerSelectionBurst(partId) {
+    const entry = this.partMap.get(partId);
+    if (!entry) return;
+    const box = new THREE.Box3().setFromObject(entry.group);
+    if (box.isEmpty()) return;
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const baseR = Math.max(size.length() * 0.28, 0.9);
+    const now = performance.now();
+
+    for (let i = 0; i < 2; i++) {
+      const geo = new THREE.RingGeometry(0.80, 1.0, 40);
+      geo.rotateX(-Math.PI / 2);
+      const mat = new THREE.MeshBasicMaterial({
+        color: i === 0 ? 0x2563eb : 0x06b6d4,
+        transparent: true,
+        opacity: 0.72,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(center);
+      mesh.position.y += i * 0.08;
+      mesh.scale.setScalar(baseR * 0.35);
+      mesh.userData.ignorePick = true;
+      this.burstGroup.add(mesh);
+      this.burstRings.push({
+        mesh,
+        mat,
+        geo,
+        startTime: now + i * 95,
+        duration: 560,
+        startR: baseR * 0.35,
+        endR: baseR * (1.55 + i * 0.35)
+      });
+    }
   }
 
   hoverPartFromUI(partId) {
@@ -741,15 +794,54 @@ export class CadEngine {
     }
   }
 
-  animateCameraTo(position, target, duration = 560) {
+  animateCameraTo(position, target, duration = 640, arcLift = 0.0) {
     this.cameraTween = {
       startPos: this.camera.position.clone(),
       endPos: position.clone(),
       startTarget: this.controls.target.clone(),
       endTarget: target.clone(),
       startTime: performance.now(),
-      duration
+      duration,
+      arcLift
     };
+  }
+
+  startCinematicIntro(finalPos, finalTarget, duration = 1220) {
+    // Begin slightly wider, higher & swept +18° azimuth for a dramatic Apple-Keynote crane dolly-in!
+    const offset = finalPos.clone().sub(finalTarget);
+    const cosA = Math.cos(0.32);
+    const sinA = Math.sin(0.32);
+    const rx = offset.x * cosA - offset.z * sinA;
+    const rz = offset.x * sinA + offset.z * cosA;
+    const startPos = new THREE.Vector3(
+      finalTarget.x + rx * 1.24,
+      finalTarget.y + offset.y * 1.18 + 2.4,
+      finalTarget.z + rz * 1.24
+    );
+    this.camera.position.copy(startPos);
+    this.controls.target.copy(finalTarget);
+    this.controls.update();
+    this.animateCameraTo(finalPos, finalTarget, duration, 1.35);
+  }
+
+  initCinematicOrbitFromCurrent(target) {
+    const off = this.camera.position.clone().sub(target);
+    this.cinemaAngle = Math.atan2(off.x, off.z);
+    this._cinemaBaseRadius = Math.hypot(off.x, off.z);
+    this._cinemaBaseY = off.y;
+  }
+
+  updateCinematicOrbit(dt, elapsed, target) {
+    this.cameraTween = null;
+    this.cinemaAngle += dt * 0.30;
+    const r = (this._cinemaBaseRadius || 28) * (1.0 + 0.065 * Math.sin(elapsed * 0.55));
+    const y = (this._cinemaBaseY || 18) * (1.0 + 0.14 * Math.sin(elapsed * 0.42 + 0.6));
+    this.camera.position.set(
+      target.x + Math.sin(this.cinemaAngle) * r,
+      target.y + Math.max(4.5, y),
+      target.z + Math.cos(this.cinemaAngle) * r
+    );
+    this.controls.target.lerp(target, Math.min(1, dt * 4.5));
   }
 
   snapView(preset, distance = 32, target = new THREE.Vector3(0, 1.2, 0)) {
@@ -762,7 +854,7 @@ export class CadEngine {
     };
     const d = dirMap[preset] || dirMap.iso;
     const pos = target.clone().addScaledVector(d, distance);
-    this.animateCameraTo(pos, target, 520);
+    this.animateCameraTo(pos, target, 580, 0.85);
   }
 
   focusOnPart(partId) {
@@ -777,16 +869,51 @@ export class CadEngine {
     if (currentDir.lengthSq() < 0.001) currentDir.set(0.7, 0.55, 0.7).normalize();
     const desiredDist = Math.max(radius * 3.15, 13.5);
     const endPos = center.clone().addScaledVector(currentDir, desiredDist);
-    this.animateCameraTo(endPos, center, 480);
+    this.animateCameraTo(endPos, center, 560, 0.55);
   }
 
   update(now) {
     if (this.cameraTween) {
       const t = Math.min(1, (now - this.cameraTween.startTime) / this.cameraTween.duration);
-      const ease = 1 - Math.pow(1 - t, 3);
+      const ease = 1 - Math.pow(1 - t, 4); // Silky quintic-feel studio deceleration
       this.camera.position.lerpVectors(this.cameraTween.startPos, this.cameraTween.endPos, ease);
+      if (this.cameraTween.arcLift) {
+        this.camera.position.y += Math.sin(t * Math.PI) * this.cameraTween.arcLift;
+      }
       this.controls.target.lerpVectors(this.cameraTween.startTarget, this.cameraTween.endTarget, ease);
       if (t >= 1) this.cameraTween = null;
+    }
+
+    // Animate 3D click/selection shockwave burst rings
+    for (let i = this.burstRings.length - 1; i >= 0; i--) {
+      const b = this.burstRings[i];
+      if (now < b.startTime) {
+        b.mesh.visible = false;
+        continue;
+      }
+      b.mesh.visible = true;
+      const p = Math.min(1, (now - b.startTime) / b.duration);
+      const ease = 1 - Math.pow(1 - p, 3.5);
+      b.mesh.scale.setScalar(b.startR + (b.endR - b.startR) * ease);
+      b.mat.opacity = 0.72 * Math.pow(1 - p, 1.9);
+      if (p >= 1) {
+        this.burstGroup.remove(b.mesh);
+        b.geo.dispose();
+        b.mat.dispose();
+        this.burstRings.splice(i, 1);
+      }
+    }
+
+    // Subtle breathing cobalt aura on currently selected part
+    if (this.selectedId && this.partMap.has(this.selectedId)) {
+      const selEntry = this.partMap.get(this.selectedId);
+      const baseInt = this.ghostMode ? 0.16 : 0.24;
+      const pulseInt = baseInt + 0.11 * (0.5 + 0.5 * Math.sin(now * 0.0055));
+      selEntry.group.traverse((obj) => {
+        if (obj.isMesh && !obj.userData.ignorePick && obj.material && 'emissiveIntensity' in obj.material && obj.userData.clonedForHighlight) {
+          obj.material.emissiveIntensity = pulseInt;
+        }
+      });
     }
 
     this.controls.update();
