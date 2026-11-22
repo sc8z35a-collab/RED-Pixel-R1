@@ -9,6 +9,7 @@ import { buildCameraDecoAssembly } from './assemblies/CameraDecoAssembly.js';
 import { buildPeriscopePrismAssembly } from './assemblies/PeriscopePrismAssembly.js';
 import { buildApertureLensAssembly } from './assemblies/ApertureLensAssembly.js';
 import { buildIrisMicroAssembly } from './assemblies/IrisMicroAssembly.js';
+import { buildIrisNanoAssembly } from './assemblies/IrisNanoAssembly.js';
 import {
   MACRO_PARTS,
   MICRO_PARTS,
@@ -18,6 +19,7 @@ import {
   PERISCOPE_PARTS,
   APERTURE_PARTS,
   IRIS_MICRO_PARTS,
+  IRIS_NANO_PARTS,
   OVERVIEW_DOCS,
   ALL_PARTS_BY_ID
 } from './knowledge/sensorKnowledge.js';
@@ -29,7 +31,7 @@ const uiRoot = document.getElementById('ui-root');
 const engine = new CadEngine(viewportEl);
 const sim = new SimEffects(engine.scene);
 
-// Pre-build all 8 multiscale modes (212 independent dissectable 3D CAD parts!)
+// Pre-build all 9 multiscale modes (242 independent dissectable 3D CAD parts!)
 const assemblies = {
   macro: buildMacroSensorAssembly(engine.materials),
   micro: buildMicroPixelAssembly(engine.materials),
@@ -38,7 +40,8 @@ const assemblies = {
   deco: buildCameraDecoAssembly(engine.materials),
   periscope: buildPeriscopePrismAssembly(engine.materials),
   aperture: buildApertureLensAssembly(engine.materials),
-  iris: buildIrisMicroAssembly(engine.materials)
+  iris: buildIrisMicroAssembly(engine.materials),
+  iris_nano: buildIrisNanoAssembly(engine.materials)
 };
 
 const partDocsByScale = {
@@ -49,13 +52,14 @@ const partDocsByScale = {
   deco: DECO_PARTS,
   periscope: PERISCOPE_PARTS,
   aperture: APERTURE_PARTS,
-  iris: IRIS_MICRO_PARTS
+  iris: IRIS_MICRO_PARTS,
+  iris_nano: IRIS_NANO_PARTS
 };
 
 Object.values(assemblies).forEach((asm) => engine.scene.add(asm.root));
 
-let currentScale = 'iris';
-let activeAsm = assemblies.iris;
+let currentScale = 'iris_nano';
+let activeAsm = assemblies.iris_nano;
 let targetExplode = 0;
 let currentExplode = 0;
 
@@ -95,21 +99,23 @@ const ui = new ZeroTextUI(uiRoot, {
   },
   onSnapView(preset) {
     const dist =
-      currentScale === 'iris'
-        ? 44
-        : currentScale === 'aperture'
+      currentScale === 'iris_nano'
+        ? 34
+        : currentScale === 'iris'
           ? 44
-          : currentScale === 'periscope'
-            ? 40
-            : currentScale === 'deco'
-              ? 42
-              : currentScale === 'lens'
-                ? 38
-                : currentScale === 'macro'
-                  ? 36
-                  : currentScale === 'layer2'
-                    ? 32
-                    : 28;
+          : currentScale === 'aperture'
+            ? 44
+            : currentScale === 'periscope'
+              ? 40
+              : currentScale === 'deco'
+                ? 42
+                : currentScale === 'lens'
+                  ? 38
+                  : currentScale === 'macro'
+                    ? 36
+                    : currentScale === 'layer2'
+                      ? 32
+                      : 28;
     engine.snapView(preset, dist, activeAsm.defaultTarget);
   },
   onSelectPartUI(partId) {
@@ -123,15 +129,40 @@ const ui = new ZeroTextUI(uiRoot, {
     engine.togglePartVisibility(partId);
     ui.syncVisibility(getHiddenIds());
     ui.setIsolateUI(Boolean(engine.isolatedId));
+    ui.setPeelCountUI(engine.getPeelCount());
   },
   onToggleIsolate() {
     const active = engine.toggleIsolateSelected();
     ui.setIsolateUI(active);
+    ui.setGhostUI(engine.ghostMode);
+    ui.setPeelCountUI(engine.getPeelCount());
+    ui.syncVisibility(getHiddenIds());
+  },
+  onToggleGhost() {
+    const active = engine.toggleGhostSurroundings();
+    ui.setGhostUI(active);
+    ui.setIsolateUI(Boolean(engine.isolatedId));
+    ui.setPeelCountUI(engine.getPeelCount());
+    ui.syncVisibility(getHiddenIds());
+  },
+  onPeelLayer() {
+    const orderedIds = partDocsByScale[currentScale].map((p) => p.id);
+    engine.peelNextPart(orderedIds);
+    ui.setIsolateUI(Boolean(engine.isolatedId));
+    ui.setPeelCountUI(engine.getPeelCount());
+    ui.syncVisibility(getHiddenIds());
+    ui.setInfoOpen(true);
+  },
+  onUnpeelLayer() {
+    engine.unpeelLastPart();
+    ui.setIsolateUI(Boolean(engine.isolatedId));
+    ui.setPeelCountUI(engine.getPeelCount());
     ui.syncVisibility(getHiddenIds());
   },
   onShowAll() {
     engine.showAllParts();
     ui.setIsolateUI(false);
+    ui.setPeelCountUI(0);
     ui.syncVisibility([]);
   },
   onFocusPart(partId) {
@@ -167,6 +198,8 @@ function switchScale(scale, instantCamera = false) {
   ui.setScaleUI(scale);
   ui.resetClipUI();
   ui.setIsolateUI(false);
+  ui.setGhostUI(false);
+  ui.setPeelCountUI(0);
   ui.populateLayers(partDocsByScale[scale]);
   ui.syncSelection(null, OVERVIEW_DOCS[scale]);
 
@@ -183,8 +216,8 @@ function switchScale(scale, instantCamera = false) {
   }
 }
 
-// Launch directly into Phase 7 Extreme 4x Watchwork 32-Part Micro-Iris Dissection
-switchScale('iris', true);
+// Launch directly into Phase 8 Extreme Sub-Micron 30-Part Aperture Tribology & Metallurgy Dissection
+switchScale('iris_nano', true);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -209,21 +242,23 @@ function animate(now) {
   sim.update(dt, elapsed, engine.partMap, currentExplode);
   const gridDrop =
     currentExplode *
-    (currentScale === 'iris'
-      ? 6.8
-      : currentScale === 'aperture'
-        ? 9.2
-        : currentScale === 'periscope'
-          ? 6.4
-          : currentScale === 'deco'
-            ? 8.8
-            : currentScale === 'lens'
-              ? 7.6
-              : currentScale === 'layer2'
-                ? 8.0
-                : currentScale === 'macro'
-                  ? 9.6
-                  : 9.4);
+    (currentScale === 'iris_nano'
+      ? 5.0
+      : currentScale === 'iris'
+        ? 6.8
+        : currentScale === 'aperture'
+          ? 9.2
+          : currentScale === 'periscope'
+            ? 6.4
+            : currentScale === 'deco'
+              ? 8.8
+              : currentScale === 'lens'
+                ? 7.6
+                : currentScale === 'layer2'
+                  ? 8.0
+                  : currentScale === 'macro'
+                    ? 9.6
+                    : 9.4);
   engine.setGridElevation(activeAsm.gridY - gridDrop);
   engine.update(now);
 }

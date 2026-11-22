@@ -4,10 +4,12 @@ import { DECO_OVERVIEW_DOC, DECO_PARTS } from './decoKnowledge.js';
 import { PERISCOPE_OVERVIEW_DOC, PERISCOPE_PARTS } from './periscopeKnowledge.js';
 import { APERTURE_OVERVIEW_DOC, APERTURE_PARTS } from './apertureLensKnowledge.js';
 import { IRIS_MICRO_OVERVIEW_DOC, IRIS_MICRO_PARTS } from './irisMicroKnowledge.js';
+import { IRIS_NANO_OVERVIEW_DOC, IRIS_NANO_PARTS } from './irisNanoKnowledge.js';
 
-export { LAYER2_PARTS, LENS_PARTS, DECO_PARTS, PERISCOPE_PARTS, APERTURE_PARTS, IRIS_MICRO_PARTS };
+export { LAYER2_PARTS, LENS_PARTS, DECO_PARTS, PERISCOPE_PARTS, APERTURE_PARTS, IRIS_MICRO_PARTS, IRIS_NANO_PARTS };
 
 export const OVERVIEW_DOCS = {
+  iris_nano: IRIS_NANO_OVERVIEW_DOC,
   iris: IRIS_MICRO_OVERVIEW_DOC,
   aperture: APERTURE_OVERVIEW_DOC,
   periscope: PERISCOPE_OVERVIEW_DOC,
@@ -954,5 +956,15 @@ export const MICRO_PARTS = [
 ];
 
 export const ALL_PARTS_BY_ID = Object.fromEntries(
-  [...MACRO_PARTS, ...MICRO_PARTS, ...LAYER2_PARTS, ...LENS_PARTS, ...DECO_PARTS, ...PERISCOPE_PARTS, ...APERTURE_PARTS, ...IRIS_MICRO_PARTS].map((p) => [p.id, p])
+  [
+    ...MACRO_PARTS,
+    ...MICRO_PARTS,
+    ...LAYER2_PARTS,
+    ...LENS_PARTS,
+    ...DECO_PARTS,
+    ...PERISCOPE_PARTS,
+    ...APERTURE_PARTS,
+    ...IRIS_MICRO_PARTS,
+    ...IRIS_NANO_PARTS
+  ].map((p) => [p.id, p])
 );

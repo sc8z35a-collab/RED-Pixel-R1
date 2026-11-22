@@ -51,6 +51,9 @@ export class SimEffects {
     } else if (mode === 'iris') {
       this._buildIrisMicroOptics();
       this._buildGuideLines(13.5, -8.5, [[-14.5, -12.5], [14.5, -12.5], [-14.5, 12.5], [14.5, 12.5]]);
+    } else if (mode === 'iris_nano') {
+      this._buildIrisNanoPhysics();
+      this._buildGuideLines(9.6, -7.2, [[-10.6, -2.6], [10.6, -2.6], [-10.6, 5.6], [10.6, 5.6]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -593,6 +596,53 @@ export class SimEffects {
     }
   }
 
+  _buildIrisNanoPhysics() {
+    // 1. Emerald Optical Chief Rays grazing past the < 5 μm chemical half-etched knife edge without glare!
+    for (const zOff of [-1.2, 0.0, 1.1]) {
+      this._addRay([
+        new THREE.Vector3(11.15, 5.4, zOff),
+        new THREE.Vector3(11.05, 0.63, zOff),
+        new THREE.Vector3(11.20, -3.6, zOff)
+      ], 0x10b981, 0.84, 0.075, 2);
+    }
+
+    // 2. Magenta Oblique Stray Light absorbed & extinguished in the Ra = 0.3 μm matte micro-pyramid trap!
+    this._addRay([
+      new THREE.Vector3(9.4, 5.1, -1.8),
+      new THREE.Vector3(6.1, 1.56, -1.55),
+      new THREE.Vector3(5.45, 1.48, -1.48),
+      new THREE.Vector3(4.95, 1.52, -1.62)
+    ], 0xd946ef, 0.82, 0.068, 2);
+
+    // 3. Crimson 4-Point Hertzian Contact & Magnetic Preload Load Paths through Gothic-Arch V-Grooves & Y-TZP Ball!
+    for (const sx of [-1, 1]) {
+      this._addRay([
+        new THREE.Vector3(-8.4 + sx * 1.13, 5.1, -0.2),
+        new THREE.Vector3(-8.4 + sx * 1.13, 2.05, -0.2),
+        new THREE.Vector3(-8.4 + sx * 0.52, 0.92, -0.2),
+        new THREE.Vector3(-8.4 + sx * 1.13, -0.21, -0.2),
+        new THREE.Vector3(-8.4 + sx * 1.13, -2.55, -0.2)
+      ], 0xf43f5e, 0.80, 0.065, 2);
+    }
+
+    // 4. Cyan Electrostatic ESD Drain Streams flowing off the dimple Hertz point through the CNT network inside PTFE!
+    this._addRay([
+      new THREE.Vector3(5.4, -0.63, 0.30),
+      new THREE.Vector3(3.6, -0.96, 0.10),
+      new THREE.Vector3(1.6, -1.02, -0.25),
+      new THREE.Vector3(-0.2, -0.98, -0.40)
+    ], 0x06b6d4, 0.82, 0.062, 2);
+
+    // 5. Amber VCM Drive Current (I_coil) streaming through the Φ28 μm self-bonding OFC copper cores!
+    for (const [yy, zz] of [[-0.52, 4.55], [-1.22, 4.95], [-1.92, 4.55]]) {
+      this._addRay([
+        new THREE.Vector3(-10.4, yy, zz),
+        new THREE.Vector3(-6.6, yy, zz),
+        new THREE.Vector3(-2.6, yy, zz)
+      ], 0xf59e0b, 0.84, 0.065, 2);
+    }
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -645,12 +695,14 @@ export class SimEffects {
     //  - Periscope: 2-Axis Prism-Tilt OIS (Pitch+Yaw) + 3.1 mm Horizontal Floating Tele-Macro AF + 0.5x Rolling ZrO2 Balls!
     //  - Aperture: Ultra-Deep 6-Blade Interleaved Stepless Iris (f/1.42 <-> f/4.0) + Real Pierced Cam Rotor + 0.5x Thrust Balls!
     //  - Iris: Extreme 4x 32-Part Watchwork Micro-Iris (Dual-VCM Balanced Cam + 6 Rolling Balls + 3-Tier Blades + Dimples + Pins!)
+    //  - IrisNano: Sub-Micron Cam Slot Push + Counter-Sliding Tier-1/Tier-2 Blades + 0.5x Rolling Y-TZP Ceramic Ball!
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
     const decoAct = this.oisEnabled && this.mode === 'deco';
     const periAct = this.oisEnabled && this.mode === 'periscope';
     const apAct = this.oisEnabled && this.mode === 'aperture';
     const irisMicroAct = this.oisEnabled && this.mode === 'iris';
+    const irisNanoAct = this.oisEnabled && this.mode === 'iris_nano';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
@@ -661,6 +713,14 @@ export class SimEffects {
     // Phase 6 & Phase 7 smooth stepless F-stop sweep: 0 = f/1.42 (Wide Open), 1 = f/4.0 (Stopped Down)
     const apNorm = apAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.15)) : null;
     const imNorm = irisMicroAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.12)) : null;
+
+    // Phase 8 sub-micron cam sliding, counter-sliding Tier-1/Tier-2 blades & 0.5x rolling Y-TZP ceramic ball
+    const nanoPhase = irisNanoAct ? Math.sin(elapsed * 1.95) : 0;
+    const nanoCamX = nanoPhase * 0.54;
+    const nanoUpperX = nanoPhase * 0.44;
+    const nanoLowerX = -nanoPhase * 0.48;
+    const nanoRaceZ = nanoPhase * 0.68;
+    const nanoBallZ = nanoRaceZ * 0.5;
 
     // Periscope live actuation kinematics (zero collisions verified across full 3.1 mm stroke!)
     const periStrokeX = periAct ? (0.45 + 1.55 * Math.sin(elapsed * 1.35)) : 0;
@@ -678,7 +738,7 @@ export class SimEffects {
 
       let dx = (entry.oisMoving && (macroOis || lensAct)) ? oisX : 0;
       const dy = (entry.afMoving && lensAct) ? afStrokeY : 0;
-      const dz = (entry.oisMoving && (macroOis || lensAct)) ? oisZ : 0;
+      let dz = (entry.oisMoving && (macroOis || lensAct)) ? oisZ : 0;
 
       // Periscope horizontal long-stroke floating tele-macro AF + 0.5x rolling ceramic ball bearings
       if (periAct && entry.afMoving) {
@@ -687,10 +747,22 @@ export class SimEffects {
         dx += periStrokeX * 0.5;
       }
 
+      // Phase 8 sub-micron cam slot push + counter-sliding blades + 0.5x differential rolling ceramic ball
+      if (irisNanoAct) {
+        if (entry.nanoCamRotor) dx += nanoCamX;
+        else if (entry.nanoUpperBlade) dx += nanoUpperX;
+        else if (entry.nanoLowerBlade) dx += nanoLowerX;
+        else if (entry.nanoUpperRace) dz += nanoRaceZ;
+        else if (entry.nanoBall || entry.nanoBallFollow) dz += nanoBallZ;
+      }
+
       entry.group.position.set(ex + dx, ey + dy, ez + dz);
 
       if (entry.prismTiltMoving) {
         entry.group.rotation.set(0, prismYaw, prismPitch);
+      } else if (entry.nanoBall && irisNanoAct) {
+        // True rolling rotation around X axis matching 0.5x translation along Z (R_ball = 1.60)
+        entry.group.rotation.set(nanoBallZ / 1.60, 0, 0);
       } else if (entry.isMicroIrisCam) {
         const u = entry.group.userData;
         const rotY = irisMicroAct ? (u.camRotMin + imNorm * (u.camRotMax - u.camRotMin)) : u.camRotRest;

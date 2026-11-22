@@ -1570,6 +1570,184 @@ export function createMaterialLibrary(clippingPlanes) {
       roughness: 0.16,
       iridescence: 0.85,
       iridescenceIOR: 1.8
+    }),
+
+    // === PHASE 8: SUB-MICRON APERTURE TRIBOLOGY, METALLURGY & MICRO-CONTACT ===
+    nanoFdlcTop: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x162030,
+      metalness: 0.52,
+      roughness: 0.26,
+      clearcoat: 0.55,
+      clearcoatRoughness: 0.18,
+      iridescence: 0.52,
+      iridescenceIOR: 1.85,
+      iridescenceThicknessRange: [180, 420]
+    }),
+    nanoGothicSteel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x526074,
+      metalness: 0.88,
+      roughness: 0.24,
+      clearcoat: 0.45,
+      clearcoatRoughness: 0.18
+    }),
+    nanoFdlcBot: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1e293b,
+      metalness: 0.68,
+      roughness: 0.18,
+      clearcoat: 0.85,
+      clearcoatRoughness: 0.14,
+      iridescence: 0.72,
+      iridescenceIOR: 1.85
+    }),
+    nanoBlackOxide: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x161922,
+      metalness: 0.24,
+      roughness: 0.84
+    }),
+    nanoCrTiAnchor: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x8b5cf6,
+      metalness: 0.94,
+      roughness: 0.16,
+      clearcoat: 0.65,
+      iridescence: 0.92,
+      iridescenceIOR: 2.15
+    }),
+    nanoSus304Core: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xd5dde6,
+      metalness: 0.96,
+      roughness: 0.22,
+      clearcoat: 0.32
+    }),
+    nanoKnifeEdge: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x94a3b8,
+      metalness: 0.98,
+      roughness: 0.10,
+      clearcoat: 0.85,
+      clearcoatRoughness: 0.08
+    }),
+    nanoLaserHaz: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xd97706,
+      metalness: 0.92,
+      roughness: 0.22,
+      iridescence: 1.0,
+      iridescenceIOR: 2.1,
+      iridescenceThicknessRange: [220, 560]
+    }),
+    nanoTiRotor: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x7c8798,
+      metalness: 0.90,
+      roughness: 0.28,
+      clearcoat: 0.25
+    }),
+    nanoTinGold: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xeab308,
+      metalness: 0.96,
+      roughness: 0.14,
+      clearcoat: 0.45
+    }),
+    nanoPorousBronze: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xb4723c,
+      metalness: 0.80,
+      roughness: 0.54
+    }),
+    nanoMos2Lube: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1d4ed8,
+      metalness: 0.48,
+      roughness: 0.30,
+      iridescence: 0.55,
+      iridescenceIOR: 1.75
+    }),
+    nanoClearanceCyan: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x06b6d4,
+      metalness: 0.18,
+      roughness: 0.14,
+      transparent: true,
+      opacity: 0.46,
+      clearcoat: 0.8,
+      depthWrite: false
+    }),
+    nanoPtfeTranslucent: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xcffafe,
+      metalness: 0.04,
+      roughness: 0.16,
+      transparent: true,
+      opacity: 0.46,
+      clearcoat: 0.85,
+      clearcoatRoughness: 0.10,
+      depthWrite: false
+    }),
+    nanoCntFilament: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x0f172a,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.28,
+      metalness: 0.65,
+      roughness: 0.26
+    }),
+    nanoHertzGlow: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xf43f5e,
+      emissive: 0xe11d48,
+      emissiveIntensity: 0.52,
+      metalness: 0.12,
+      roughness: 0.20,
+      transparent: true,
+      opacity: 0.88
+    }),
+    nanoZirconiaCore: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xdbeafe,
+      metalness: 0.08,
+      roughness: 0.18,
+      clearcoat: 0.90,
+      iridescence: 0.38,
+      iridescenceIOR: 2.15
+    }),
+    nanoUewEnamel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xc2410c,
+      metalness: 0.28,
+      roughness: 0.18,
+      clearcoat: 0.95,
+      clearcoatRoughness: 0.08
+    }),
+    nanoSelfBondPoly: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x10b981,
+      metalness: 0.08,
+      roughness: 0.14,
+      transparent: true,
+      opacity: 0.56,
+      clearcoat: 1.0,
+      depthWrite: false
+    }),
+    nanoOfcCopper: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf97316,
+      metalness: 0.98,
+      roughness: 0.14,
+      clearcoat: 0.32
+    }),
+    nanoSwageSteel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x9aa5b4,
+      metalness: 0.95,
+      roughness: 0.18,
+      clearcoat: 0.48
     })
   };
 }

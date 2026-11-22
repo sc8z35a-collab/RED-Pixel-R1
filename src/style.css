@@ -88,10 +88,41 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   padding-bottom: 6px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.07);
   flex-shrink: 0;
+}
+
+.layer-head-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 25px);
+  gap: 3px;
+  justify-content: center;
+}
+
+.icon-btn.wide {
+  width: 53px;
+  height: 24px;
+  border-radius: 7px;
+}
+
+.icon-btn.xs {
+  width: 25px;
+  height: 25px;
+  border-radius: 7px;
+}
+
+.icon-btn.xs svg,
+.icon-btn.wide svg {
+  width: 14px;
+  height: 14px;
+}
+
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
 }
 
 .layer-scroll {
@@ -128,7 +159,7 @@ html, body {
   justify-content: space-between;
   padding: 0 5px 0 4px;
   cursor: pointer;
-  transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
+  transition: transform 0.12s ease, opacity 0.12s ease;
   flex-shrink: 0;
 }
 
@@ -240,7 +271,7 @@ html, body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+  transition: transform 0.1s ease;
   padding: 0;
   flex-shrink: 0;
 }
