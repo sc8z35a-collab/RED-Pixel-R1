@@ -8,6 +8,10 @@ const ICONS = {
   layer2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5h18"/><path d="M5.5 16.5v-5.5h3v5.5M10.5 16.5v-5.5h3v5.5M15.5 16.5v-5.5h3v5.5"/><rect x="4" y="7" width="16" height="4" rx="1.2" fill="currentColor" fill-opacity="0.18"/><line x1="12" y1="3.5" x2="12" y2="7"/><line x1="12" y1="16.5" x2="12" y2="20.5"/></svg>`,
   lens: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></svg>`,
   deco: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><circle cx="10.2" cy="11.4" r="4.2"/><circle cx="17.2" cy="9.2" r="1.5" fill="currentColor" stroke="none"/><circle cx="17.2" cy="14.2" r="1.5"/><circle cx="12.5" cy="17.8" r="1" fill="currentColor" stroke="none"/></svg>`,
+  periscope: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 8 12 8 12 16" fill="currentColor" fill-opacity="0.16"/><path d="M8 2.5V12H19.5"/><line x1="16" y1="8.5" x2="16" y2="15.5"/><rect x="19.5" y="7.5" width="2.2" height="9" rx="0.8" fill="currentColor" stroke="none"/></svg>`,
+  aperture: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3.2 19.6 7.6 19.6 16.4 12 20.8 4.4 16.4 4.4 7.6"/><polygon points="12 7.4 16 9.7 16 14.3 12 16.6 8 14.3 8 9.7" fill="currentColor" fill-opacity="0.18"/><line x1="12" y1="3.2" x2="12" y2="7.4"/><line x1="19.6" y1="7.6" x2="16" y2="9.7"/><line x1="19.6" y1="16.4" x2="16" y2="14.3"/><line x1="12" y1="20.8" x2="12" y2="16.6"/><line x1="4.4" y1="16.4" x2="8" y2="14.3"/><line x1="4.4" y1="7.6" x2="8" y2="9.7"/></svg>`,
+  iris: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.8"/><circle cx="12" cy="12" r="3.4" fill="currentColor" fill-opacity="0.2"/><path d="M12 3.2L15 10.2M19.6 7.6L14.5 13.8M19.6 16.4L10.5 15.2M12 20.8L9 13.8M4.4 16.4L9.5 10.2M4.4 7.6L13.5 8.8"/><circle cx="12" cy="3.2" r="1" fill="currentColor" stroke="none"/><circle cx="19.6" cy="7.6" r="1" fill="currentColor" stroke="none"/><circle cx="19.6" cy="16.4" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="20.8" r="1" fill="currentColor" stroke="none"/><circle cx="4.4" cy="16.4" r="1" fill="currentColor" stroke="none"/><circle cx="4.4" cy="7.6" r="1" fill="currentColor" stroke="none"/></svg>`,
+  irisNano: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5L7.5 11L12 7.5"/><circle cx="7.5" cy="12.5" r="2.6" fill="currentColor" fill-opacity="0.22"/><path d="M3 17.5L7.5 14L12 17.5"/><path d="M13.5 7.5h7.5M13.5 11h6.2l1.8 1.5-1.8 1.5h-6.2M13.5 17.5h7.5"/></svg>`,
 
   // Explode
   assembled: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>`,
@@ -32,11 +36,14 @@ const ICONS = {
   rays: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="4" x2="11" y2="14"/><line x1="12" y1="3" x2="12" y2="15"/><line x1="19" y1="4" x2="13" y2="14"/><path d="M4 18h16"/><circle cx="12" cy="18" r="2.2" fill="currentColor"/></svg>`,
   ois: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M10 4l2-2 2 2M10 20l2 2 2-2M4 10l-2 2 2 2M20 10l2 2-2 2"/></svg>`,
 
-  // View & Visibility
+  // View & Surgical Dissection Controls (Zero Text!)
   reset: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>`,
   eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.8-6.5 10-6.5S22 12 22 12s-3.8 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.7"/></svg>`,
   eyeOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 10.6a2.5 2.5 0 0 0 2.8 2.8"/><path d="M6.4 6.4C4.2 8 2.7 10.2 2 12c1.6 3.5 5.2 6.5 10 6.5 1.8 0 3.5-.4 5-1.2"/><path d="M14.1 5.8A10.7 10.7 0 0 1 22 12c-.5 1.1-1.3 2.3-2.3 3.3"/></svg>`,
   isolate: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>`,
+  ghost: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" stroke-dasharray="3 2.5" stroke-opacity="0.62"/><rect x="8" y="8" width="8" height="8" rx="1.6" fill="currentColor" fill-opacity="0.88"/></svg>`,
+  peel: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5l8 4 8-4"/><path d="M4 11.5l8 4 8-4"/><path d="M12 8.5V3m0 0l-3 3m3-3l3 3"/></svg>`,
+  unpeel: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5l8 4 8-4"/><path d="M4 12.5l8 4 8-4"/><path d="M12 3.5V9m0 0l-3-3m3 3l3-3"/></svg>`,
   book: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16"/><path d="M9 8h7M9 12h7M9 16h4"/></svg>`,
   close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
   prev: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>`,
@@ -90,7 +97,8 @@ const ICONS = {
     via: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="8" y1="2.5" x2="8" y2="13.5"/><circle cx="8" cy="2.5" r="1.4" fill="currentColor"/><circle cx="8" cy="13.5" r="1.4" fill="currentColor"/></svg>`,
     mosfet: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4v8M6 4v8M6 8h7M11 4v8"/></svg>`,
     routes: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h5v8h7M2 12h3V8h9"/></svg>`,
-    bond: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="4" height="4" fill="currentColor"/><rect x="9" y="3" width="4" height="4" fill="currentColor"/><rect x="3" y="9" width="4" height="4" fill="currentColor"/><rect x="9" y="9" width="4" height="4" fill="currentColor"/></svg>`
+    bond: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="4" height="4" fill="currentColor"/><rect x="9" y="3" width="4" height="4" fill="currentColor"/><rect x="3" y="9" width="4" height="4" fill="currentColor"/><rect x="9" y="9" width="4" height="4" fill="currentColor"/></svg>`,
+    prism: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="3 4 12 4 12 13" fill="currentColor" fill-opacity="0.18"/><path d="M7.5 1.5V8.5H14.5"/></svg>`
   }
 };
 
@@ -98,7 +106,7 @@ export class ZeroTextUI {
   constructor(rootEl, callbacks) {
     this.root = rootEl;
     this.cb = callbacks;
-    this.scale = 'macro';
+    this.scale = 'iris_nano';
     this.partsList = [];
     this.selectedId = null;
     this.hiddenSet = new Set();
@@ -109,6 +117,7 @@ export class ZeroTextUI {
     this.opticsOn = false;
     this.oisOn = false;
     this.isolateOn = false;
+    this.ghostOn = false;
 
     this._buildDOM();
     this._setupGizmo();
@@ -134,22 +143,42 @@ export class ZeroTextUI {
   _buildDOM() {
     this.root.innerHTML = '';
 
-    // 1. TOP-LEFT SCALE SWITCH (Macro <-> Micro Pixel <-> Layer-2 FinFET <-> Optical Lens <-> Exterior Deco)
+    // 1. TOP-LEFT SCALE SWITCH (9 Multiscale Modes — 242 Independent 3D CAD Parts!)
     const scaleDock = this._el('div', 'scale-dock cad-glass');
     this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'));
     this.btnMicro = this._iconBtn(ICONS.micro, () => this.cb.onSwitchScale('micro'));
     this.btnLayer2 = this._iconBtn(ICONS.layer2, () => this.cb.onSwitchScale('layer2'));
     this.btnLens = this._iconBtn(ICONS.lens, () => this.cb.onSwitchScale('lens'));
-    this.btnDeco = this._iconBtn(ICONS.deco, () => this.cb.onSwitchScale('deco'), 'active');
-    scaleDock.append(this.btnMacro, this.btnMicro, this.btnLayer2, this.btnLens, this.btnDeco);
+    this.btnDeco = this._iconBtn(ICONS.deco, () => this.cb.onSwitchScale('deco'));
+    this.btnPeriscope = this._iconBtn(ICONS.periscope, () => this.cb.onSwitchScale('periscope'));
+    this.btnAperture = this._iconBtn(ICONS.aperture, () => this.cb.onSwitchScale('aperture'));
+    this.btnIris = this._iconBtn(ICONS.iris, () => this.cb.onSwitchScale('iris'));
+    this.btnIrisNano = this._iconBtn(ICONS.irisNano, () => this.cb.onSwitchScale('iris_nano'), 'active');
+    scaleDock.append(
+      this.btnMacro,
+      this.btnMicro,
+      this.btnLayer2,
+      this.btnLens,
+      this.btnDeco,
+      this.btnPeriscope,
+      this.btnAperture,
+      this.btnIris,
+      this.btnIrisNano
+    );
     this.root.appendChild(scaleDock);
 
-    // 2. LEFT VISUAL LAYER DISSECTION DOCK (ZERO TEXT — Color Bars + Category Glyphs + Eye Toggles)
+    // 2. LEFT VISUAL LAYER DISSECTION DOCK (ZERO TEXT — Show All / Isolate / Ghost Focus / Onion-Peel / Unpeel)
     const layerDock = this._el('div', 'layer-dock cad-glass');
     const layerHead = this._el('div', 'layer-dock-head');
-    this.btnShowAll = this._iconBtn(ICONS.eye, () => this.cb.onShowAll(), 'sm');
-    this.btnIsolate = this._iconBtn(ICONS.isolate, () => this.cb.onToggleIsolate(), 'sm');
-    layerHead.append(this.btnShowAll, this.btnIsolate);
+    this.btnShowAll = this._iconBtn(ICONS.eye, () => this.cb.onShowAll(), 'wide');
+    const headGrid = this._el('div', 'layer-head-grid');
+    this.btnIsolate = this._iconBtn(ICONS.isolate, () => this.cb.onToggleIsolate(), 'xs');
+    this.btnGhost = this._iconBtn(ICONS.ghost, () => this.cb.onToggleGhost(), 'xs');
+    this.btnPeel = this._iconBtn(ICONS.peel, () => this.cb.onPeelLayer(), 'xs');
+    this.btnUnpeel = this._iconBtn(ICONS.unpeel, () => this.cb.onUnpeelLayer(), 'xs');
+    this.btnUnpeel.disabled = true;
+    headGrid.append(this.btnIsolate, this.btnGhost, this.btnPeel, this.btnUnpeel);
+    layerHead.append(this.btnShowAll, headGrid);
 
     this.layerScroll = this._el('div', 'layer-scroll');
     layerDock.append(layerHead, this.layerScroll);
@@ -343,13 +372,36 @@ export class ZeroTextUI {
     this.btnLayer2.classList.toggle('active', scale === 'layer2');
     this.btnLens.classList.toggle('active', scale === 'lens');
     this.btnDeco.classList.toggle('active', scale === 'deco');
-    // Live demo button (OIS in macro / Iris+AF+OIS in lens / 9-LED Flash+LiDAR pulse in deco)
-    this.btnOis.style.display = (scale === 'macro' || scale === 'lens' || scale === 'deco') ? 'inline-flex' : 'none';
+    this.btnPeriscope.classList.toggle('active', scale === 'periscope');
+    this.btnAperture.classList.toggle('active', scale === 'aperture');
+    this.btnIris.classList.toggle('active', scale === 'iris');
+    this.btnIrisNano.classList.toggle('active', scale === 'iris_nano');
+    // Live demo button (OIS / Iris+AF+OIS / Flash+LiDAR / Prism-Tilt / Deep Iris / Watchwork Micro-Iris / Sub-Micron Sliding+Rolling)
+    this.btnOis.style.display =
+      scale === 'macro' ||
+      scale === 'lens' ||
+      scale === 'deco' ||
+      scale === 'periscope' ||
+      scale === 'aperture' ||
+      scale === 'iris' ||
+      scale === 'iris_nano'
+        ? 'inline-flex'
+        : 'none';
   }
 
   setIsolateUI(active) {
     this.isolateOn = active;
     this.btnIsolate.classList.toggle('active', active);
+  }
+
+  setGhostUI(active) {
+    this.ghostOn = active;
+    this.btnGhost.classList.toggle('active-blue', active);
+  }
+
+  setPeelCountUI(count) {
+    this.btnPeel.classList.toggle('active-amber', count > 0);
+    this.btnUnpeel.disabled = count === 0;
   }
 
   setInfoOpen(open) {

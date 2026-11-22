@@ -88,6 +88,8 @@ export class CadEngine {
     this.selectedId = null;
     this.shadingMode = 'solid'; // 'solid' | 'cad' | 'xray' | 'wire'
     this.isolatedId = null;
+    this.ghostMode = false;
+    this.peelStack = [];
 
     this.cameraTween = null;
     this.edgeLines = [];
@@ -293,6 +295,8 @@ export class CadEngine {
     }
 
     this.isolatedId = null;
+    this.ghostMode = false;
+    this.peelStack = [];
     this.selectedId = null;
     this.hoveredId = null;
     this.setShadingMode(this.shadingMode);
@@ -335,7 +339,11 @@ export class CadEngine {
 
   selectPart(partId, focusCamera = false) {
     this.selectedId = partId && this.partMap.has(partId) ? partId : null;
-    this._refreshHighlightAppearance();
+    if (this.ghostMode) {
+      this._applyMaterialStates();
+    } else {
+      this._refreshHighlightAppearance();
+    }
     if (focusCamera && this.selectedId) {
       this.focusOnPart(this.selectedId);
     }
@@ -355,43 +363,49 @@ export class CadEngine {
   }
 
   _refreshHighlightAppearance() {
+    const ghostActive = this.ghostMode && Boolean(this.selectedId);
+
     for (const [id, entry] of this.partMap.entries()) {
       const isSelected = id === this.selectedId;
       const isHovered = id === this.hoveredId;
-      const isDimmed = this.selectedId && !isSelected && this.shadingMode !== 'xray';
+      const isGhost = ghostActive && !isSelected;
 
       entry.group.traverse((obj) => {
         if (!obj.isMesh || obj.userData.ignorePick) return;
         const mat = obj.material;
         if (!mat || !mat.isMaterial) return;
 
-        // Subtle emissive highlight on selected / hovered CAD part
+        // Subtle emissive highlight on selected / hovered CAD part (with cached per-mesh highlight clone)
         if ('emissive' in mat) {
-          if (!obj.userData.baseEmissiveHex) {
+          if (obj.userData.baseEmissiveHex === undefined) {
             obj.userData.baseEmissiveHex = mat.emissive.getHex();
             obj.userData.baseEmissiveInt = mat.emissiveIntensity ?? 0;
           }
-          // Clone material once per part mesh if shared so highlighting stays strictly local
+
           if ((isSelected || isHovered) && !obj.userData.clonedForHighlight) {
-            obj.material = mat.clone();
+            if (!obj.userData.solidHighlightMat) {
+              obj.userData.solidHighlightMat = obj.userData.origMaterial.clone();
+            }
+            obj.material = obj.userData.solidHighlightMat;
             obj.userData.clonedForHighlight = true;
           }
+
           const activeMat = obj.material;
           if (isSelected) {
             activeMat.emissive.setHex(0x2563eb);
-            activeMat.emissiveIntensity = 0.24;
-          } else if (isHovered) {
+            activeMat.emissiveIntensity = ghostActive ? 0.16 : 0.24;
+          } else if (isHovered && !isGhost) {
             activeMat.emissive.setHex(0x0ea5e9);
             activeMat.emissiveIntensity = 0.14;
+          } else if (isHovered && isGhost) {
+            activeMat.emissive.setHex(0x0ea5e9);
+            activeMat.emissiveIntensity = 0.08;
           } else if (obj.userData.clonedForHighlight) {
             activeMat.emissive.setHex(obj.userData.baseEmissiveHex);
             activeMat.emissiveIntensity = obj.userData.baseEmissiveInt;
           }
         }
       });
-
-      // Keep crisp visibility when non-selected parts stay solid (or subtly ghosted only in xray)
-      void isDimmed;
     }
   }
 
@@ -413,6 +427,9 @@ export class CadEngine {
     if (this.isolatedId === partId && next) {
       this.isolatedId = null;
     }
+    if (!next) {
+      this.peelStack = this.peelStack.filter((pid) => pid !== partId);
+    }
     return next;
   }
 
@@ -423,36 +440,151 @@ export class CadEngine {
       this.showAllParts();
       return false;
     }
+    this.ghostMode = false;
+    this.peelStack = [];
     this.isolatedId = this.selectedId;
     for (const [id, entry] of this.partMap.entries()) {
       const keep = id === this.selectedId;
       entry.hidden = !keep;
       entry.group.visible = keep;
     }
+    this._applyMaterialStates();
     this.focusOnPart(this.selectedId);
     return true;
   }
 
+  toggleGhostSurroundings() {
+    this.ghostMode = !this.ghostMode;
+    if (this.ghostMode && this.isolatedId) {
+      // Restore hidden surroundings so they appear as translucent CAD ghost glass
+      this.isolatedId = null;
+      this.peelStack = [];
+      for (const entry of this.partMap.values()) {
+        entry.hidden = false;
+        entry.group.visible = true;
+      }
+    }
+    this._applyMaterialStates();
+    if (this.ghostMode && this.selectedId) {
+      this.focusOnPart(this.selectedId);
+    }
+    return this.ghostMode;
+  }
+
+  peelNextPart(orderedIds) {
+    if (!orderedIds || !orderedIds.length) return null;
+    // Keep at least 1 innermost part visible
+    let visibleCount = 0;
+    for (const entry of this.partMap.values()) {
+      if (!entry.hidden) visibleCount++;
+    }
+    if (visibleCount <= 1) return null;
+
+    // Peel the outermost currently visible part (top-to-bottom order)
+    let peeledId = null;
+    for (const id of orderedIds) {
+      const entry = this.partMap.get(id);
+      if (entry && !entry.hidden) {
+        peeledId = id;
+        break;
+      }
+    }
+    if (!peeledId) return null;
+
+    this.isolatedId = null;
+    const peeledEntry = this.partMap.get(peeledId);
+    peeledEntry.hidden = true;
+    peeledEntry.group.visible = false;
+    this.peelStack.push(peeledId);
+
+    // Automatically select the next freshly uncovered layer so the explanation panel updates live
+    const nextExposed = orderedIds.find((id) => {
+      const e = this.partMap.get(id);
+      return e && !e.hidden;
+    });
+    this.selectPart(nextExposed || null, false);
+    return peeledId;
+  }
+
+  unpeelLastPart() {
+    while (this.peelStack.length) {
+      const id = this.peelStack.pop();
+      const entry = this.partMap.get(id);
+      if (entry && entry.hidden) {
+        entry.hidden = false;
+        entry.group.visible = true;
+        this.selectPart(id, false);
+        return id;
+      }
+    }
+    return null;
+  }
+
+  getPeelCount() {
+    return this.peelStack.length;
+  }
+
   showAllParts() {
     this.isolatedId = null;
+    this.peelStack = [];
     for (const entry of this.partMap.values()) {
       entry.hidden = false;
       entry.group.visible = true;
     }
+    this._applyMaterialStates();
   }
 
   setShadingMode(mode) {
     this.shadingMode = mode;
+    this._applyMaterialStates();
+  }
+
+  _applyMaterialStates() {
+    const mode = this.shadingMode;
+    const ghostActive = this.ghostMode && Boolean(this.selectedId);
+
     for (const line of this.edgeLines) {
-      line.visible = (mode === 'cad');
+      if (mode !== 'cad') {
+        line.visible = false;
+      } else if (ghostActive) {
+        line.visible = line.parent?.userData?.partId === this.selectedId;
+      } else {
+        line.visible = true;
+      }
     }
-    for (const entry of this.partMap.values()) {
+
+    for (const [id, entry] of this.partMap.entries()) {
+      const isSelected = id === this.selectedId;
+      const isGhost = ghostActive && !isSelected;
+      const forceSolid = ghostActive && isSelected;
+
       entry.group.traverse((obj) => {
         if (!obj.isMesh || obj.userData.ignorePick) return;
         const orig = obj.userData.origMaterial;
         if (!orig) return;
 
-        if (mode === 'xray') {
+        if (isGhost) {
+          if (!obj.userData.ghostMat) {
+            const gm = orig.clone();
+            gm.transparent = true;
+            gm.opacity = Math.min(orig.opacity ?? 1.0, 0.13);
+            gm.depthWrite = false;
+            gm.wireframe = false;
+            gm.clippingPlanes = this.clippingPlanes;
+            if ('emissive' in gm) {
+              gm.emissive.setHex(0x000000);
+              gm.emissiveIntensity = 0;
+            }
+            obj.userData.ghostMat = gm;
+          }
+          obj.material = obj.userData.ghostMat;
+          obj.castShadow = false;
+          obj.userData.clonedForHighlight = true;
+        } else if (forceSolid) {
+          obj.material = orig;
+          obj.castShadow = true;
+          obj.userData.clonedForHighlight = false;
+        } else if (mode === 'xray') {
           if (!obj.userData.xrayMat) {
             const xm = orig.clone();
             xm.transparent = true;
@@ -463,6 +595,7 @@ export class CadEngine {
             obj.userData.xrayMat = xm;
           }
           obj.material = obj.userData.xrayMat;
+          obj.castShadow = false;
           obj.userData.clonedForHighlight = true;
         } else if (mode === 'wire') {
           if (!obj.userData.wireMat) {
@@ -476,10 +609,12 @@ export class CadEngine {
             obj.userData.wireMat = wm;
           }
           obj.material = obj.userData.wireMat;
+          obj.castShadow = false;
           obj.userData.clonedForHighlight = true;
         } else {
           // 'solid' or 'cad'
           obj.material = orig;
+          obj.castShadow = true;
           obj.userData.clonedForHighlight = false;
         }
       });

@@ -42,6 +42,18 @@ export class SimEffects {
     } else if (mode === 'deco') {
       this._buildDecoSensing();
       this._buildGuideLines(12.2, -12.0, [[-13.5, -13.5], [13.5, -13.5], [-13.5, 13.5], [13.5, 13.5]]);
+    } else if (mode === 'periscope') {
+      this._buildPeriscopeOptics();
+      this._buildPeriscopeGuideLines();
+    } else if (mode === 'aperture') {
+      this._buildApertureOptics();
+      this._buildGuideLines(17.5, -15.5, [[-11.5, -11.5], [11.5, -11.5], [-11.5, 11.5], [11.5, 11.5]]);
+    } else if (mode === 'iris') {
+      this._buildIrisMicroOptics();
+      this._buildGuideLines(13.5, -8.5, [[-14.5, -12.5], [14.5, -12.5], [-14.5, 12.5], [14.5, 12.5]]);
+    } else if (mode === 'iris_nano') {
+      this._buildIrisNanoPhysics();
+      this._buildGuideLines(9.6, -7.2, [[-10.6, -2.6], [10.6, -2.6], [-10.6, 5.6], [10.6, 5.6]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -379,6 +391,258 @@ export class SimEffects {
     ], 0x06b6d4, 0.82, 0.07, 2);
   }
 
+  _buildPeriscopeOptics() {
+    const PRISM_X = -8.8;
+    const SENSOR_X = 10.02;
+
+    // Helper for razor-sharp 90° mirror reflection bounce on 45° hypotenuse (x - PRISM_X) + y = 0
+    const addFoldedRay = (pts, col, opacity = 0.84, rad = 0.068, pulses = 3) => {
+      this._addRay(pts, col, opacity, rad, pulses);
+    };
+
+    // 1. On-Axis Emerald Green Telephoto Rays (0° field):
+    //    Enter vertically downward (+Y -> -Y), strike 45° silver hypotenuse at (PRISM_X + dx, -dx, dz),
+    //    fold sharply 90° along +X through G1 -> FCD100 ED -> G3 Flint -> G4 Macro -> G5 Flattener -> Vertical 200MP Sensor!
+    const axialOffsets = [
+      { dx: 0.0, dz: 0.0 },
+      { dx: -1.55, dz: 0.0 },
+      { dx: 1.55, dz: 0.0 },
+      { dx: 0.0, dz: 1.95 },
+      { dx: 0.0, dz: -1.95 }
+    ];
+    for (const o of axialOffsets) {
+      const hx = PRISM_X + o.dx;
+      const hy = -o.dx;
+      const hz = o.dz;
+      addFoldedRay([
+        new THREE.Vector3(hx, 9.6, hz),
+        new THREE.Vector3(hx, 4.38, hz),       // Rectangular AR entrance window
+        new THREE.Vector3(hx, hy + 0.14, hz),  // Sharp corner lead-in knot
+        new THREE.Vector3(hx, hy, hz),         // Exact 45° Ag mirror reflection point!
+        new THREE.Vector3(hx + 0.14, hy, hz),  // Sharp 90° corner lead-out knot
+        new THREE.Vector3(-4.35, hy * 0.96, hz * 0.96), // G1 front D-cut
+        new THREE.Vector3(-1.35, hy * 0.78, hz * 0.78), // G2 HOYA FCD100 Fluorite ED!
+        new THREE.Vector3(0.45, hy * 0.68, hz * 0.68),  // G3 Flint APO doublet
+        new THREE.Vector3(2.45, hy * 0.50, hz * 0.50),  // G4 Floating Tele-Macro
+        new THREE.Vector3(4.45, hy * 0.30, hz * 0.30),  // G5 Rear Field Flattener
+        new THREE.Vector3(8.75, hy * 0.08, hz * 0.08),  // Vertical Blue-Glass IRCF
+        new THREE.Vector3(SENSOR_X, 0.0, 0.0)           // Vertical 1/1.4" 200MP CMOS center
+      ], 0x10b981, 0.84, 0.068, 3);
+    }
+
+    // 2. Upper-Field Royal Blue Telephoto Rays (+4.5° narrow telephoto FOV -> focuses on lower-front sensor quadrant)
+    for (const off of [-0.95, 0.95]) {
+      const hx = PRISM_X + off * 0.85;
+      const hy = -off * 0.85;
+      addFoldedRay([
+        new THREE.Vector3(hx - 0.85, 9.6, -0.65),
+        new THREE.Vector3(hx - 0.32, 4.38, -0.22),
+        new THREE.Vector3(hx - 0.04, hy + 0.14, 0.02),
+        new THREE.Vector3(hx, hy, 0.05),
+        new THREE.Vector3(hx + 0.14, hy - 0.04, 0.10),
+        new THREE.Vector3(-4.35, hy * 0.85 - 0.45, 0.55),
+        new THREE.Vector3(-1.35, hy * 0.58 - 0.95, 1.15),
+        new THREE.Vector3(2.45, hy * 0.30 - 1.55, 2.05),
+        new THREE.Vector3(4.45, hy * 0.15 - 1.88, 2.55),
+        new THREE.Vector3(SENSOR_X, -2.15, 3.05)
+      ], 0x2563eb, 0.82, 0.062, 3);
+    }
+
+    // 3. Lower-Field Crimson Red Telephoto Rays (-4.5° FOV -> focuses on upper-rear sensor quadrant)
+    for (const off of [-0.95, 0.95]) {
+      const hx = PRISM_X + off * 0.85;
+      const hy = -off * 0.85;
+      addFoldedRay([
+        new THREE.Vector3(hx + 0.85, 9.6, 0.65),
+        new THREE.Vector3(hx + 0.32, 4.38, 0.22),
+        new THREE.Vector3(hx + 0.04, hy + 0.14, -0.02),
+        new THREE.Vector3(hx, hy, -0.05),
+        new THREE.Vector3(hx + 0.14, hy + 0.04, -0.10),
+        new THREE.Vector3(-4.35, hy * 0.85 + 0.45, -0.55),
+        new THREE.Vector3(-1.35, hy * 0.58 + 0.95, -1.15),
+        new THREE.Vector3(2.45, hy * 0.30 + 1.55, -2.05),
+        new THREE.Vector3(4.45, hy * 0.15 + 1.88, -2.55),
+        new THREE.Vector3(SENSOR_X, 2.15, -3.05)
+      ], 0xef4444, 0.82, 0.062, 3);
+    }
+
+    // Translucent Vertical Focal-Plane Highlight Frame on the 1/1.4" 200MP CMOS Active Surface
+    const focalBorderGeo = new THREE.EdgesGeometry(new THREE.PlaneGeometry(9.1, 6.8));
+    focalBorderGeo.rotateY(-Math.PI / 2);
+    const focalBorder = new THREE.LineSegments(
+      focalBorderGeo,
+      new THREE.LineBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.72 })
+    );
+    focalBorder.position.set(SENSOR_X - 0.02, 0, 0);
+    focalBorder.userData.ignorePick = true;
+    this.opticsGroup.add(focalBorder);
+  }
+
+  _buildPeriscopeGuideLines() {
+    const lineMat = new THREE.LineDashedMaterial({
+      color: 0x94a3b8,
+      dashSize: 0.48,
+      gapSize: 0.36,
+      transparent: true,
+      opacity: 0.55
+    });
+    const segments = [
+      // Horizontal folded optical axis spanning prism -> D-cut lenses -> vertical 200MP sensor -> heatsink
+      [new THREE.Vector3(-16.5, 0, 0), new THREE.Vector3(22.5, 0, 0)],
+      // Vertical incoming optical axis through entrance window -> 45° prism -> Pitch OIS coil
+      [new THREE.Vector3(-8.8, -11.0, 0), new THREE.Vector3(-8.8, 13.5, 0)],
+      // Vertical alignment axes at outer module corners
+      [new THREE.Vector3(-13.5, -10.5, -6.2), new THREE.Vector3(-13.5, 11.5, -6.2)],
+      [new THREE.Vector3(12.2, -10.5, -6.2), new THREE.Vector3(12.2, 11.5, -6.2)]
+    ];
+    for (const [p0, p1] of segments) {
+      const geo = new THREE.BufferGeometry().setFromPoints([p0, p1]);
+      const line = new THREE.Line(geo, lineMat);
+      line.computeLineDistances();
+      line.userData.ignorePick = true;
+      this.guideGroup.add(line);
+    }
+  }
+
+  _buildApertureOptics() {
+    // 1. Emerald Core Rays (f/4.0 Paraxial Bundle): thread straight through the stopped-down 6-blade hexagonal iris!
+    const coreOffsets = [
+      { x: 0, z: 0 },
+      { x: 1.85, z: 0 },
+      { x: -1.85, z: 0 },
+      { x: 0, z: 1.85 },
+      { x: 0, z: -1.85 }
+    ];
+    for (const o of coreOffsets) {
+      this._addRay([
+        new THREE.Vector3(o.x * 1.15, 11.2, o.z * 1.15),
+        new THREE.Vector3(o.x * 1.12, 6.25, o.z * 1.12), // L1 Moth-Eye & ALD Coat
+        new THREE.Vector3(o.x * 1.02, 4.75, o.z * 1.02), // L1 Lanthanum Glass + Hybrid UV Layer
+        new THREE.Vector3(o.x * 0.86, 1.35, o.z * 0.86), // Threading cleanly through 6-Blade Iris Opening!
+        new THREE.Vector3(o.x * 0.72, -0.78, o.z * 0.72), // L2 Flint Interlock
+        new THREE.Vector3(o.x * 0.52, -2.55, o.z * 0.52), // L3 APEL Crown
+        new THREE.Vector3(o.x * 0.30, -4.62, o.z * 0.30), // L4 Gullwing Field Flattener
+        new THREE.Vector3(0, -8.8, 0)                     // Sharp Focal Point below L4!
+      ], 0x10b981, 0.84, 0.095, 3);
+    }
+
+    // 2. Royal-Blue Oblique Field Rays passing through the optical stop at L1/L2 junction & steered by L4 Gullwing
+    for (const s of [-1, 1]) {
+      this._addRay([
+        new THREE.Vector3(s * -4.2, 11.0, s * 2.4),
+        new THREE.Vector3(s * -2.2, 6.1, s * 1.25),
+        new THREE.Vector3(s * -0.9, 4.4, s * 0.52),
+        new THREE.Vector3(s * 0.35, 1.35, s * -0.20),    // Crossing center of 6-blade iris!
+        new THREE.Vector3(s * 1.65, -0.78, s * -0.95),
+        new THREE.Vector3(s * 2.95, -2.55, s * -1.70),
+        new THREE.Vector3(s * 4.35, -4.62, s * -2.52),   // L4 Gullwing inflection bends rays vertically!
+        new THREE.Vector3(s * 4.95, -8.8, s * -2.86)
+      ], 0x2563eb, 0.80, 0.088, 3);
+    }
+
+    // 3. Amber-Orange Marginal Rays (f/1.42 outer pupil) intercepted & cleanly blocked by the 6 DLC knife-edge blades at Y=+1.42!
+    const stopAngles = [0.25, 1.30, 2.35, 3.40, 4.45, 5.50];
+    for (const a of stopAngles) {
+      const rIn = 4.65;
+      const rHit = 3.85;
+      this._addRay([
+        new THREE.Vector3(Math.cos(a) * (rIn + 0.5), 10.8, Math.sin(a) * (rIn + 0.5)),
+        new THREE.Vector3(Math.cos(a) * rIn, 5.95, Math.sin(a) * rIn),
+        new THREE.Vector3(Math.cos(a) * (rIn - 0.35), 4.45, Math.sin(a) * (rIn - 0.35)),
+        new THREE.Vector3(Math.cos(a) * rHit, 1.48, Math.sin(a) * rHit) // Stopped right on the 6 DLC iris blades!
+      ], 0xf59e0b, 0.78, 0.082, 2);
+    }
+
+    // 4. Magenta Grazing Off-Axis Stray-Light Rays trapped & extinguished by Serrated Baffles / Edge Blackening!
+    this._addRay([
+      new THREE.Vector3(5.8, 10.6, -4.6),
+      new THREE.Vector3(-4.2, 5.8, -5.2),
+      new THREE.Vector3(-7.6, 4.6, -2.4),  // Strikes L1 Edge Blackening / Inner Serrated Baffle & dies!
+      new THREE.Vector3(-8.1, 3.5, -1.8)
+    ], 0xd946ef, 0.82, 0.085, 2);
+  }
+
+  _buildIrisMicroOptics() {
+    // 1. Emerald Core Passing Rays threading straight through the central hexagonal diaphragm opening
+    const corePts = [
+      [0, 0], [2.1, 0], [-2.1, 0], [0, 2.1], [0, -2.1]
+    ];
+    for (const [cx, cz] of corePts) {
+      this._addRay([
+        new THREE.Vector3(cx * 1.15, 8.8, cz * 1.15),
+        new THREE.Vector3(cx, 0.45, cz),
+        new THREE.Vector3(cx * 0.55, -5.8, cz * 0.55)
+      ], 0x10b981, 0.84, 0.11, 3);
+    }
+
+    // 2. Amber Marginal Rays (f/1.42 outer pupil) intercepted cleanly on the 6 razor-thin DLC knife edges!
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + 0.35;
+      this._addRay([
+        new THREE.Vector3(Math.cos(a) * 6.2, 8.6, Math.sin(a) * 6.2),
+        new THREE.Vector3(Math.cos(a) * 5.2, 0.72, Math.sin(a) * 5.2)
+      ], 0xf59e0b, 0.78, 0.095, 2);
+    }
+
+    // 3. Golden 6-Point Starburst Diffraction Spike Fan (6条光芒) radiating below the 6-blade hexagonal diaphragm!
+    const starY = -3.8;
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + 0.18;
+      this._addRay([
+        new THREE.Vector3(Math.cos(a) * 2.4, 0.25, Math.sin(a) * 2.4),
+        new THREE.Vector3(Math.cos(a) * 3.8, starY * 0.55, Math.sin(a) * 3.8),
+        new THREE.Vector3(Math.cos(a) * 7.8, starY, Math.sin(a) * 7.8)
+      ], 0xfacc15, 0.76, 0.085, 2);
+    }
+  }
+
+  _buildIrisNanoPhysics() {
+    // 1. Emerald Optical Chief Rays grazing past the < 5 μm chemical half-etched knife edge without glare!
+    for (const zOff of [-1.2, 0.0, 1.1]) {
+      this._addRay([
+        new THREE.Vector3(11.15, 5.4, zOff),
+        new THREE.Vector3(11.05, 0.63, zOff),
+        new THREE.Vector3(11.20, -3.6, zOff)
+      ], 0x10b981, 0.84, 0.075, 2);
+    }
+
+    // 2. Magenta Oblique Stray Light absorbed & extinguished in the Ra = 0.3 μm matte micro-pyramid trap!
+    this._addRay([
+      new THREE.Vector3(9.4, 5.1, -1.8),
+      new THREE.Vector3(6.1, 1.56, -1.55),
+      new THREE.Vector3(5.45, 1.48, -1.48),
+      new THREE.Vector3(4.95, 1.52, -1.62)
+    ], 0xd946ef, 0.82, 0.068, 2);
+
+    // 3. Crimson 4-Point Hertzian Contact & Magnetic Preload Load Paths through Gothic-Arch V-Grooves & Y-TZP Ball!
+    for (const sx of [-1, 1]) {
+      this._addRay([
+        new THREE.Vector3(-8.4 + sx * 1.13, 5.1, -0.2),
+        new THREE.Vector3(-8.4 + sx * 1.13, 2.05, -0.2),
+        new THREE.Vector3(-8.4 + sx * 0.52, 0.92, -0.2),
+        new THREE.Vector3(-8.4 + sx * 1.13, -0.21, -0.2),
+        new THREE.Vector3(-8.4 + sx * 1.13, -2.55, -0.2)
+      ], 0xf43f5e, 0.80, 0.065, 2);
+    }
+
+    // 4. Cyan Electrostatic ESD Drain Streams flowing off the dimple Hertz point through the CNT network inside PTFE!
+    this._addRay([
+      new THREE.Vector3(5.4, -0.63, 0.30),
+      new THREE.Vector3(3.6, -0.96, 0.10),
+      new THREE.Vector3(1.6, -1.02, -0.25),
+      new THREE.Vector3(-0.2, -0.98, -0.40)
+    ], 0x06b6d4, 0.82, 0.062, 2);
+
+    // 5. Amber VCM Drive Current (I_coil) streaming through the Φ28 μm self-bonding OFC copper cores!
+    for (const [yy, zz] of [[-0.52, 4.55], [-1.22, 4.95], [-1.92, 4.55]]) {
+      this._addRay([
+        new THREE.Vector3(-10.4, yy, zz),
+        new THREE.Vector3(-6.6, yy, zz),
+        new THREE.Vector3(-2.6, yy, zz)
+      ], 0xf59e0b, 0.84, 0.065, 2);
+    }
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -428,15 +692,40 @@ export class SimEffects {
     //  - Macro: 3D Sensor-Shift OIS (IBIS) XY + Roll
     //  - Lens: 6-Blade Stepless Iris (f/1.63 <-> f/4.0) + Ball-Guide AF Z + OIS XY
     //  - Deco: Adaptive 9-LED Flash (Wide outer-8 <-> Telephoto center spot) + 940nm VCSEL Laser pulse
+    //  - Periscope: 2-Axis Prism-Tilt OIS (Pitch+Yaw) + 3.1 mm Horizontal Floating Tele-Macro AF + 0.5x Rolling ZrO2 Balls!
+    //  - Aperture: Ultra-Deep 6-Blade Interleaved Stepless Iris (f/1.42 <-> f/4.0) + Real Pierced Cam Rotor + 0.5x Thrust Balls!
+    //  - Iris: Extreme 4x 32-Part Watchwork Micro-Iris (Dual-VCM Balanced Cam + 6 Rolling Balls + 3-Tier Blades + Dimples + Pins!)
+    //  - IrisNano: Sub-Micron Cam Slot Push + Counter-Sliding Tier-1/Tier-2 Blades + 0.5x Rolling Y-TZP Ceramic Ball!
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
     const decoAct = this.oisEnabled && this.mode === 'deco';
+    const periAct = this.oisEnabled && this.mode === 'periscope';
+    const apAct = this.oisEnabled && this.mode === 'aperture';
+    const irisMicroAct = this.oisEnabled && this.mode === 'iris';
+    const irisNanoAct = this.oisEnabled && this.mode === 'iris_nano';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
     const oisRoll = macroOis ? Math.sin(elapsed * 2.2) * 0.045 : 0;
     const afStrokeY = lensAct ? Math.sin(elapsed * 1.9) * 0.42 : 0;
     const irisNorm = lensAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.35)) : null;
+
+    // Phase 6 & Phase 7 smooth stepless F-stop sweep: 0 = f/1.42 (Wide Open), 1 = f/4.0 (Stopped Down)
+    const apNorm = apAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.15)) : null;
+    const imNorm = irisMicroAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.12)) : null;
+
+    // Phase 8 sub-micron cam sliding, counter-sliding Tier-1/Tier-2 blades & 0.5x rolling Y-TZP ceramic ball
+    const nanoPhase = irisNanoAct ? Math.sin(elapsed * 1.95) : 0;
+    const nanoCamX = nanoPhase * 0.54;
+    const nanoUpperX = nanoPhase * 0.44;
+    const nanoLowerX = -nanoPhase * 0.48;
+    const nanoRaceZ = nanoPhase * 0.68;
+    const nanoBallZ = nanoRaceZ * 0.5;
+
+    // Periscope live actuation kinematics (zero collisions verified across full 3.1 mm stroke!)
+    const periStrokeX = periAct ? (0.45 + 1.55 * Math.sin(elapsed * 1.35)) : 0;
+    const prismPitch = periAct ? Math.sin(elapsed * 3.1) * 0.088 : 0; // ±5.0° visual pitch tilt around Z
+    const prismYaw = periAct ? Math.cos(elapsed * 2.15) * 0.072 : 0;   // ±4.1° visual yaw tilt around Y
 
     // Adaptive flash cycle: 0 = Wide-Angle Outer 8 LEDs, 1 = Telephoto Center Spot LED
     const flashBlend = decoAct ? (0.5 + 0.5 * Math.sin(elapsed * 1.6)) : null;
@@ -447,25 +736,80 @@ export class SimEffects {
       const ey = entry.basePos.y + entry.explodeVec.y * explodeT;
       const ez = entry.basePos.z + entry.explodeVec.z * explodeT;
 
-      const dx = (entry.oisMoving && (macroOis || lensAct)) ? oisX : 0;
+      let dx = (entry.oisMoving && (macroOis || lensAct)) ? oisX : 0;
       const dy = (entry.afMoving && lensAct) ? afStrokeY : 0;
-      const dz = (entry.oisMoving && (macroOis || lensAct)) ? oisZ : 0;
+      let dz = (entry.oisMoving && (macroOis || lensAct)) ? oisZ : 0;
+
+      // Periscope horizontal long-stroke floating tele-macro AF + 0.5x rolling ceramic ball bearings
+      if (periAct && entry.afMoving) {
+        dx += periStrokeX;
+      } else if (periAct && entry.afBallRolling) {
+        dx += periStrokeX * 0.5;
+      }
+
+      // Phase 8 sub-micron cam slot push + counter-sliding blades + 0.5x differential rolling ceramic ball
+      if (irisNanoAct) {
+        if (entry.nanoCamRotor) dx += nanoCamX;
+        else if (entry.nanoUpperBlade) dx += nanoUpperX;
+        else if (entry.nanoLowerBlade) dx += nanoLowerX;
+        else if (entry.nanoUpperRace) dz += nanoRaceZ;
+        else if (entry.nanoBall || entry.nanoBallFollow) dz += nanoBallZ;
+      }
 
       entry.group.position.set(ex + dx, ey + dy, ez + dz);
 
-      if (entry.oisMoving && macroOis) {
-        entry.group.rotation.y = oisRoll;
+      if (entry.prismTiltMoving) {
+        entry.group.rotation.set(0, prismYaw, prismPitch);
+      } else if (entry.nanoBall && irisNanoAct) {
+        // True rolling rotation around X axis matching 0.5x translation along Z (R_ball = 1.60)
+        entry.group.rotation.set(nanoBallZ / 1.60, 0, 0);
+      } else if (entry.isMicroIrisCam) {
+        const u = entry.group.userData;
+        const rotY = irisMicroAct ? (u.camRotMin + imNorm * (u.camRotMax - u.camRotMin)) : u.camRotRest;
+        entry.group.rotation.set(0, rotY, 0);
+      } else if (entry.isMicroIrisBalls) {
+        const u = entry.group.userData;
+        const rotY = irisMicroAct ? (u.camRotMin + imNorm * (u.camRotMax - u.camRotMin)) * 0.5 : u.camRotRest * 0.5;
+        entry.group.rotation.set(0, rotY, 0);
+      } else if (entry.isDeepIrisCam) {
+        const u = entry.group.userData;
+        const rotY = apAct ? (u.camRotMin + apNorm * (u.camRotMax - u.camRotMin)) : u.camRotRest;
+        entry.group.rotation.set(0, rotY, 0);
+      } else if (entry.isDeepIrisBalls) {
+        const u = entry.group.userData;
+        const rotY = apAct ? (u.camRotMin + apNorm * (u.camRotMax - u.camRotMin)) * 0.5 : u.camRotRest * 0.5;
+        entry.group.rotation.set(0, rotY, 0);
+      } else if (entry.oisMoving && macroOis) {
+        entry.group.rotation.set(0, oisRoll, 0);
       } else if (entry.group.userData.isIrisCamRing) {
-        entry.group.rotation.y = lensAct ? (irisNorm - 0.5) * 0.30 : 0;
+        entry.group.rotation.set(0, lensAct ? (irisNorm - 0.5) * 0.30 : 0, 0);
       } else {
-        entry.group.rotation.y = 0;
+        entry.group.rotation.set(0, 0, 0);
       }
 
-      // Live 6-blade stepless variable aperture articulation (Lens mode)
+      // Live 6-blade stepless variable aperture articulation (Phase 3 Lens mode)
       if (entry.group.userData.irisBlades) {
         for (const pivot of entry.group.userData.irisBlades) {
           const swing = lensAct ? (0.02 + irisNorm * 0.48) : pivot.userData.restSwing;
           pivot.rotation.y = pivot.userData.baseAzimuth + swing;
+        }
+      }
+
+      // Live 6-blade interleaved stepless variable aperture (Phase 6 Deep Dissection)
+      if (entry.group.userData.deepIrisBlades) {
+        for (const pivot of entry.group.userData.deepIrisBlades) {
+          const u = pivot.userData;
+          const swing = apAct ? (u.swingMin + apNorm * (u.swingMax - u.swingMin)) : u.restSwing;
+          pivot.rotation.y = u.baseAzimuth + swing;
+        }
+      }
+
+      // Live 32-part 4x Watchwork Micro-Iris (Phase 7 — synchronized 3 tiers, knife edges, 24 dimples, cam pins & bushings!)
+      if (entry.group.userData.microIrisBlades) {
+        for (const pivot of entry.group.userData.microIrisBlades) {
+          const u = pivot.userData;
+          const swing = irisMicroAct ? (u.swingMin + imNorm * (u.swingMax - u.swingMin)) : u.restSwing;
+          pivot.rotation.y = u.baseAzimuth + swing;
         }
       }
 
