@@ -139,10 +139,11 @@ const ui = new ZeroTextUI(uiRoot, {
     sim.setOisActive(enabled);
   },
   onResetView() {
-    engine.animateCameraTo(activeAsm.defaultCameraPos, activeAsm.defaultTarget, 520);
+    const view = engine.getResponsiveView(activeAsm.defaultCameraPos, activeAsm.defaultTarget);
+    engine.animateCameraTo(view.pos, view.target, 520);
   },
   onSnapView(preset) {
-    const dist =
+    const baseDist =
       currentScale === 'flagship'
         ? 40
         : currentScale === 'soc_gaa' || currentScale === 'oled_tandem' || currentScale === 'vapor_chamber'
@@ -176,11 +177,13 @@ const ui = new ZeroTextUI(uiRoot, {
                                   : currentScale === 'layer2'
                                     ? 32
                                     : 28;
-    engine.snapView(preset, dist, activeAsm.defaultTarget);
+    const view = engine.getResponsiveView(activeAsm.defaultCameraPos, activeAsm.defaultTarget);
+    const dist = engine.aspect < 1.0 ? baseDist * 1.28 : baseDist;
+    engine.snapView(preset, dist, view.target);
   },
   onSelectPartUI(partId) {
     engine.selectPart(partId, true);
-    ui.setInfoOpen(true);
+    if (!ui.zenMode) ui.setInfoOpen(true);
   },
   onHoverPartUI(partId) {
     engine.hoverPartFromUI(partId);
@@ -211,7 +214,7 @@ const ui = new ZeroTextUI(uiRoot, {
     ui.setIsolateUI(Boolean(engine.isolatedId));
     ui.setPeelCountUI(engine.getPeelCount());
     ui.syncVisibility(getHiddenIds());
-    ui.setInfoOpen(true);
+    if (!ui.zenMode && !ui.isCompactViewport()) ui.setInfoOpen(true);
   },
   onUnpeelLayer() {
     engine.unpeelLastPart();
@@ -234,7 +237,7 @@ const ui = new ZeroTextUI(uiRoot, {
 engine.onPartSelect = (partId) => {
   const doc = partId ? ALL_PARTS_BY_ID[partId] : OVERVIEW_DOCS[currentScale];
   ui.syncSelection(partId, doc);
-  if (partId) ui.setInfoOpen(true);
+  if (partId && !ui.zenMode) ui.setInfoOpen(true);
 };
 
 engine.onCameraSync = (quat) => {
@@ -267,12 +270,13 @@ function switchScale(scale, instantCamera = false) {
   currentExplode = 0;
   ui.setExplodeUI(0, false);
 
+  const view = engine.getResponsiveView(activeAsm.defaultCameraPos, activeAsm.defaultTarget);
   if (instantCamera) {
-    engine.camera.position.copy(activeAsm.defaultCameraPos);
-    engine.controls.target.copy(activeAsm.defaultTarget);
+    engine.camera.position.copy(view.pos);
+    engine.controls.target.copy(view.target);
     engine.controls.update();
   } else {
-    engine.animateCameraTo(activeAsm.defaultCameraPos, activeAsm.defaultTarget, 620);
+    engine.animateCameraTo(view.pos, view.target, 620);
   }
 }
 
@@ -281,7 +285,12 @@ switchScale('flagship', true);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    engine.selectPart(null);
+    if (ui.zenMode) ui.setZenMode(false);
+    else engine.selectPart(null);
+  } else if (e.key === 'z' || e.key === 'Z') {
+    ui.setZenMode(!ui.zenMode);
+  } else if (e.key === 'f' || e.key === 'F') {
+    ui.toggleFullscreen();
   }
 });
 
