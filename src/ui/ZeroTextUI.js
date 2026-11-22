@@ -10,6 +10,7 @@ const ICONS = {
   deco: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><circle cx="10.2" cy="11.4" r="4.2"/><circle cx="17.2" cy="9.2" r="1.5" fill="currentColor" stroke="none"/><circle cx="17.2" cy="14.2" r="1.5"/><circle cx="12.5" cy="17.8" r="1" fill="currentColor" stroke="none"/></svg>`,
   periscope: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 8 12 8 12 16" fill="currentColor" fill-opacity="0.16"/><path d="M8 2.5V12H19.5"/><line x1="16" y1="8.5" x2="16" y2="15.5"/><rect x="19.5" y="7.5" width="2.2" height="9" rx="0.8" fill="currentColor" stroke="none"/></svg>`,
   aperture: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3.2 19.6 7.6 19.6 16.4 12 20.8 4.4 16.4 4.4 7.6"/><polygon points="12 7.4 16 9.7 16 14.3 12 16.6 8 14.3 8 9.7" fill="currentColor" fill-opacity="0.18"/><line x1="12" y1="3.2" x2="12" y2="7.4"/><line x1="19.6" y1="7.6" x2="16" y2="9.7"/><line x1="19.6" y1="16.4" x2="16" y2="14.3"/><line x1="12" y1="20.8" x2="12" y2="16.6"/><line x1="4.4" y1="16.4" x2="8" y2="14.3"/><line x1="4.4" y1="7.6" x2="8" y2="9.7"/></svg>`,
+  iris: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.8"/><circle cx="12" cy="12" r="3.4" fill="currentColor" fill-opacity="0.2"/><path d="M12 3.2L15 10.2M19.6 7.6L14.5 13.8M19.6 16.4L10.5 15.2M12 20.8L9 13.8M4.4 16.4L9.5 10.2M4.4 7.6L13.5 8.8"/><circle cx="12" cy="3.2" r="1" fill="currentColor" stroke="none"/><circle cx="19.6" cy="7.6" r="1" fill="currentColor" stroke="none"/><circle cx="19.6" cy="16.4" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="20.8" r="1" fill="currentColor" stroke="none"/><circle cx="4.4" cy="16.4" r="1" fill="currentColor" stroke="none"/><circle cx="4.4" cy="7.6" r="1" fill="currentColor" stroke="none"/></svg>`,
 
   // Explode
   assembled: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>`,
@@ -137,7 +138,7 @@ export class ZeroTextUI {
   _buildDOM() {
     this.root.innerHTML = '';
 
-    // 1. TOP-LEFT SCALE SWITCH (7 Multiscale Modes — 180 Independent 3D CAD Parts!)
+    // 1. TOP-LEFT SCALE SWITCH (8 Multiscale Modes — 212 Independent 3D CAD Parts!)
     const scaleDock = this._el('div', 'scale-dock cad-glass');
     this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'));
     this.btnMicro = this._iconBtn(ICONS.micro, () => this.cb.onSwitchScale('micro'));
@@ -145,8 +146,9 @@ export class ZeroTextUI {
     this.btnLens = this._iconBtn(ICONS.lens, () => this.cb.onSwitchScale('lens'));
     this.btnDeco = this._iconBtn(ICONS.deco, () => this.cb.onSwitchScale('deco'));
     this.btnPeriscope = this._iconBtn(ICONS.periscope, () => this.cb.onSwitchScale('periscope'));
-    this.btnAperture = this._iconBtn(ICONS.aperture, () => this.cb.onSwitchScale('aperture'), 'active');
-    scaleDock.append(this.btnMacro, this.btnMicro, this.btnLayer2, this.btnLens, this.btnDeco, this.btnPeriscope, this.btnAperture);
+    this.btnAperture = this._iconBtn(ICONS.aperture, () => this.cb.onSwitchScale('aperture'));
+    this.btnIris = this._iconBtn(ICONS.iris, () => this.cb.onSwitchScale('iris'), 'active');
+    scaleDock.append(this.btnMacro, this.btnMicro, this.btnLayer2, this.btnLens, this.btnDeco, this.btnPeriscope, this.btnAperture, this.btnIris);
     this.root.appendChild(scaleDock);
 
     // 2. LEFT VISUAL LAYER DISSECTION DOCK (ZERO TEXT — Color Bars + Category Glyphs + Eye Toggles)
@@ -350,9 +352,15 @@ export class ZeroTextUI {
     this.btnDeco.classList.toggle('active', scale === 'deco');
     this.btnPeriscope.classList.toggle('active', scale === 'periscope');
     this.btnAperture.classList.toggle('active', scale === 'aperture');
-    // Live demo button (OIS / Iris+AF+OIS / Flash+LiDAR / Prism-Tilt+Tele-Macro / Deep Interleaved Iris Cam)
+    this.btnIris.classList.toggle('active', scale === 'iris');
+    // Live demo button (OIS / Iris+AF+OIS / Flash+LiDAR / Prism-Tilt / Deep Iris / 32-Part Watchwork Micro-Iris)
     this.btnOis.style.display =
-      scale === 'macro' || scale === 'lens' || scale === 'deco' || scale === 'periscope' || scale === 'aperture'
+      scale === 'macro' ||
+      scale === 'lens' ||
+      scale === 'deco' ||
+      scale === 'periscope' ||
+      scale === 'aperture' ||
+      scale === 'iris'
         ? 'inline-flex'
         : 'none';
   }

@@ -48,6 +48,9 @@ export class SimEffects {
     } else if (mode === 'aperture') {
       this._buildApertureOptics();
       this._buildGuideLines(17.5, -15.5, [[-11.5, -11.5], [11.5, -11.5], [-11.5, 11.5], [11.5, 11.5]]);
+    } else if (mode === 'iris') {
+      this._buildIrisMicroOptics();
+      this._buildGuideLines(13.5, -8.5, [[-14.5, -12.5], [14.5, -12.5], [-14.5, 12.5], [14.5, 12.5]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -556,6 +559,40 @@ export class SimEffects {
     ], 0xd946ef, 0.82, 0.085, 2);
   }
 
+  _buildIrisMicroOptics() {
+    // 1. Emerald Core Passing Rays threading straight through the central hexagonal diaphragm opening
+    const corePts = [
+      [0, 0], [2.1, 0], [-2.1, 0], [0, 2.1], [0, -2.1]
+    ];
+    for (const [cx, cz] of corePts) {
+      this._addRay([
+        new THREE.Vector3(cx * 1.15, 8.8, cz * 1.15),
+        new THREE.Vector3(cx, 0.45, cz),
+        new THREE.Vector3(cx * 0.55, -5.8, cz * 0.55)
+      ], 0x10b981, 0.84, 0.11, 3);
+    }
+
+    // 2. Amber Marginal Rays (f/1.42 outer pupil) intercepted cleanly on the 6 razor-thin DLC knife edges!
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + 0.35;
+      this._addRay([
+        new THREE.Vector3(Math.cos(a) * 6.2, 8.6, Math.sin(a) * 6.2),
+        new THREE.Vector3(Math.cos(a) * 5.2, 0.72, Math.sin(a) * 5.2)
+      ], 0xf59e0b, 0.78, 0.095, 2);
+    }
+
+    // 3. Golden 6-Point Starburst Diffraction Spike Fan (6条光芒) radiating below the 6-blade hexagonal diaphragm!
+    const starY = -3.8;
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + 0.18;
+      this._addRay([
+        new THREE.Vector3(Math.cos(a) * 2.4, 0.25, Math.sin(a) * 2.4),
+        new THREE.Vector3(Math.cos(a) * 3.8, starY * 0.55, Math.sin(a) * 3.8),
+        new THREE.Vector3(Math.cos(a) * 7.8, starY, Math.sin(a) * 7.8)
+      ], 0xfacc15, 0.76, 0.085, 2);
+    }
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -607,11 +644,13 @@ export class SimEffects {
     //  - Deco: Adaptive 9-LED Flash (Wide outer-8 <-> Telephoto center spot) + 940nm VCSEL Laser pulse
     //  - Periscope: 2-Axis Prism-Tilt OIS (Pitch+Yaw) + 3.1 mm Horizontal Floating Tele-Macro AF + 0.5x Rolling ZrO2 Balls!
     //  - Aperture: Ultra-Deep 6-Blade Interleaved Stepless Iris (f/1.42 <-> f/4.0) + Real Pierced Cam Rotor + 0.5x Thrust Balls!
+    //  - Iris: Extreme 4x 32-Part Watchwork Micro-Iris (Dual-VCM Balanced Cam + 6 Rolling Balls + 3-Tier Blades + Dimples + Pins!)
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
     const decoAct = this.oisEnabled && this.mode === 'deco';
     const periAct = this.oisEnabled && this.mode === 'periscope';
     const apAct = this.oisEnabled && this.mode === 'aperture';
+    const irisMicroAct = this.oisEnabled && this.mode === 'iris';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
@@ -619,8 +658,9 @@ export class SimEffects {
     const afStrokeY = lensAct ? Math.sin(elapsed * 1.9) * 0.42 : 0;
     const irisNorm = lensAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.35)) : null;
 
-    // Phase 6 Deep Variable Aperture smooth stepless F-stop sweep: 0 = f/1.42 (Wide Open), 1 = f/4.0 (Stopped Down)
+    // Phase 6 & Phase 7 smooth stepless F-stop sweep: 0 = f/1.42 (Wide Open), 1 = f/4.0 (Stopped Down)
     const apNorm = apAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.15)) : null;
+    const imNorm = irisMicroAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.12)) : null;
 
     // Periscope live actuation kinematics (zero collisions verified across full 3.1 mm stroke!)
     const periStrokeX = periAct ? (0.45 + 1.55 * Math.sin(elapsed * 1.35)) : 0;
@@ -651,6 +691,14 @@ export class SimEffects {
 
       if (entry.prismTiltMoving) {
         entry.group.rotation.set(0, prismYaw, prismPitch);
+      } else if (entry.isMicroIrisCam) {
+        const u = entry.group.userData;
+        const rotY = irisMicroAct ? (u.camRotMin + imNorm * (u.camRotMax - u.camRotMin)) : u.camRotRest;
+        entry.group.rotation.set(0, rotY, 0);
+      } else if (entry.isMicroIrisBalls) {
+        const u = entry.group.userData;
+        const rotY = irisMicroAct ? (u.camRotMin + imNorm * (u.camRotMax - u.camRotMin)) * 0.5 : u.camRotRest * 0.5;
+        entry.group.rotation.set(0, rotY, 0);
       } else if (entry.isDeepIrisCam) {
         const u = entry.group.userData;
         const rotY = apAct ? (u.camRotMin + apNorm * (u.camRotMax - u.camRotMin)) : u.camRotRest;
@@ -675,11 +723,20 @@ export class SimEffects {
         }
       }
 
-      // Live 6-blade interleaved stepless variable aperture (Phase 6 Deep Dissection — exact spiral cam coupling!)
+      // Live 6-blade interleaved stepless variable aperture (Phase 6 Deep Dissection)
       if (entry.group.userData.deepIrisBlades) {
         for (const pivot of entry.group.userData.deepIrisBlades) {
           const u = pivot.userData;
           const swing = apAct ? (u.swingMin + apNorm * (u.swingMax - u.swingMin)) : u.restSwing;
+          pivot.rotation.y = u.baseAzimuth + swing;
+        }
+      }
+
+      // Live 32-part 4x Watchwork Micro-Iris (Phase 7 — synchronized 3 tiers, knife edges, 24 dimples, cam pins & bushings!)
+      if (entry.group.userData.microIrisBlades) {
+        for (const pivot of entry.group.userData.microIrisBlades) {
+          const u = pivot.userData;
+          const swing = irisMicroAct ? (u.swingMin + imNorm * (u.swingMax - u.swingMin)) : u.restSwing;
           pivot.rotation.y = u.baseAzimuth + swing;
         }
       }

@@ -1513,6 +1513,63 @@ export function createMaterialLibrary(clippingPlanes) {
       color: 0x06b6d4,
       metalness: 0.82,
       roughness: 0.22
+    }),
+
+    // === PHASE 7: EXTREME MICRON-LEVEL VARIABLE APERTURE MATERIALS ===
+    irBladeTier1: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x111722,
+      metalness: 0.78,
+      roughness: 0.22,
+      clearcoat: 0.45,
+      clearcoatRoughness: 0.16
+    }),
+    irBladeTier2: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x222e40,
+      metalness: 0.78,
+      roughness: 0.24,
+      clearcoat: 0.42,
+      clearcoatRoughness: 0.18
+    }),
+    irBladeTier3: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x334155,
+      metalness: 0.76,
+      roughness: 0.26,
+      clearcoat: 0.38,
+      clearcoatRoughness: 0.20
+    }),
+    irKnifeEdgeSheen: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x64748b,
+      metalness: 0.94,
+      roughness: 0.12,
+      clearcoat: 0.7
+    }),
+    irSlotLinerTeal: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x0d9488,
+      metalness: 0.35,
+      roughness: 0.28
+    }),
+    irDustTrapGel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xfbbf24,
+      metalness: 0.04,
+      roughness: 0.14,
+      transparent: true,
+      opacity: 0.72,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.08
+    }),
+    irLaserWeld: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf59e0b,
+      metalness: 0.96,
+      roughness: 0.16,
+      iridescence: 0.85,
+      iridescenceIOR: 1.8
     })
   };
 }
