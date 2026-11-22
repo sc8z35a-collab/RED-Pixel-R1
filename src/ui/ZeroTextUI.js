@@ -119,7 +119,7 @@ export class ZeroTextUI {
   constructor(rootEl, callbacks) {
     this.root = rootEl;
     this.cb = callbacks;
-    this.scale = 'vapor_chamber';
+    this.scale = 'flagship';
     this.partsList = [];
     this.selectedId = null;
     this.hiddenSet = new Set();
@@ -176,9 +176,9 @@ export class ZeroTextUI {
     this.btnGshutter = this._iconBtn(ICONS.gshutter, () => this.cb.onSwitchScale('gshutter'));
     this.btnSocGaa = this._iconBtn(ICONS.socGaa, () => this.cb.onSwitchScale('soc_gaa'));
     this.btnOledTandem = this._iconBtn(ICONS.oledTandem, () => this.cb.onSwitchScale('oled_tandem'));
-    this.btnVaporChamber = this._iconBtn(ICONS.vaporChamber, () => this.cb.onSwitchScale('vapor_chamber'), 'active');
+    this.btnVaporChamber = this._iconBtn(ICONS.vaporChamber, () => this.cb.onSwitchScale('vapor_chamber'));
     const sep = this._el('div', 'dock-divider');
-    this.btnFlagship = this._iconBtn(ICONS.flagship, () => this.cb.onSwitchScale('flagship'));
+    this.btnFlagship = this._iconBtn(ICONS.flagship, () => this.cb.onSwitchScale('flagship'), 'flagship-btn active');
     scaleDock.append(
       this.btnMacro,
       this.btnMicro,
