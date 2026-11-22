@@ -974,6 +974,412 @@ export function createMaterialLibrary(clippingPlanes) {
       color: 0x334155,
       metalness: 0.72,
       roughness: 0.28
+    }),
+
+    // === LAYER-2 NANOSCALE PIXEL TRANSISTOR MATERIALS ===
+    l2BoxOxide: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xcfe4ff,
+      metalness: 0.04,
+      roughness: 0.10,
+      transparent: true,
+      opacity: 0.16,
+      clearcoat: 0.9,
+      depthWrite: false
+    }),
+    l2InterPolySi: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x0284c7,
+      metalness: 0.62,
+      roughness: 0.24
+    }),
+    l2SoiSilicon: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1e3a8a,
+      metalness: 0.56,
+      roughness: 0.16,
+      clearcoat: 0.72,
+      iridescence: 0.35,
+      iridescenceIOR: 2.0
+    }),
+    l2StiOxide: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xdbeafe,
+      metalness: 0.04,
+      roughness: 0.18,
+      transparent: true,
+      opacity: 0.28,
+      depthWrite: false
+    }),
+    l2FinChannel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x2563eb,
+      metalness: 0.48,
+      roughness: 0.12,
+      clearcoat: 0.9,
+      iridescence: 0.45,
+      iridescenceIOR: 1.9
+    }),
+    l2GateOxide: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xc084fc,
+      metalness: 0.12,
+      roughness: 0.10,
+      transparent: true,
+      opacity: 0.78,
+      iridescence: 0.85,
+      iridescenceIOR: 1.55
+    }),
+    l2TinLiner: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xca8a04,
+      metalness: 0.94,
+      roughness: 0.20
+    }),
+    l2SpacerSiN: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x6366f1,
+      metalness: 0.18,
+      roughness: 0.32
+    }),
+    l2RaisedEpiSD: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      metalness: 0.52,
+      roughness: 0.20,
+      clearcoat: 0.55
+    }),
+    l2NiSiSalicide: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe5e7eb,
+      metalness: 0.98,
+      roughness: 0.12,
+      clearcoat: 0.4
+    }),
+    l2CeslStress: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      metalness: 0.08,
+      roughness: 0.10,
+      transparent: true,
+      opacity: 0.22,
+      iridescence: 0.72,
+      iridescenceIOR: 1.95,
+      depthWrite: false
+    }),
+    l2LoficZazDielectric: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf43f5e,
+      metalness: 0.15,
+      roughness: 0.16,
+      transparent: true,
+      opacity: 0.72,
+      iridescence: 0.8
+    }),
+    l2FdgGate: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x8b5cf6,
+      metalness: 0.76,
+      roughness: 0.22
+    }),
+    l2LoficGate: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xec4899,
+      metalness: 0.76,
+      roughness: 0.22
+    }),
+    l2MillerShield: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x14b8a6,
+      metalness: 0.72,
+      roughness: 0.22,
+      transparent: true,
+      opacity: 0.62
+    }),
+    l2LowKDielectric: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xcbd5e1,
+      metalness: 0.04,
+      roughness: 0.18,
+      transparent: true,
+      opacity: 0.24,
+      depthWrite: false
+    }),
+
+    // === PHASE 3: OPTICAL 1G7P LENS, VARIABLE APERTURE & VCM/OIS MATERIALS ===
+    lensSapphire: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe0f2fe,
+      metalness: 0.04,
+      roughness: 0.05,
+      transparent: true,
+      opacity: 0.30,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+      iridescence: 0.55,
+      iridescenceIOR: 1.77,
+      depthWrite: false
+    }),
+    lensAldCoat: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x2dd4bf,
+      metalness: 0.18,
+      roughness: 0.06,
+      transparent: true,
+      opacity: 0.34,
+      clearcoat: 1.0,
+      iridescence: 1.0,
+      iridescenceIOR: 1.46,
+      depthWrite: false
+    }),
+    lensGlass1G: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x7dd3fc,
+      metalness: 0.06,
+      roughness: 0.05,
+      transparent: true,
+      opacity: 0.52,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+      iridescence: 0.62,
+      iridescenceIOR: 1.78,
+      depthWrite: false
+    }),
+    lensResinApel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x93c5fd,
+      metalness: 0.04,
+      roughness: 0.06,
+      transparent: true,
+      opacity: 0.44,
+      clearcoat: 0.96,
+      iridescence: 0.36,
+      iridescenceIOR: 1.54,
+      depthWrite: false
+    }),
+    lensResinFlint: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xfcd34d,
+      metalness: 0.06,
+      roughness: 0.06,
+      transparent: true,
+      opacity: 0.48,
+      clearcoat: 0.96,
+      iridescence: 0.48,
+      iridescenceIOR: 1.66,
+      depthWrite: false
+    }),
+    lensResinGullwing: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xa5b4fc,
+      metalness: 0.05,
+      roughness: 0.06,
+      transparent: true,
+      opacity: 0.48,
+      clearcoat: 1.0,
+      iridescence: 0.58,
+      iridescenceIOR: 1.56,
+      depthWrite: false
+    }),
+    lensEdgeBlack: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x111827,
+      metalness: 0.05,
+      roughness: 0.92
+    }),
+    lensLcpBarrel: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x1f2937,
+      metalness: 0.16,
+      roughness: 0.58
+    }),
+    lensIrisBlade: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x1e293b,
+      metalness: 0.58,
+      roughness: 0.36
+    }),
+    lensIrisCam: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x64748b,
+      metalness: 0.84,
+      roughness: 0.26
+    }),
+    lensDamperGel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x818cf8,
+      metalness: 0.05,
+      roughness: 0.10,
+      transparent: true,
+      opacity: 0.62,
+      clearcoat: 1.0
+    }),
+    lensWireCuNiSi: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xd97706,
+      metalness: 0.96,
+      roughness: 0.18
+    }),
+    lensShieldMetal: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x475569,
+      metalness: 0.84,
+      roughness: 0.28,
+      clearcoat: 0.25
+    }),
+    lensMagnetN: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xdc2626,
+      metalness: 0.72,
+      roughness: 0.24
+    }),
+    lensMagnetS: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x2563eb,
+      metalness: 0.72,
+      roughness: 0.24
+    }),
+    lensCarrierBody: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x334155,
+      metalness: 0.24,
+      roughness: 0.46
+    }),
+
+    // === PHASE 4: EXTERIOR CAMERA DECO, COVER GLASS DX+, IP68 & AUX SENSORS ===
+    decoTitanium: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x8b939e,
+      metalness: 0.88,
+      roughness: 0.28,
+      clearcoat: 0.24
+    }),
+    decoBezelPvd: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1e242c,
+      metalness: 0.92,
+      roughness: 0.22,
+      clearcoat: 0.48
+    }),
+    decoBackGlass: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xdbe2ec,
+      metalness: 0.08,
+      roughness: 0.42,
+      clearcoat: 0.36,
+      transparent: true,
+      opacity: 0.82
+    }),
+    decoWaterproofOring: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xf97316,
+      metalness: 0.04,
+      roughness: 0.54
+    }),
+    decoEptfeVent: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xf8fafc,
+      metalness: 0.02,
+      roughness: 0.78
+    }),
+    decoPoronFoam: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x14171f,
+      metalness: 0.02,
+      roughness: 0.96
+    }),
+    decoOleophobic: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      metalness: 0.06,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.20,
+      clearcoat: 1.0,
+      iridescence: 0.88,
+      iridescenceIOR: 1.38,
+      depthWrite: false
+    }),
+    decoArDxCoat: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x10b981,
+      metalness: 0.14,
+      roughness: 0.05,
+      transparent: true,
+      opacity: 0.30,
+      clearcoat: 1.0,
+      iridescence: 1.0,
+      iridescenceIOR: 1.54,
+      depthWrite: false
+    }),
+    decoGorillaDx: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe0f2fe,
+      metalness: 0.04,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.42,
+      clearcoat: 1.0,
+      iridescence: 0.38,
+      iridescenceIOR: 1.52,
+      depthWrite: false
+    }),
+    decoIrBlackWindow: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1e1b4b,
+      metalness: 0.16,
+      roughness: 0.08,
+      transparent: true,
+      opacity: 0.72,
+      clearcoat: 1.0,
+      iridescence: 0.65
+    }),
+    decoVcselLaser: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xe11d48,
+      emissive: 0xbe123c,
+      emissiveIntensity: 0.48,
+      metalness: 0.65,
+      roughness: 0.18
+    }),
+    decoDoeGrating: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf59e0b,
+      metalness: 0.25,
+      roughness: 0.12,
+      transparent: true,
+      opacity: 0.70,
+      clearcoat: 1.0,
+      iridescence: 1.0,
+      iridescenceIOR: 1.65
+    }),
+    decoSpadArray: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x312e81,
+      metalness: 0.68,
+      roughness: 0.18,
+      iridescence: 0.72,
+      iridescenceIOR: 2.0
+    }),
+    decoFresnelLens: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xfef3c7,
+      metalness: 0.05,
+      roughness: 0.08,
+      transparent: true,
+      opacity: 0.56,
+      clearcoat: 1.0,
+      iridescence: 0.45,
+      depthWrite: false
+    }),
+    decoOpalDiffuser: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf1f5f9,
+      metalness: 0.02,
+      roughness: 0.36,
+      transparent: true,
+      opacity: 0.78,
+      clearcoat: 0.55
     })
   };
 }
