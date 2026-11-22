@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { updateLiquidMorphMesh } from '../assemblies/LiquidLensAssembly.js';
 
 /**
  * Interactive Physics & CAD Visual Overlays:
@@ -60,6 +61,9 @@ export class SimEffects {
     } else if (mode === 'sma') {
       this._buildSmaPhysics();
       this._buildGuideLines(11.5, -8.5, [[-9.6, -6.5], [11.5, -6.5], [-9.6, 8.8], [11.5, 8.8]]);
+    } else if (mode === 'liquid') {
+      this._buildLiquidPhysics();
+      this._buildGuideLines(11.8, -8.8, [[-9.4, -6.2], [12.0, -6.2], [-9.4, 8.6], [12.0, 8.6]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -769,6 +773,66 @@ export class SimEffects {
     }
   }
 
+  _buildLiquidPhysics() {
+    const X_CELL = -3.2;
+    const Z_CELL = -0.2;
+    const X_MIC = 8.4;
+    const Y_MIC = 0.55;
+    const Z_MIC = 0.2;
+
+    // 1. Emerald & Royal-Blue Optical Rays refracting strongly across the Water (n=1.35) -> Oil (n=1.54) Curved Meniscus!
+    for (const [ox, oz, col] of [
+      [0, 0, 0x10b981],
+      [1.85, 0, 0x10b981],
+      [-1.85, 0, 0x10b981],
+      [0, 1.85, 0x2563eb],
+      [0, -1.85, 0x2563eb]
+    ]) {
+      this._addRay([
+        new THREE.Vector3(X_CELL + ox * 1.18, 8.6, Z_CELL + oz * 1.18),
+        new THREE.Vector3(X_CELL + ox * 1.04, 3.85, Z_CELL + oz * 1.04),  // Enters G1 Companion Glass
+        new THREE.Vector3(X_CELL + ox * 0.96, 1.98, Z_CELL + oz * 0.96),  // Enters Conductive Water (n=1.35)
+        new THREE.Vector3(X_CELL + ox * 0.92, 0.42, Z_CELL + oz * 0.92),  // Sharp Snell Refraction at Oil-Water Meniscus (n=1.54)!
+        new THREE.Vector3(X_CELL + ox * 0.62, -1.98, Z_CELL + oz * 0.62), // Converging through Optical Oil!
+        new THREE.Vector3(X_CELL + ox * 0.44, -2.85, Z_CELL + oz * 0.44), // G2 Relay Glass
+        new THREE.Vector3(X_CELL, -6.2, Z_CELL)                           // Crisp Macro Focal Convergence!
+      ], col, 0.84, 0.068, 3);
+    }
+
+    // 2. Blazing Amber-Gold 60 Vrms / 1 kHz AC Charge-Pump Drive Pulses (ASIC -> 100V MLCCs -> Feedthrough Pins -> 4-Quadrant Conical Electrodes!)
+    this._addRay([
+      new THREE.Vector3(X_CELL - 1.95, -2.28, Z_CELL + 6.95), // MAX14574/HV892 60 Vrms Charge-Pump ASIC
+      new THREE.Vector3(X_CELL + 2.15, -2.52, Z_CELL + 6.52), // 100V Flying MLCC Bank
+      new THREE.Vector3(X_CELL + 4.75, -2.25, Z_CELL - 1.35), // Hermetic Feedthrough Pin Q1 (+X)
+      new THREE.Vector3(X_CELL + 3.92, -0.35, Z_CELL - 1.12), // Up Q1 Conical Gold Electrode!
+      new THREE.Vector3(X_CELL + 4.25, 1.35, Z_CELL - 1.22)
+    ], 0xf59e0b, 0.88, 0.066, 3);
+
+    this._addRay([
+      new THREE.Vector3(X_CELL - 1.95, -2.28, Z_CELL + 6.95), // 60 Vrms ASIC
+      new THREE.Vector3(X_CELL - 2.65, -2.25, Z_CELL + 4.22), // Front Feedthrough Pin Q3 (+Z)
+      new THREE.Vector3(X_CELL - 2.20, -0.25, Z_CELL + 3.55), // Up Q3 Conical Gold Electrode!
+      new THREE.Vector3(X_CELL - 2.38, 1.32, Z_CELL + 3.88)
+    ], 0xf59e0b, 0.86, 0.064, 3);
+
+    // 3. Cyan Closed-Loop Capacitance Self-Sensing (C = 60-220 pF) Return Loop (Common Immersion Ring -> CDC Feedback IC!)
+    this._addRay([
+      new THREE.Vector3(X_CELL + 3.45, 1.82, Z_CELL - 2.45),  // Upper Immersion Common Ring Electrode
+      new THREE.Vector3(X_CELL + 4.90, -0.40, Z_CELL + 2.40), // Guarded Capacitance Sense Return
+      new THREE.Vector3(X_CELL + 2.55, -2.45, Z_CELL + 5.85),
+      new THREE.Vector3(X_CELL + 0.58, -2.38, Z_CELL + 6.95)  // Back into CDC Capacitance Feedback IC!
+    ], 0x06b6d4, 0.86, 0.064, 3);
+
+    // 4. Violet-Magenta Nanoscale Electrostatic Maxwell Field Pulses crossing the 500x Parylene AF-4 Dielectric & pulling EDL ions!
+    for (const dy of [-0.55, 0.15, 0.85]) {
+      this._addRay([
+        new THREE.Vector3(X_MIC - 1.95, Y_MIC + dy, Z_MIC + 2.42),
+        new THREE.Vector3(X_MIC - 1.15, Y_MIC + dy, Z_MIC + 2.42),
+        new THREE.Vector3(X_MIC - 0.28, Y_MIC + dy - 0.25, Z_MIC + 2.42)
+      ], 0xc026d3, 0.86, 0.058, 2);
+    }
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -835,6 +899,7 @@ export class SimEffects {
     //  - IrisNano: Sub-Micron Cam Slot Push + Counter-Sliding Tier-1/Tier-2 Blades + 0.5x Rolling Y-TZP Ceramic Ball!
     //  - LiDAR: 940 nm Multi-Junction VCSEL Laser Pulse Burst + Delayed Geiger-Mode SPAD Single-Photon Avalanche Flashes!
     //  - SMA: 8-Wire Antagonistic NiTiCu Artificial-Muscle 5-Axis Motion + Real-Time Hot Austenite <-> Cool Martensite Glow + Phase Front!
+    //  - Liquid: Live 3D Vertex-Morphing Oil-Water Meniscus (-15 D <-> +35 D AF + 2-Axis Quadrant OIS Tilt) + 500x EDL Wetting Slide!
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
     const decoAct = this.oisEnabled && this.mode === 'deco';
@@ -844,6 +909,7 @@ export class SimEffects {
     const irisNanoAct = this.oisEnabled && this.mode === 'iris_nano';
     const lidarAct = this.oisEnabled && this.mode === 'lidar';
     const smaAct = this.oisEnabled && this.mode === 'sma';
+    const liquidAct = this.oisEnabled && this.mode === 'liquid';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
@@ -881,6 +947,12 @@ export class SimEffects {
     const smaDz = smaAct ? Math.cos(elapsed * 1.85) * 0.40 : 0;
     const smaFrontDz = smaAct ? Math.sin(elapsed * 2.2) * 0.62 : 0;
 
+    // Phase 11 4-Quadrant EWOD Liquid Lens live AF sweep (-1.0 concave <-> +1.0 convex) + 2-axis OIS tilt + 500x EDL slide!
+    const liqK = liquidAct ? Math.sin(elapsed * 1.45) : null;
+    const liqTx = liquidAct ? Math.sin(elapsed * 2.65) * 0.28 : 0;
+    const liqTz = liquidAct ? Math.cos(elapsed * 2.05) * 0.26 : 0;
+    const liqMicroDy = liquidAct ? -0.34 * (liqK - 0.72) : 0;
+
     for (const entry of partsMap.values()) {
       const ex = entry.basePos.x + entry.explodeVec.x * explodeT;
       const ey = entry.basePos.y + entry.explodeVec.y * explodeT;
@@ -915,6 +987,11 @@ export class SimEffects {
         } else if (entry.smaPhaseFront) {
           dz += smaFrontDz;
         }
+      }
+
+      // Phase 11 500x Triple-Phase Contact-Line aqueous/oil wedge & EDL ion swarm sliding along hydrophobic wall!
+      if (liquidAct && entry.liquidMicroWet) {
+        dy += liqMicroDy;
       }
 
       entry.group.position.set(ex + dx, ey + dy, ez + dz);
@@ -1051,6 +1128,37 @@ export class SimEffects {
               wMesh.userData.baseEmissiveInt = d.defaultWarm ? 0.42 : 0.22;
             }
           }
+        }
+      }
+
+      // Live Phase 11 3D Vertex-Morphing Oil-Water Meniscus, Aqueous Phase & Optical Oil Volumes!
+      if (entry.group.userData.liquidMorphMesh) {
+        const mesh = entry.group.userData.liquidMorphMesh;
+        const targetK = liquidAct ? liqK : entry.group.userData.liquidRestK;
+        const targetTx = liquidAct ? liqTx : 0;
+        const targetTz = liquidAct ? liqTz : 0;
+        const prev = mesh.userData._lastMorphState;
+        if (!prev || Math.abs(prev.k - targetK) > 1e-4 || Math.abs(prev.tx - targetTx) > 1e-4 || Math.abs(prev.tz - targetTz) > 1e-4) {
+          updateLiquidMorphMesh(mesh, targetK, targetTx, targetTz);
+          mesh.userData._lastMorphState = { k: targetK, tx: targetTx, tz: targetTz };
+        }
+      }
+
+      // Live Phase 11 4-Quadrant AC Voltage Glow Modulation (AF base voltage + 2-axis OIS differential bias!)
+      if (entry.group.userData.liquidQuadMat) {
+        const qMat = entry.group.userData.liquidQuadMat;
+        const qMesh = entry.group.userData.liquidQuadMesh;
+        const axis = entry.group.userData.liquidQuadAxis;
+        let inten = 0.15;
+        if (liquidAct) {
+          const baseV = 0.5 + 0.5 * liqK;
+          const bias =
+            axis === 'x+' ? -liqTx : axis === 'x-' ? liqTx : axis === 'z+' ? -liqTz : liqTz;
+          inten = THREE.MathUtils.clamp(0.10 + (baseV + bias * 1.4) * 0.78, 0.08, 1.05);
+        }
+        qMat.emissiveIntensity = inten;
+        if (qMesh && qMesh.userData.solidHighlightMat && liquidAct) {
+          qMesh.userData.solidHighlightMat.emissiveIntensity = inten;
         }
       }
     }

@@ -1999,6 +1999,124 @@ export function createMaterialLibrary(clippingPlanes) {
       transparent: true,
       opacity: 0.72,
       depthWrite: false
+    }),
+
+    // === PHASE 11: 4-QUADRANT ELECTROWETTING LIQUID LENS & 500x EDL NANO-ANATOMY ===
+    llWaterLiquid: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x06b6d4,
+      emissive: 0x0891b2,
+      emissiveIntensity: 0.14,
+      metalness: 0.02,
+      roughness: 0.06,
+      transparent: true,
+      opacity: 0.44,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+      iridescence: 0.25,
+      iridescenceIOR: 1.35,
+      depthWrite: false
+    }),
+    llOilLiquid: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf59e0b,
+      emissive: 0xd97706,
+      emissiveIntensity: 0.16,
+      metalness: 0.04,
+      roughness: 0.05,
+      transparent: true,
+      opacity: 0.56,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+      iridescence: 0.35,
+      iridescenceIOR: 1.54,
+      depthWrite: false
+    }),
+    llMeniscusGlow: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xfef08a,
+      emissive: 0xeab308,
+      emissiveIntensity: 0.38,
+      metalness: 0.16,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.88,
+      clearcoat: 1.0,
+      iridescence: 1.0,
+      iridescenceIOR: 1.48
+    }),
+    llCytopHydrophobic: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x6366f1,
+      metalness: 0.14,
+      roughness: 0.18,
+      clearcoat: 0.92,
+      iridescence: 0.48,
+      iridescenceIOR: 1.34
+    }),
+    llParyleneDielectric: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x10b981,
+      emissive: 0x059669,
+      emissiveIntensity: 0.12,
+      metalness: 0.10,
+      roughness: 0.22,
+      clearcoat: 0.65
+    }),
+    llQuadElectrode: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xfbbf24,
+      emissive: 0xb45309,
+      emissiveIntensity: 0.15,
+      metalness: 0.92,
+      roughness: 0.18,
+      clearcoat: 0.35
+    }),
+    llBellowsSteel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xcbd5e1,
+      metalness: 0.92,
+      roughness: 0.22,
+      clearcoat: 0.25
+    }),
+    llFfkMOseal: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x4c1d3d,
+      metalness: 0.06,
+      roughness: 0.58
+    }),
+    llCeramicChamber: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x334155,
+      metalness: 0.18,
+      roughness: 0.44
+    }),
+    llIonCation: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf43f5e,
+      emissive: 0xe11d48,
+      emissiveIntensity: 0.45,
+      metalness: 0.12,
+      roughness: 0.18,
+      clearcoat: 0.85
+    }),
+    llIonAnion: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x0ea5e9,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.40,
+      metalness: 0.12,
+      roughness: 0.18,
+      clearcoat: 0.85
+    }),
+    llChargeNegative: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xa855f7,
+      emissive: 0x7e22ce,
+      emissiveIntensity: 0.46,
+      metalness: 0.22,
+      roughness: 0.20,
+      clearcoat: 0.75
     })
   };
 }
