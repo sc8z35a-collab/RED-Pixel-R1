@@ -10,6 +10,8 @@ import { SMA_OVERVIEW_DOC, SMA_PARTS } from './smaMuscleKnowledge.js';
 import { LIQUID_OVERVIEW_DOC, LIQUID_PARTS } from './liquidLensKnowledge.js';
 import { TETRAPRISM_OVERVIEW_DOC, TETRAPRISM_PARTS } from './tetraprismKnowledge.js';
 import { CONTINUOUS_ZOOM_OVERVIEW_DOC, CONTINUOUS_ZOOM_PARTS } from './continuousZoomKnowledge.js';
+import { METALENS_OVERVIEW_DOC, METALENS_PARTS } from './metalensKnowledge.js';
+import { GLOBAL_SHUTTER_OVERVIEW_DOC, GLOBAL_SHUTTER_PARTS } from './globalShutterKnowledge.js';
 
 export {
   LAYER2_PARTS,
@@ -23,10 +25,14 @@ export {
   SMA_PARTS,
   LIQUID_PARTS,
   TETRAPRISM_PARTS,
-  CONTINUOUS_ZOOM_PARTS
+  CONTINUOUS_ZOOM_PARTS,
+  METALENS_PARTS,
+  GLOBAL_SHUTTER_PARTS
 };
 
 export const OVERVIEW_DOCS = {
+  gshutter: GLOBAL_SHUTTER_OVERVIEW_DOC,
+  metalens: METALENS_OVERVIEW_DOC,
   zoom: CONTINUOUS_ZOOM_OVERVIEW_DOC,
   tetra: TETRAPRISM_OVERVIEW_DOC,
   liquid: LIQUID_OVERVIEW_DOC,
@@ -993,6 +999,8 @@ export const ALL_PARTS_BY_ID = Object.fromEntries(
     ...SMA_PARTS,
     ...LIQUID_PARTS,
     ...TETRAPRISM_PARTS,
-    ...CONTINUOUS_ZOOM_PARTS
+    ...CONTINUOUS_ZOOM_PARTS,
+    ...METALENS_PARTS,
+    ...GLOBAL_SHUTTER_PARTS
   ].map((p) => [p.id, p])
 );

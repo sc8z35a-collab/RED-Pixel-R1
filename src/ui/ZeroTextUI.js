@@ -17,6 +17,8 @@ const ICONS = {
   liquid: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5h15l-2.4 13H6.9l-2.4-13z"/><path d="M5.8 12.8c2.6-3.4 9.8-3.4 12.4 0" fill="currentColor" fill-opacity="0.22"/><line x1="2.2" y1="12" x2="4.6" y2="12"/><line x1="19.4" y1="12" x2="21.8" y2="12"/></svg>`,
   tetra: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="3.5 7 15.5 7 20.5 9.2 20.5 15.5 8.5 15.5 3.5 13.3" fill="currentColor" fill-opacity="0.14"/><path d="M6.2 3v11l3.6-6.8 3.6 8.2 3.8-7.4v10.2"/><rect x="13.5" y="18.8" width="7.2" height="2.2" rx="0.8" fill="currentColor" stroke="none"/></svg>`,
   zoom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="2.5 8 7.5 8 7.5 14.5" fill="currentColor" fill-opacity="0.18"/><path d="M5 4v7.2h15.5"/><line x1="11.2" y1="7.5" x2="11.2" y2="15"/><line x1="16.2" y1="7.5" x2="16.2" y2="15"/><path d="M9.5 18.5h8.2M11.3 16.7l-1.8 1.8 1.8 1.8M15.9 16.7l1.8 1.8-1.8 1.8"/><rect x="20" y="7.5" width="2" height="7.5" rx="0.7" fill="currentColor" stroke="none"/></svg>`,
+  metalens: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="11" x2="21" y2="11"/><line x1="5.5" y1="6.5" x2="5.5" y2="11"/><line x1="8.8" y1="5.2" x2="8.8" y2="11" stroke-width="2"/><line x1="12" y1="4.5" x2="12" y2="11" stroke-width="2.6"/><line x1="15.2" y1="5.2" x2="15.2" y2="11" stroke-width="2"/><line x1="18.5" y1="6.5" x2="18.5" y2="11"/><path d="M5.5 13.5c2.2 3.2 10.8 3.2 13 0"/><circle cx="12" cy="19.5" r="1.7" fill="currentColor" stroke="none"/></svg>`,
+  gshutter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><rect x="3" y="4" width="18" height="5.2" rx="1" fill="currentColor" fill-opacity="0.22"/><rect x="3" y="14.8" width="18" height="5.2" rx="1" fill="currentColor" fill-opacity="0.22"/><line x1="3" y1="9.2" x2="21" y2="9.2"/><line x1="3" y1="14.8" x2="21" y2="14.8"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>`,
 
   // Explode
   assembled: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>`,
@@ -111,7 +113,7 @@ export class ZeroTextUI {
   constructor(rootEl, callbacks) {
     this.root = rootEl;
     this.cb = callbacks;
-    this.scale = 'zoom';
+    this.scale = 'gshutter';
     this.partsList = [];
     this.selectedId = null;
     this.hiddenSet = new Set();
@@ -148,7 +150,7 @@ export class ZeroTextUI {
   _buildDOM() {
     this.root.innerHTML = '';
 
-    // 1. TOP-LEFT SCALE SWITCH (14 Multiscale Modes — 400 Independent 3D CAD Parts!)
+    // 1. TOP-LEFT SCALE SWITCH (16 Multiscale Modes — 464 Independent 3D CAD Parts!)
     const scaleDock = this._el('div', 'scale-dock cad-glass');
     this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'));
     this.btnMicro = this._iconBtn(ICONS.micro, () => this.cb.onSwitchScale('micro'));
@@ -163,7 +165,9 @@ export class ZeroTextUI {
     this.btnSma = this._iconBtn(ICONS.sma, () => this.cb.onSwitchScale('sma'));
     this.btnLiquid = this._iconBtn(ICONS.liquid, () => this.cb.onSwitchScale('liquid'));
     this.btnTetra = this._iconBtn(ICONS.tetra, () => this.cb.onSwitchScale('tetra'));
-    this.btnZoom = this._iconBtn(ICONS.zoom, () => this.cb.onSwitchScale('zoom'), 'active');
+    this.btnZoom = this._iconBtn(ICONS.zoom, () => this.cb.onSwitchScale('zoom'));
+    this.btnMetalens = this._iconBtn(ICONS.metalens, () => this.cb.onSwitchScale('metalens'));
+    this.btnGshutter = this._iconBtn(ICONS.gshutter, () => this.cb.onSwitchScale('gshutter'), 'active');
     scaleDock.append(
       this.btnMacro,
       this.btnMicro,
@@ -178,7 +182,9 @@ export class ZeroTextUI {
       this.btnSma,
       this.btnLiquid,
       this.btnTetra,
-      this.btnZoom
+      this.btnZoom,
+      this.btnMetalens,
+      this.btnGshutter
     );
     this.root.appendChild(scaleDock);
 
@@ -396,7 +402,9 @@ export class ZeroTextUI {
     this.btnLiquid.classList.toggle('active', scale === 'liquid');
     this.btnTetra.classList.toggle('active', scale === 'tetra');
     this.btnZoom.classList.toggle('active', scale === 'zoom');
-    // Live demo button (OIS / Iris+AF+OIS / Flash+LiDAR / Prism-Tilt / Deep Iris / Micro-Iris / Sub-Micron / Quantum LiDAR / SMA / Liquid / Tetraprism / Continuous Zoom+Piezo)
+    this.btnMetalens.classList.toggle('active', scale === 'metalens');
+    this.btnGshutter.classList.toggle('active', scale === 'gshutter');
+    // Live demo button (all kinetic / active optical / semiconductor physics modes!)
     this.btnOis.style.display =
       scale === 'macro' ||
       scale === 'lens' ||
@@ -409,7 +417,9 @@ export class ZeroTextUI {
       scale === 'sma' ||
       scale === 'liquid' ||
       scale === 'tetra' ||
-      scale === 'zoom'
+      scale === 'zoom' ||
+      scale === 'metalens' ||
+      scale === 'gshutter'
         ? 'inline-flex'
         : 'none';
   }

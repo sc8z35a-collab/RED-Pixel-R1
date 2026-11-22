@@ -577,6 +577,68 @@ function createPztStackTexture() {
 }
 
 /**
+ * Phase 14: Concentric hyperbolic 0-2pi phase-wrapped TiO2 metalens optical zone texture.
+ */
+function createMetalensZoneTexture() {
+  const { c, ctx } = makeCanvas(512, 512);
+  const cx = 256, cy = 256;
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 512, 512);
+  for (let r = 254; r > 0; r -= 2) {
+    // Hyperbolic phase wrapping phi(r) ~ sqrt(r^2 + f^2) - f
+    const phi = ((Math.sqrt(r * r + 180 * 180) - 180) * 0.24) % 1.0;
+    const hue = 185 + phi * 105; // Cyan -> Sapphire -> Violet iridescent phase ring
+    const lum = 46 + phi * 28;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsl(${hue}, 88%, ${lum}%)`;
+    ctx.lineWidth = 2.4;
+    ctx.stroke();
+  }
+  return toTexture(c, true);
+}
+
+/**
+ * Phase 14: Sub-wavelength GaN/TiO2 photonic RGB color-router mosaic texture.
+ */
+function createMetaColorRouterTexture() {
+  const { c, ctx } = makeCanvas(256, 256);
+  const colors = ['#ef4444', '#10b981', '#10b981', '#3b82f6'];
+  const step = 16;
+  for (let y = 0; y < 256; y += step) {
+    for (let x = 0; x < 256; x += step) {
+      const idx = (((y / step) & 1) << 1) | ((x / step) & 1);
+      ctx.fillStyle = colors[idx];
+      ctx.fillRect(x + 1, y + 1, step - 2, step - 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.28)';
+      ctx.fillRect(x + 4, y + 4, step - 8, 2);
+      ctx.fillRect(x + 4, y + 9, step - 8, 2);
+    }
+  }
+  return toTexture(c, true);
+}
+
+/**
+ * Phase 15: High-modulus woven CFRP (50 um carbon-fiber epoxy) mechanical shutter blade texture.
+ */
+function createCarbonWeaveTexture() {
+  const { c, ctx } = makeCanvas(256, 256);
+  ctx.fillStyle = '#181e28';
+  ctx.fillRect(0, 0, 256, 256);
+  const s = 16;
+  for (let y = 0; y < 256; y += s) {
+    for (let x = 0; x < 256; x += s) {
+      const alt = (((x / s) + (y / s)) & 1) === 0;
+      ctx.fillStyle = alt ? '#2b3445' : '#11161f';
+      ctx.fillRect(x, y, s - 1, s - 1);
+      ctx.fillStyle = alt ? 'rgba(255,255,255,0.08)' : 'rgba(148,163,184,0.05)';
+      ctx.fillRect(x + 1, y + 2, s - 3, 4);
+    }
+  }
+  return toTexture(c, true);
+}
+
+/**
  * Material Library Factory with shared clipping planes & clean PBR parameters.
  */
 export function createMaterialLibrary(clippingPlanes) {
@@ -590,6 +652,9 @@ export function createMaterialLibrary(clippingPlanes) {
   const coilTex = createCopperCoilTexture();
   const encoderTex = createEncoderScaleTexture();
   const pztStackTex = createPztStackTexture();
+  const metalensZoneTex = createMetalensZoneTexture();
+  const colorRouterTex = createMetaColorRouterTexture();
+  const carbonWeaveTex = createCarbonWeaveTexture();
 
   const base = {
     clippingPlanes,
@@ -2390,6 +2455,221 @@ export function createMaterialLibrary(clippingPlanes) {
       iridescence: 0.72,
       iridescenceIOR: 1.85,
       depthWrite: false
+    }),
+
+    // === PHASE 14: FLAT TiO2 METALENS & 20,000x SUB-WAVELENGTH NANOPHOTONIC WAVEFRONT ===
+    mlFusedSilica: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe0f2fe,
+      emissive: 0x38bdf8,
+      emissiveIntensity: 0.08,
+      metalness: 0.04,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.34,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+      iridescence: 0.48,
+      iridescenceIOR: 1.46,
+      depthWrite: false
+    }),
+    mlMetaSurfaceM1: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: metalensZoneTex,
+      color: 0xffffff,
+      emissive: 0x0ea5e9,
+      emissiveIntensity: 0.14,
+      metalness: 0.25,
+      roughness: 0.14,
+      iridescence: 1.0,
+      iridescenceIOR: 2.50,
+      clearcoat: 1.0
+    }),
+    mlMetaSurfaceM2: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: metalensZoneTex,
+      color: 0xe0e7ff,
+      emissive: 0x6366f1,
+      emissiveIntensity: 0.22,
+      metalness: 0.30,
+      roughness: 0.12,
+      iridescence: 1.0,
+      iridescenceIOR: 2.55,
+      clearcoat: 1.0
+    }),
+    mlColorRouter: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: colorRouterTex,
+      color: 0xffffff,
+      emissive: 0x334155,
+      emissiveIntensity: 0.12,
+      metalness: 0.22,
+      roughness: 0.16,
+      iridescence: 0.92,
+      clearcoat: 0.9
+    }),
+    mlTio2PillarCenter: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x6366f1,
+      emissive: 0x4f46e5,
+      emissiveIntensity: 0.28,
+      metalness: 0.18,
+      roughness: 0.12,
+      iridescence: 1.0,
+      iridescenceIOR: 2.55,
+      clearcoat: 1.0
+    }),
+    mlTio2FinMid: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x0ea5e9,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.30,
+      metalness: 0.18,
+      roughness: 0.12,
+      iridescence: 0.95,
+      iridescenceIOR: 2.55,
+      clearcoat: 1.0
+    }),
+    mlTio2PillarEdge: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x14b8a6,
+      emissive: 0x0d9488,
+      emissiveIntensity: 0.28,
+      metalness: 0.18,
+      roughness: 0.14,
+      iridescence: 0.90,
+      iridescenceIOR: 2.50,
+      clearcoat: 1.0
+    }),
+    mlTio2IruCoupled: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x8b5cf6,
+      emissive: 0x7c3aed,
+      emissiveIntensity: 0.34,
+      metalness: 0.20,
+      roughness: 0.12,
+      iridescence: 1.0,
+      iridescenceIOR: 2.55,
+      clearcoat: 1.0
+    }),
+    mlWavePlane: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.56,
+      metalness: 0.08,
+      roughness: 0.14,
+      transparent: true,
+      opacity: 0.42,
+      clearcoat: 0.85,
+      depthWrite: false
+    }),
+    mlWaveSphere: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf59e0b,
+      emissive: 0xd97706,
+      emissiveIntensity: 0.54,
+      metalness: 0.08,
+      roughness: 0.14,
+      transparent: true,
+      opacity: 0.46,
+      clearcoat: 0.85,
+      depthWrite: false
+    }),
+    mlWaveGuideGlow: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xfde047,
+      emissive: 0xf59e0b,
+      emissiveIntensity: 0.85,
+      metalness: 0.10,
+      roughness: 0.18,
+      transparent: true,
+      opacity: 0.78,
+      depthWrite: false
+    }),
+    mlAirySpot: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf43f5e,
+      emissive: 0xe11d48,
+      emissiveIntensity: 0.90,
+      metalness: 0.15,
+      roughness: 0.10,
+      clearcoat: 1.0
+    }),
+    mlPhaseRibbon: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xd946ef,
+      emissive: 0xc026d3,
+      emissiveIntensity: 0.62,
+      metalness: 0.18,
+      roughness: 0.18
+    }),
+
+    // === PHASE 15: GLOBAL SHUTTER STACKED CMOS & 1/8,000s CARBON-FIBER MECHANICAL SHUTTER ===
+    gsCarbonFront: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: carbonWeaveTex,
+      color: 0xdbeafe,
+      metalness: 0.34,
+      roughness: 0.34,
+      clearcoat: 0.48
+    }),
+    gsCarbonRear: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: carbonWeaveTex,
+      color: 0xfef3c7,
+      metalness: 0.40,
+      roughness: 0.32,
+      clearcoat: 0.55
+    }),
+    gsTungstenShield: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x475569,
+      emissive: 0x1e293b,
+      emissiveIntensity: 0.12,
+      metalness: 0.92,
+      roughness: 0.24,
+      clearcoat: 0.45
+    }),
+    gsMemoryNode: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x0ea5e9,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.48,
+      metalness: 0.32,
+      roughness: 0.18,
+      clearcoat: 0.88
+    }),
+    gsGlobalTxGate: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x10b981,
+      emissive: 0x059669,
+      emissiveIntensity: 0.38,
+      metalness: 0.52,
+      roughness: 0.22,
+      clearcoat: 0.6
+    }),
+    gsElectronCloud: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf59e0b,
+      emissive: 0xea580c,
+      emissiveIntensity: 0.88,
+      metalness: 0.15,
+      roughness: 0.12,
+      clearcoat: 1.0
+    }),
+    gsElastomerBrake: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xe11d48,
+      metalness: 0.06,
+      roughness: 0.60
+    }),
+    gsTitaniumLink: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x94a3b8,
+      metalness: 0.90,
+      roughness: 0.20,
+      clearcoat: 0.55
     })
   };
 }
