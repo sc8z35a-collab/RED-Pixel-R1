@@ -1909,6 +1909,96 @@ export function createMaterialLibrary(clippingPlanes) {
       metalness: 0.62,
       roughness: 0.20,
       clearcoat: 0.8
+    }),
+
+    // === PHASE 10: ZERO-MAGNET 8-WIRE SMA (NiTiCu) ARTIFICIAL-MUSCLE ACTUATOR ===
+    smaWireWarm: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xf97316,
+      emissive: 0xea580c,
+      emissiveIntensity: 0.42,
+      metalness: 0.78,
+      roughness: 0.22
+    }),
+    smaWireCool: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.22,
+      metalness: 0.84,
+      roughness: 0.22
+    }),
+    smaCrimpGold: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xd99b26,
+      metalness: 0.95,
+      roughness: 0.18,
+      clearcoat: 0.35
+    }),
+    smaCommonCopper: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xd97745,
+      metalness: 0.94,
+      roughness: 0.20,
+      clearcoat: 0.30
+    }),
+    smaThermalBreak: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x7c3aed,
+      metalness: 0.14,
+      roughness: 0.38
+    }),
+    smaHeatsinkSteel: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x475569,
+      metalness: 0.88,
+      roughness: 0.28,
+      clearcoat: 0.25
+    }),
+    smaShuntPrecision: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x0f766e,
+      metalness: 0.25,
+      roughness: 0.36
+    }),
+    smaWireSkin: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x64748b,
+      metalness: 0.88,
+      roughness: 0.24,
+      iridescence: 0.55,
+      iridescenceIOR: 1.9
+    }),
+    smaMartensiteAtom: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x0284c7,
+      metalness: 0.55,
+      roughness: 0.20,
+      clearcoat: 0.7
+    }),
+    smaAusteniteAtom: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe11d48,
+      metalness: 0.60,
+      roughness: 0.18,
+      clearcoat: 0.8
+    }),
+    smaTiAtom: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe2e8f0,
+      metalness: 0.92,
+      roughness: 0.16
+    }),
+    smaPhaseFront: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xf59e0b,
+      emissive: 0xf97316,
+      emissiveIntensity: 0.68,
+      metalness: 0.15,
+      roughness: 0.20,
+      transparent: true,
+      opacity: 0.72,
+      depthWrite: false
     })
   };
 }

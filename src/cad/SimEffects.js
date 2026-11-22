@@ -57,6 +57,9 @@ export class SimEffects {
     } else if (mode === 'lidar') {
       this._buildLidarPhotonics();
       this._buildGuideLines(13.8, -8.8, [[-10.8, -5.2], [10.8, -5.2], [-10.8, 5.2], [10.8, 5.2]]);
+    } else if (mode === 'sma') {
+      this._buildSmaPhysics();
+      this._buildGuideLines(11.5, -8.5, [[-9.6, -6.5], [11.5, -6.5], [-9.6, 8.8], [11.5, 8.8]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -704,6 +707,68 @@ export class SimEffects {
     ], 0xfacc15, 0.78, 0.062, 2);
   }
 
+  _buildSmaPhysics() {
+    const X_ACT = -3.0;
+    const Z_ACT = -0.3;
+    const X_MIC = 8.4;
+    const Y_MIC = 0.65;
+
+    // 1. Emerald Optical Chief Rays passing cleanly through the floating 1-inch glass lens payload!
+    for (const [ox, oz] of [[0, 0], [1.45, 0], [-1.45, 0], [0, 1.45], [0, -1.45]]) {
+      this._addRay([
+        new THREE.Vector3(X_ACT + ox * 1.12, 8.6, Z_ACT + oz * 1.12),
+        new THREE.Vector3(X_ACT + ox * 0.96, 2.65, Z_ACT + oz * 0.96),
+        new THREE.Vector3(X_ACT + ox * 0.78, 1.25, Z_ACT + oz * 0.78),
+        new THREE.Vector3(X_ACT + ox * 0.62, -0.10, Z_ACT + oz * 0.62),
+        new THREE.Vector3(X_ACT + ox * 0.28, -5.2, Z_ACT + oz * 0.28)
+      ], 0x10b981, 0.84, 0.072, 3);
+    }
+
+    // 2. Blazing Orange PWM Joule-Heating Drive Current (I_PWM: CM824 ASIC -> 0.1% Shunts -> Static Crimps -> Hot Pulling SMA Wires -> Common Ring!)
+    this._addRay([
+      new THREE.Vector3(X_ACT - 1.85, -1.82, Z_ACT + 7.45), // CM824 ASIC
+      new THREE.Vector3(X_ACT + 1.25, -2.02, Z_ACT + 7.15), // 0.1% Precision Shunt Bank
+      new THREE.Vector3(X_ACT + 3.75, -1.42, Z_ACT + 5.56), // +Z Front Static Crimp
+      new THREE.Vector3(X_ACT - 2.55, 2.48, Z_ACT + 5.26),  // Up +Z Pulling SMA Wire!
+      new THREE.Vector3(X_ACT - 2.55, 2.64, Z_ACT + 4.82)   // Into Moving Common Power Ring
+    ], 0xf97316, 0.88, 0.068, 3);
+
+    this._addRay([
+      new THREE.Vector3(X_ACT - 1.85, -1.82, Z_ACT + 7.45), // CM824 ASIC
+      new THREE.Vector3(X_ACT + 2.65, -2.02, Z_ACT + 6.95), // 0.1% Precision Shunt Bank
+      new THREE.Vector3(X_ACT + 5.56, -1.42, Z_ACT + 3.75), // +X Right Static Crimp
+      new THREE.Vector3(X_ACT + 5.26, 2.48, Z_ACT - 2.55),  // Up +X Pulling SMA Wire!
+      new THREE.Vector3(X_ACT + 4.80, 2.64, Z_ACT - 2.55)   // Into Moving Common Power Ring
+    ], 0xf97316, 0.88, 0.068, 3);
+
+    // 3. Cyan >10 kHz Elastoresistive Self-Sensing (R = ρ·L/A) Return Loop (Zero Hall Sensors!)
+    this._addRay([
+      new THREE.Vector3(X_ACT - 4.78, 2.64, Z_ACT + 4.20),  // Moving Common Ring corner
+      new THREE.Vector3(X_ACT - 5.45, 0.45, Z_ACT + 5.45),  // Down S-Curve BeCu Common Flexure
+      new THREE.Vector3(X_ACT - 4.40, -2.05, Z_ACT + 6.80), // Across PCB sense bus
+      new THREE.Vector3(X_ACT - 1.85, -1.82, Z_ACT + 7.45)  // Back to CM824 14-bit ADC!
+    ], 0x06b6d4, 0.86, 0.065, 3);
+
+    // Kelvin 4-Wire Self-Sensing Micro-Current across Right-Side 120x Magnified NiTiCu Wire Cutaway!
+    this._addRay([
+      new THREE.Vector3(X_MIC, Y_MIC + 2.75, 4.18),         // Upper Gold Kelvin Needle
+      new THREE.Vector3(X_MIC, Y_MIC + 1.55, 4.18),         // Electrode Ring
+      new THREE.Vector3(X_MIC, Y_MIC, 2.58),                // Rigid Cubic Austenite Zone (low R!)
+      new THREE.Vector3(X_MIC, Y_MIC, 0.92),                // Glowing Phase Front
+      new THREE.Vector3(X_MIC, Y_MIC, -0.78),               // Sheared Monoclinic Martensite Zone (high R!)
+      new THREE.Vector3(X_MIC, Y_MIC, -3.55)                // Into 150° Folded Micro-Crimp Jaw!
+    ], 0x06b6d4, 0.85, 0.068, 3);
+
+    // 4. Amber Patented GB2607269A Tapered-Gap Rapid Heat Dissipation Arrows (Wire Midspan -> Tapered Heat Sink Fins!)
+    for (const [p0, p1] of [
+      [new THREE.Vector3(X_ACT + 5.35, 0.55, Z_ACT + 0.35), new THREE.Vector3(X_ACT + 6.55, 0.55, Z_ACT + 0.35)],
+      [new THREE.Vector3(X_ACT + 0.35, 0.55, Z_ACT + 5.35), new THREE.Vector3(X_ACT + 0.35, 0.55, Z_ACT + 6.55)],
+      [new THREE.Vector3(X_ACT - 5.35, 0.55, Z_ACT - 0.35), new THREE.Vector3(X_ACT - 6.65, 0.55, Z_ACT - 0.35)]
+    ]) {
+      this._addRay([p0, p1], 0xf59e0b, 0.84, 0.062, 2);
+    }
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -741,6 +806,17 @@ export class SimEffects {
   }
 
   update(dt, elapsed, partsMap, explodeT) {
+    // Lazily initialize zero-GC reusable math scratch objects for Phase 10 SMA live kinematics
+    if (!this._smaUp) {
+      this._smaUp = new THREE.Vector3(0, 1, 0);
+      this._smaPtB = new THREE.Vector3();
+      this._smaDir = new THREE.Vector3();
+      this._smaCoolColor = new THREE.Color(0x38bdf8);
+      this._smaHotColor = new THREE.Color(0xf97316);
+      this._smaCoolEmissive = new THREE.Color(0x0284c7);
+      this._smaHotEmissive = new THREE.Color(0xea580c);
+    }
+
     // Animate photon & electron pulses
     if (this.opticsEnabled) {
       for (const p of this.photonPulses) {
@@ -758,6 +834,7 @@ export class SimEffects {
     //  - Iris: Extreme 4x 32-Part Watchwork Micro-Iris (Dual-VCM Balanced Cam + 6 Rolling Balls + 3-Tier Blades + Dimples + Pins!)
     //  - IrisNano: Sub-Micron Cam Slot Push + Counter-Sliding Tier-1/Tier-2 Blades + 0.5x Rolling Y-TZP Ceramic Ball!
     //  - LiDAR: 940 nm Multi-Junction VCSEL Laser Pulse Burst + Delayed Geiger-Mode SPAD Single-Photon Avalanche Flashes!
+    //  - SMA: 8-Wire Antagonistic NiTiCu Artificial-Muscle 5-Axis Motion + Real-Time Hot Austenite <-> Cool Martensite Glow + Phase Front!
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
     const decoAct = this.oisEnabled && this.mode === 'deco';
@@ -766,6 +843,7 @@ export class SimEffects {
     const irisMicroAct = this.oisEnabled && this.mode === 'iris';
     const irisNanoAct = this.oisEnabled && this.mode === 'iris_nano';
     const lidarAct = this.oisEnabled && this.mode === 'lidar';
+    const smaAct = this.oisEnabled && this.mode === 'sma';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
@@ -797,13 +875,19 @@ export class SimEffects {
     // Phase 9 LiDAR sharp sub-nanosecond VCSEL laser burst + delayed Time-of-Flight Geiger avalanche cascade
     const lidarPulse = lidarAct ? (0.35 + 2.35 * Math.pow(0.5 + 0.5 * Math.sin(elapsed * 7.5), 8)) : 0.62;
 
+    // Phase 10 8-Wire SMA 5-Axis OIS + AF floating lens carrier kinematics + moving crystal transformation front
+    const smaDx = smaAct ? Math.sin(elapsed * 2.2) * 0.44 : 0;
+    const smaDy = smaAct ? Math.sin(elapsed * 1.45) * 0.42 : 0;
+    const smaDz = smaAct ? Math.cos(elapsed * 1.85) * 0.40 : 0;
+    const smaFrontDz = smaAct ? Math.sin(elapsed * 2.2) * 0.62 : 0;
+
     for (const entry of partsMap.values()) {
       const ex = entry.basePos.x + entry.explodeVec.x * explodeT;
       const ey = entry.basePos.y + entry.explodeVec.y * explodeT;
       const ez = entry.basePos.z + entry.explodeVec.z * explodeT;
 
       let dx = (entry.oisMoving && (macroOis || lensAct)) ? oisX : 0;
-      const dy = (entry.afMoving && lensAct) ? afStrokeY : 0;
+      let dy = (entry.afMoving && lensAct) ? afStrokeY : 0;
       let dz = (entry.oisMoving && (macroOis || lensAct)) ? oisZ : 0;
 
       // Periscope horizontal long-stroke floating tele-macro AF + 0.5x rolling ceramic ball bearings
@@ -820,6 +904,17 @@ export class SimEffects {
         else if (entry.nanoLowerBlade) dx += nanoLowerX;
         else if (entry.nanoUpperRace) dz += nanoRaceZ;
         else if (entry.nanoBall || entry.nanoBallFollow) dz += nanoBallZ;
+      }
+
+      // Phase 10 SMA 5-axis floating lens carrier + moving Martensite<->Austenite phase transformation front
+      if (smaAct) {
+        if (entry.smaMovingCarrier) {
+          dx += smaDx;
+          dy += smaDy;
+          dz += smaDz;
+        } else if (entry.smaPhaseFront) {
+          dz += smaFrontDz;
+        }
       }
 
       entry.group.position.set(ex + dx, ey + dy, ez + dz);
@@ -911,6 +1006,50 @@ export class SimEffects {
             cell.material.emissiveIntensity = 0.28 + flash * 2.45;
           } else {
             cell.material.emissiveIntensity = 0.54;
+          }
+        }
+      }
+
+      // Live Phase 10 Dynamic 8-Wire SMA Endpoint Re-Aiming + Real-Time Hot Austenite <-> Cool Martensite Thermal Glow!
+      if (entry.group.userData.smaWires) {
+        for (const wMesh of entry.group.userData.smaWires) {
+          const d = wMesh.userData.smaWireDef;
+          this._smaPtB.copy(d.pMovingRest);
+          if (smaAct) {
+            this._smaPtB.x += smaDx;
+            this._smaPtB.y += smaDy;
+            this._smaPtB.z += smaDz;
+          }
+          this._smaDir.copy(this._smaPtB).sub(d.pStatic);
+          const len = this._smaDir.length();
+          wMesh.position.copy(d.pStatic).add(this._smaPtB).multiplyScalar(0.5);
+          wMesh.scale.set(1, len, 1);
+          if (len > 1e-5) {
+            wMesh.quaternion.setFromUnitVectors(this._smaUp, this._smaDir.divideScalar(len));
+          }
+          if (smaAct) {
+            // Exact tensegrity physics: wire shortening (deltaL < 0) = Joule-heated Austenite glow; stretching = cool Martensite!
+            const deltaL = len - d.restLen;
+            const heat = THREE.MathUtils.clamp(0.5 - deltaL * 1.25, 0, 1);
+            d.wireMat.color.lerpColors(this._smaCoolColor, this._smaHotColor, heat);
+            d.wireMat.emissive.lerpColors(this._smaCoolEmissive, this._smaHotEmissive, heat);
+            d.wireMat.emissiveIntensity = 0.22 + heat * 0.88;
+            if (wMesh.userData.solidHighlightMat) {
+              wMesh.userData.solidHighlightMat.color.copy(d.wireMat.color);
+              wMesh.userData.solidHighlightMat.emissive.copy(d.wireMat.emissive);
+              wMesh.userData.solidHighlightMat.emissiveIntensity = d.wireMat.emissiveIntensity;
+            }
+          } else {
+            d.wireMat.color.copy(d.defaultWarm ? this._smaHotColor : this._smaCoolColor);
+            d.wireMat.emissive.copy(d.defaultWarm ? this._smaHotEmissive : this._smaCoolEmissive);
+            d.wireMat.emissiveIntensity = d.defaultWarm ? 0.42 : 0.22;
+            if (wMesh.userData.solidHighlightMat) {
+              wMesh.userData.solidHighlightMat.color.copy(d.wireMat.color);
+            }
+            if (wMesh.userData.baseEmissiveHex !== undefined) {
+              wMesh.userData.baseEmissiveHex = d.defaultWarm ? 0xea580c : 0x0284c7;
+              wMesh.userData.baseEmissiveInt = d.defaultWarm ? 0.42 : 0.22;
+            }
           }
         }
       }
