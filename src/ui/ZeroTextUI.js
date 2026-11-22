@@ -9,6 +9,7 @@ const ICONS = {
   lens: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></svg>`,
   deco: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><circle cx="10.2" cy="11.4" r="4.2"/><circle cx="17.2" cy="9.2" r="1.5" fill="currentColor" stroke="none"/><circle cx="17.2" cy="14.2" r="1.5"/><circle cx="12.5" cy="17.8" r="1" fill="currentColor" stroke="none"/></svg>`,
   periscope: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 8 12 8 12 16" fill="currentColor" fill-opacity="0.16"/><path d="M8 2.5V12H19.5"/><line x1="16" y1="8.5" x2="16" y2="15.5"/><rect x="19.5" y="7.5" width="2.2" height="9" rx="0.8" fill="currentColor" stroke="none"/></svg>`,
+  aperture: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3.2 19.6 7.6 19.6 16.4 12 20.8 4.4 16.4 4.4 7.6"/><polygon points="12 7.4 16 9.7 16 14.3 12 16.6 8 14.3 8 9.7" fill="currentColor" fill-opacity="0.18"/><line x1="12" y1="3.2" x2="12" y2="7.4"/><line x1="19.6" y1="7.6" x2="16" y2="9.7"/><line x1="19.6" y1="16.4" x2="16" y2="14.3"/><line x1="12" y1="20.8" x2="12" y2="16.6"/><line x1="4.4" y1="16.4" x2="8" y2="14.3"/><line x1="4.4" y1="7.6" x2="8" y2="9.7"/></svg>`,
 
   // Explode
   assembled: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>`,
@@ -136,15 +137,16 @@ export class ZeroTextUI {
   _buildDOM() {
     this.root.innerHTML = '';
 
-    // 1. TOP-LEFT SCALE SWITCH (Macro / Micro / Layer-2 / Optical Lens / Exterior Deco / Periscope Prism)
+    // 1. TOP-LEFT SCALE SWITCH (7 Multiscale Modes — 180 Independent 3D CAD Parts!)
     const scaleDock = this._el('div', 'scale-dock cad-glass');
     this.btnMacro = this._iconBtn(ICONS.macro, () => this.cb.onSwitchScale('macro'));
     this.btnMicro = this._iconBtn(ICONS.micro, () => this.cb.onSwitchScale('micro'));
     this.btnLayer2 = this._iconBtn(ICONS.layer2, () => this.cb.onSwitchScale('layer2'));
     this.btnLens = this._iconBtn(ICONS.lens, () => this.cb.onSwitchScale('lens'));
     this.btnDeco = this._iconBtn(ICONS.deco, () => this.cb.onSwitchScale('deco'));
-    this.btnPeriscope = this._iconBtn(ICONS.periscope, () => this.cb.onSwitchScale('periscope'), 'active');
-    scaleDock.append(this.btnMacro, this.btnMicro, this.btnLayer2, this.btnLens, this.btnDeco, this.btnPeriscope);
+    this.btnPeriscope = this._iconBtn(ICONS.periscope, () => this.cb.onSwitchScale('periscope'));
+    this.btnAperture = this._iconBtn(ICONS.aperture, () => this.cb.onSwitchScale('aperture'), 'active');
+    scaleDock.append(this.btnMacro, this.btnMicro, this.btnLayer2, this.btnLens, this.btnDeco, this.btnPeriscope, this.btnAperture);
     this.root.appendChild(scaleDock);
 
     // 2. LEFT VISUAL LAYER DISSECTION DOCK (ZERO TEXT — Color Bars + Category Glyphs + Eye Toggles)
@@ -347,9 +349,12 @@ export class ZeroTextUI {
     this.btnLens.classList.toggle('active', scale === 'lens');
     this.btnDeco.classList.toggle('active', scale === 'deco');
     this.btnPeriscope.classList.toggle('active', scale === 'periscope');
-    // Live demo button (OIS in macro / Iris+AF+OIS in lens / Flash+LiDAR in deco / Prism-Tilt OIS+Tele-Macro in periscope)
+    this.btnAperture.classList.toggle('active', scale === 'aperture');
+    // Live demo button (OIS / Iris+AF+OIS / Flash+LiDAR / Prism-Tilt+Tele-Macro / Deep Interleaved Iris Cam)
     this.btnOis.style.display =
-      scale === 'macro' || scale === 'lens' || scale === 'deco' || scale === 'periscope' ? 'inline-flex' : 'none';
+      scale === 'macro' || scale === 'lens' || scale === 'deco' || scale === 'periscope' || scale === 'aperture'
+        ? 'inline-flex'
+        : 'none';
   }
 
   setIsolateUI(active) {

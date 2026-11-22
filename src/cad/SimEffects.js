@@ -45,6 +45,9 @@ export class SimEffects {
     } else if (mode === 'periscope') {
       this._buildPeriscopeOptics();
       this._buildPeriscopeGuideLines();
+    } else if (mode === 'aperture') {
+      this._buildApertureOptics();
+      this._buildGuideLines(17.5, -15.5, [[-11.5, -11.5], [11.5, -11.5], [-11.5, 11.5], [11.5, 11.5]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -495,6 +498,64 @@ export class SimEffects {
     }
   }
 
+  _buildApertureOptics() {
+    // 1. Emerald Core Rays (f/4.0 Paraxial Bundle): thread straight through the stopped-down 6-blade hexagonal iris!
+    const coreOffsets = [
+      { x: 0, z: 0 },
+      { x: 1.85, z: 0 },
+      { x: -1.85, z: 0 },
+      { x: 0, z: 1.85 },
+      { x: 0, z: -1.85 }
+    ];
+    for (const o of coreOffsets) {
+      this._addRay([
+        new THREE.Vector3(o.x * 1.15, 11.2, o.z * 1.15),
+        new THREE.Vector3(o.x * 1.12, 6.25, o.z * 1.12), // L1 Moth-Eye & ALD Coat
+        new THREE.Vector3(o.x * 1.02, 4.75, o.z * 1.02), // L1 Lanthanum Glass + Hybrid UV Layer
+        new THREE.Vector3(o.x * 0.86, 1.35, o.z * 0.86), // Threading cleanly through 6-Blade Iris Opening!
+        new THREE.Vector3(o.x * 0.72, -0.78, o.z * 0.72), // L2 Flint Interlock
+        new THREE.Vector3(o.x * 0.52, -2.55, o.z * 0.52), // L3 APEL Crown
+        new THREE.Vector3(o.x * 0.30, -4.62, o.z * 0.30), // L4 Gullwing Field Flattener
+        new THREE.Vector3(0, -8.8, 0)                     // Sharp Focal Point below L4!
+      ], 0x10b981, 0.84, 0.095, 3);
+    }
+
+    // 2. Royal-Blue Oblique Field Rays passing through the optical stop at L1/L2 junction & steered by L4 Gullwing
+    for (const s of [-1, 1]) {
+      this._addRay([
+        new THREE.Vector3(s * -4.2, 11.0, s * 2.4),
+        new THREE.Vector3(s * -2.2, 6.1, s * 1.25),
+        new THREE.Vector3(s * -0.9, 4.4, s * 0.52),
+        new THREE.Vector3(s * 0.35, 1.35, s * -0.20),    // Crossing center of 6-blade iris!
+        new THREE.Vector3(s * 1.65, -0.78, s * -0.95),
+        new THREE.Vector3(s * 2.95, -2.55, s * -1.70),
+        new THREE.Vector3(s * 4.35, -4.62, s * -2.52),   // L4 Gullwing inflection bends rays vertically!
+        new THREE.Vector3(s * 4.95, -8.8, s * -2.86)
+      ], 0x2563eb, 0.80, 0.088, 3);
+    }
+
+    // 3. Amber-Orange Marginal Rays (f/1.42 outer pupil) intercepted & cleanly blocked by the 6 DLC knife-edge blades at Y=+1.42!
+    const stopAngles = [0.25, 1.30, 2.35, 3.40, 4.45, 5.50];
+    for (const a of stopAngles) {
+      const rIn = 4.65;
+      const rHit = 3.85;
+      this._addRay([
+        new THREE.Vector3(Math.cos(a) * (rIn + 0.5), 10.8, Math.sin(a) * (rIn + 0.5)),
+        new THREE.Vector3(Math.cos(a) * rIn, 5.95, Math.sin(a) * rIn),
+        new THREE.Vector3(Math.cos(a) * (rIn - 0.35), 4.45, Math.sin(a) * (rIn - 0.35)),
+        new THREE.Vector3(Math.cos(a) * rHit, 1.48, Math.sin(a) * rHit) // Stopped right on the 6 DLC iris blades!
+      ], 0xf59e0b, 0.78, 0.082, 2);
+    }
+
+    // 4. Magenta Grazing Off-Axis Stray-Light Rays trapped & extinguished by Serrated Baffles / Edge Blackening!
+    this._addRay([
+      new THREE.Vector3(5.8, 10.6, -4.6),
+      new THREE.Vector3(-4.2, 5.8, -5.2),
+      new THREE.Vector3(-7.6, 4.6, -2.4),  // Strikes L1 Edge Blackening / Inner Serrated Baffle & dies!
+      new THREE.Vector3(-8.1, 3.5, -1.8)
+    ], 0xd946ef, 0.82, 0.085, 2);
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -545,16 +606,21 @@ export class SimEffects {
     //  - Lens: 6-Blade Stepless Iris (f/1.63 <-> f/4.0) + Ball-Guide AF Z + OIS XY
     //  - Deco: Adaptive 9-LED Flash (Wide outer-8 <-> Telephoto center spot) + 940nm VCSEL Laser pulse
     //  - Periscope: 2-Axis Prism-Tilt OIS (Pitch+Yaw) + 3.1 mm Horizontal Floating Tele-Macro AF + 0.5x Rolling ZrO2 Balls!
+    //  - Aperture: Ultra-Deep 6-Blade Interleaved Stepless Iris (f/1.42 <-> f/4.0) + Real Pierced Cam Rotor + 0.5x Thrust Balls!
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
     const decoAct = this.oisEnabled && this.mode === 'deco';
     const periAct = this.oisEnabled && this.mode === 'periscope';
+    const apAct = this.oisEnabled && this.mode === 'aperture';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
     const oisRoll = macroOis ? Math.sin(elapsed * 2.2) * 0.045 : 0;
     const afStrokeY = lensAct ? Math.sin(elapsed * 1.9) * 0.42 : 0;
     const irisNorm = lensAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.35)) : null;
+
+    // Phase 6 Deep Variable Aperture smooth stepless F-stop sweep: 0 = f/1.42 (Wide Open), 1 = f/4.0 (Stopped Down)
+    const apNorm = apAct ? (0.5 - 0.5 * Math.cos(elapsed * 1.15)) : null;
 
     // Periscope live actuation kinematics (zero collisions verified across full 3.1 mm stroke!)
     const periStrokeX = periAct ? (0.45 + 1.55 * Math.sin(elapsed * 1.35)) : 0;
@@ -585,6 +651,14 @@ export class SimEffects {
 
       if (entry.prismTiltMoving) {
         entry.group.rotation.set(0, prismYaw, prismPitch);
+      } else if (entry.isDeepIrisCam) {
+        const u = entry.group.userData;
+        const rotY = apAct ? (u.camRotMin + apNorm * (u.camRotMax - u.camRotMin)) : u.camRotRest;
+        entry.group.rotation.set(0, rotY, 0);
+      } else if (entry.isDeepIrisBalls) {
+        const u = entry.group.userData;
+        const rotY = apAct ? (u.camRotMin + apNorm * (u.camRotMax - u.camRotMin)) * 0.5 : u.camRotRest * 0.5;
+        entry.group.rotation.set(0, rotY, 0);
       } else if (entry.oisMoving && macroOis) {
         entry.group.rotation.set(0, oisRoll, 0);
       } else if (entry.group.userData.isIrisCamRing) {
@@ -593,11 +667,20 @@ export class SimEffects {
         entry.group.rotation.set(0, 0, 0);
       }
 
-      // Live 6-blade stepless variable aperture articulation (Lens mode)
+      // Live 6-blade stepless variable aperture articulation (Phase 3 Lens mode)
       if (entry.group.userData.irisBlades) {
         for (const pivot of entry.group.userData.irisBlades) {
           const swing = lensAct ? (0.02 + irisNorm * 0.48) : pivot.userData.restSwing;
           pivot.rotation.y = pivot.userData.baseAzimuth + swing;
+        }
+      }
+
+      // Live 6-blade interleaved stepless variable aperture (Phase 6 Deep Dissection — exact spiral cam coupling!)
+      if (entry.group.userData.deepIrisBlades) {
+        for (const pivot of entry.group.userData.deepIrisBlades) {
+          const u = pivot.userData;
+          const swing = apAct ? (u.swingMin + apNorm * (u.swingMax - u.swingMin)) : u.restSwing;
+          pivot.rotation.y = u.baseAzimuth + swing;
         }
       }
 

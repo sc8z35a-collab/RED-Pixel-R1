@@ -1450,6 +1450,69 @@ export function createMaterialLibrary(clippingPlanes) {
       color: 0x0f766e,
       metalness: 0.58,
       roughness: 0.28
+    }),
+
+    // === PHASE 6: ULTRA-DEEP VARIABLE APERTURE & LENS MICRO-ANATOMY ===
+    apBladeDlc: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x171e29,
+      metalness: 0.76,
+      roughness: 0.24,
+      clearcoat: 0.42,
+      clearcoatRoughness: 0.18
+    }),
+    apBladeLowerDlc: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x2b394d,
+      metalness: 0.78,
+      roughness: 0.26,
+      clearcoat: 0.42,
+      clearcoatRoughness: 0.18
+    }),
+    apPtfeShim: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xdff6ff,
+      metalness: 0.04,
+      roughness: 0.16,
+      transparent: true,
+      opacity: 0.80,
+      clearcoat: 0.65
+    }),
+    apStopElastomer: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xf97316,
+      metalness: 0.04,
+      roughness: 0.66
+    }),
+    lensHybridResin: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      metalness: 0.06,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.46,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.03,
+      iridescence: 0.75,
+      iridescenceIOR: 1.56,
+      depthWrite: false
+    }),
+    lensMothEyeNano: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x10b981,
+      metalness: 0.16,
+      roughness: 0.10,
+      transparent: true,
+      opacity: 0.78,
+      clearcoat: 1.0,
+      iridescence: 1.0,
+      iridescenceIOR: 1.32
+    }),
+    lensVentCyan: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x06b6d4,
+      metalness: 0.82,
+      roughness: 0.22
     })
   };
 }
