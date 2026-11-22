@@ -54,6 +54,9 @@ export class SimEffects {
     } else if (mode === 'iris_nano') {
       this._buildIrisNanoPhysics();
       this._buildGuideLines(9.6, -7.2, [[-10.6, -2.6], [10.6, -2.6], [-10.6, 5.6], [10.6, 5.6]]);
+    } else if (mode === 'lidar') {
+      this._buildLidarPhotonics();
+      this._buildGuideLines(13.8, -8.8, [[-10.8, -5.2], [10.8, -5.2], [-10.8, 5.2], [10.8, 5.2]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -643,6 +646,64 @@ export class SimEffects {
     }
   }
 
+  _buildLidarPhotonics() {
+    const X_TX = -5.4;
+    const X_RX = 5.4;
+
+    // 1. Crimson 940 nm VCSEL Emission: MQW -> AlOx aperture -> Collimator -> Quartz DOE -> 5-Beam Structured Dot Fan!
+    const doeFanDirs = [
+      [-3.8, -2.0],
+      [-2.2, 2.2],
+      [0.0, 0.0],
+      [2.2, -2.1],
+      [3.6, 2.0]
+    ];
+    for (const [dx, dz] of doeFanDirs) {
+      this._addRay([
+        new THREE.Vector3(X_TX, 0.25, 0.0),                        // Multi-junction MQW gain core
+        new THREE.Vector3(X_TX + dx * 0.22, 3.98, dz * 0.22),      // Collimated by Aspheric Glass Lens
+        new THREE.Vector3(X_TX + dx * 0.34, 6.22, dz * 0.34),      // Multi-level Quartz DOE diffraction step!
+        new THREE.Vector3(X_TX + dx * 1.18, 12.6, dz * 1.18)       // Structured 3D infrared dot fan into room!
+      ], 0xe11d48, 0.84, 0.072, 3);
+    }
+
+    // 2. Amber Eye-Safety Back-Reflection Ray from Quartz DOE underside -> Tilted Monitor PD!
+    this._addRay([
+      new THREE.Vector3(X_TX + 0.65, 5.82, -0.55),
+      new THREE.Vector3(X_TX + 3.45, 2.38, -1.55)
+    ], 0xf59e0b, 0.82, 0.055, 2);
+
+    // 3. Electric-Magenta Returning 940 nm Target Echo Photons -> Bandpass Filter -> 4P Lens -> Dual-Diffraction Zig-Zag -> SPAD Avalanche -> Cu-Cu -> 10 ps TDC!
+    const rxBeams = [
+      { topX: X_RX - 2.6, topZ: -1.4, pixX: X_RX - 1.76, pixZ: 0.0 },
+      { topX: X_RX + 0.2, topZ: 0.4,  pixX: X_RX,        pixZ: 0.0 },
+      { topX: X_RX + 2.4, topZ: 1.4,  pixX: X_RX + 1.76, pixZ: 0.0 }
+    ];
+    for (const b of rxBeams) {
+      this._addRay([
+        new THREE.Vector3(b.topX, 12.6, b.topZ),                   // Returning target echo photon
+        new THREE.Vector3(X_RX + (b.topX - X_RX) * 0.62, 6.32, b.topZ * 0.62), // Passes 940nm Bandpass Filter!
+        new THREE.Vector3(X_RX + (b.topX - X_RX) * 0.48, 4.16, b.topZ * 0.48), // Focused by L1/L2/L3/L4
+        new THREE.Vector3(b.pixX, 0.72, b.pixZ),                   // OCL + Sony PSD inverted pyramid!
+        new THREE.Vector3(b.pixX + 0.35, -0.15, b.pixZ + 0.22),    // Obliquely diffracted inside deep Si!
+        new THREE.Vector3(b.pixX, -0.58, b.pixZ),                  // Triggers 24V Geiger-Mode Avalanche!
+        new THREE.Vector3(b.pixX, -2.02, b.pixZ)                   // Streams through Cu-Cu -> Quench -> 10 ps TDC!
+      ], 0xd946ef, 0.84, 0.070, 3);
+    }
+
+    // 4. Solar Visible-Light Noise Rays (Blue & Yellow) REJECTED cleanly off top of 940 nm Narrowband Bandpass Filter!
+    this._addRay([
+      new THREE.Vector3(X_RX - 4.2, 11.8, 2.2),
+      new THREE.Vector3(X_RX - 1.4, 6.50, 0.8),
+      new THREE.Vector3(X_RX + 2.2, 11.2, -1.2)
+    ], 0x38bdf8, 0.78, 0.062, 2);
+    this._addRay([
+      new THREE.Vector3(X_RX + 3.8, 11.6, -2.4),
+      new THREE.Vector3(X_RX + 1.3, 6.50, -0.9),
+      new THREE.Vector3(X_RX - 2.0, 11.0, 1.4)
+    ], 0xfacc15, 0.78, 0.062, 2);
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -696,6 +757,7 @@ export class SimEffects {
     //  - Aperture: Ultra-Deep 6-Blade Interleaved Stepless Iris (f/1.42 <-> f/4.0) + Real Pierced Cam Rotor + 0.5x Thrust Balls!
     //  - Iris: Extreme 4x 32-Part Watchwork Micro-Iris (Dual-VCM Balanced Cam + 6 Rolling Balls + 3-Tier Blades + Dimples + Pins!)
     //  - IrisNano: Sub-Micron Cam Slot Push + Counter-Sliding Tier-1/Tier-2 Blades + 0.5x Rolling Y-TZP Ceramic Ball!
+    //  - LiDAR: 940 nm Multi-Junction VCSEL Laser Pulse Burst + Delayed Geiger-Mode SPAD Single-Photon Avalanche Flashes!
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
     const decoAct = this.oisEnabled && this.mode === 'deco';
@@ -703,6 +765,7 @@ export class SimEffects {
     const apAct = this.oisEnabled && this.mode === 'aperture';
     const irisMicroAct = this.oisEnabled && this.mode === 'iris';
     const irisNanoAct = this.oisEnabled && this.mode === 'iris_nano';
+    const lidarAct = this.oisEnabled && this.mode === 'lidar';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
@@ -730,6 +793,9 @@ export class SimEffects {
     // Adaptive flash cycle: 0 = Wide-Angle Outer 8 LEDs, 1 = Telephoto Center Spot LED
     const flashBlend = decoAct ? (0.5 + 0.5 * Math.sin(elapsed * 1.6)) : null;
     const vcselPulse = decoAct ? (0.45 + 0.95 * Math.pow(0.5 + 0.5 * Math.sin(elapsed * 9.0), 4)) : 0.48;
+
+    // Phase 9 LiDAR sharp sub-nanosecond VCSEL laser burst + delayed Time-of-Flight Geiger avalanche cascade
+    const lidarPulse = lidarAct ? (0.35 + 2.35 * Math.pow(0.5 + 0.5 * Math.sin(elapsed * 7.5), 8)) : 0.62;
 
     for (const entry of partsMap.values()) {
       const ex = entry.basePos.x + entry.explodeVec.x * explodeT;
@@ -829,6 +895,24 @@ export class SimEffects {
       // Live 940nm VCSEL Laser pulse modulation (Deco mode)
       if (entry.group.userData.vcselMat) {
         entry.group.userData.vcselMat.emissiveIntensity = vcselPulse;
+      }
+
+      // Live Phase 9 Multi-Junction VCSEL pulse & delayed Geiger-Mode SPAD single-photon avalanche flashes!
+      if (entry.group.userData.vcselPulseMat) {
+        entry.group.userData.vcselPulseMat.emissiveIntensity = lidarPulse;
+      }
+      if (entry.group.userData.spadAvalancheCells) {
+        for (const cell of entry.group.userData.spadAvalancheCells) {
+          if (lidarAct) {
+            // Delayed phase offset per cell simulating returning photon arrival times + 6 ns quench/recharge!
+            const idx = cell.userData.spadCellIdx || 0;
+            const phase = elapsed * 7.5 - 1.15 - idx * 0.42;
+            const flash = Math.pow(0.5 + 0.5 * Math.sin(phase), 10);
+            cell.material.emissiveIntensity = 0.28 + flash * 2.45;
+          } else {
+            cell.material.emissiveIntensity = 0.54;
+          }
+        }
       }
     }
 

@@ -1748,6 +1748,167 @@ export function createMaterialLibrary(clippingPlanes) {
       metalness: 0.95,
       roughness: 0.18,
       clearcoat: 0.48
+    }),
+
+    // === PHASE 9: QUANTUM dToF LiDAR (940nm VCSEL + ITO DOE + 3D-STACKED BSI SPAD) ===
+    ldCeramicHousing: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x333c4b,
+      metalness: 0.16,
+      roughness: 0.48
+    }),
+    ldAlNSubmount: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xe6ecf3,
+      metalness: 0.08,
+      roughness: 0.34
+    }),
+    ldQuartzDoe: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe0f2fe,
+      metalness: 0.06,
+      roughness: 0.06,
+      transparent: true,
+      opacity: 0.34,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+      iridescence: 0.95,
+      iridescenceIOR: 1.46,
+      iridescenceThicknessRange: [240, 620],
+      depthWrite: false
+    }),
+    ldItoTrace: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x06b6d4,
+      emissive: 0x0891b2,
+      emissiveIntensity: 0.38,
+      metalness: 0.72,
+      roughness: 0.18
+    }),
+    ldIrGlass: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      metalness: 0.06,
+      roughness: 0.04,
+      transparent: true,
+      opacity: 0.38,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.03,
+      iridescence: 0.48,
+      iridescenceIOR: 1.54,
+      depthWrite: false
+    }),
+    ldBandpass940: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x9d174d,
+      metalness: 0.32,
+      roughness: 0.06,
+      transparent: true,
+      opacity: 0.54,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+      iridescence: 1.0,
+      iridescenceIOR: 2.25,
+      iridescenceThicknessRange: [280, 640],
+      depthWrite: false
+    }),
+    ldGaAsSub: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x283044,
+      metalness: 0.85,
+      roughness: 0.22,
+      clearcoat: 0.35
+    }),
+    ldDbrMirrorTop: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xd97706,
+      metalness: 0.92,
+      roughness: 0.16,
+      iridescence: 0.88,
+      iridescenceIOR: 2.0,
+      clearcoat: 0.45
+    }),
+    ldDbrMirrorBot: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x6366f1,
+      metalness: 0.88,
+      roughness: 0.18,
+      iridescence: 0.82,
+      iridescenceIOR: 2.0,
+      clearcoat: 0.4
+    }),
+    ldOxideAperture: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x14b8a6,
+      metalness: 0.20,
+      roughness: 0.24,
+      clearcoat: 0.7
+    }),
+    ldMqwActive: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xe11d48,
+      emissive: 0xf43f5e,
+      emissiveIntensity: 0.62,
+      metalness: 0.28,
+      roughness: 0.18
+    }),
+    ldSpadSiDeep: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x1d4ed8,
+      metalness: 0.24,
+      roughness: 0.16,
+      transparent: true,
+      opacity: 0.40,
+      clearcoat: 0.55,
+      depthWrite: false
+    }),
+    ldSpadAvalanche: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xa855f7,
+      emissive: 0xc026d3,
+      emissiveIntensity: 0.54,
+      metalness: 0.25,
+      roughness: 0.16
+    }),
+    ldSpadGuardRing: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x0ea5e9,
+      metalness: 0.68,
+      roughness: 0.22
+    }),
+    ldSpadDiffraction: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x0f766e,
+      metalness: 0.72,
+      roughness: 0.22,
+      iridescence: 0.90,
+      iridescenceIOR: 1.9,
+      clearcoat: 0.45
+    }),
+    ldLogicQuench: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x059669,
+      metalness: 0.55,
+      roughness: 0.28
+    }),
+    ldLogicTdc: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xd97706,
+      metalness: 0.72,
+      roughness: 0.24
+    }),
+    ldLogicDsp: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x1e293b,
+      metalness: 0.66,
+      roughness: 0.26
+    }),
+    ldMonitorPd: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x0284c7,
+      metalness: 0.62,
+      roughness: 0.20,
+      clearcoat: 0.8
     })
   };
 }
