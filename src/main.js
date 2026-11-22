@@ -106,6 +106,10 @@ let currentScale = 'flagship';
 let activeAsm = assemblies.flagship;
 let targetExplode = 0;
 let currentExplode = 0;
+let explodeVel = 0;
+let introAnim = null;
+let cinemaMode = false;
+let cinemaElapsed = 0;
 
 function getHiddenIds() {
   const arr = [];
@@ -115,12 +119,27 @@ function getHiddenIds() {
   return arr;
 }
 
+function setCinemaMode(enabled) {
+  cinemaMode = enabled;
+  ui.setCinemaUI(enabled);
+  if (enabled) {
+    introAnim = null;
+    cinemaElapsed = 0;
+    ui.setOpticsUI(true, true);
+    ui.setOisUI(true, true);
+    const view = engine.getResponsiveView(activeAsm.defaultCameraPos, activeAsm.defaultTarget);
+    engine.initCinematicOrbitFromCurrent(view.target);
+  }
+}
+
 const ui = new ZeroTextUI(uiRoot, {
   onSwitchScale(scale) {
     if (scale === currentScale || !assemblies[scale]) return;
     switchScale(scale);
   },
   onExplodeChange(val) {
+    introAnim = null;
+    if (cinemaMode) setCinemaMode(false);
     targetExplode = val;
   },
   onClipChange(axis, normVal) {
@@ -138,9 +157,13 @@ const ui = new ZeroTextUI(uiRoot, {
   onOisToggle(enabled) {
     sim.setOisActive(enabled);
   },
+  onCinemaToggle(enabled) {
+    setCinemaMode(enabled);
+  },
   onResetView() {
+    if (cinemaMode) setCinemaMode(false);
     const view = engine.getResponsiveView(activeAsm.defaultCameraPos, activeAsm.defaultTarget);
-    engine.animateCameraTo(view.pos, view.target, 520);
+    engine.animateCameraTo(view.pos, view.target, 600, 0.9);
   },
   onSnapView(preset) {
     const baseDist =
@@ -244,7 +267,12 @@ engine.onCameraSync = (quat) => {
   ui.updateGizmo(quat);
 };
 
-function switchScale(scale, instantCamera = false) {
+engine.onUserCameraInteract = () => {
+  if (cinemaMode) setCinemaMode(false);
+};
+
+function switchScale(scale, isBoot = false) {
+  if (cinemaMode) setCinemaMode(false);
   currentScale = scale;
   activeAsm = assemblies[scale];
 
@@ -266,17 +294,23 @@ function switchScale(scale, instantCamera = false) {
   ui.populateLayers(partDocsByScale[scale]);
   ui.syncSelection(null, OVERVIEW_DOCS[scale]);
 
+  // Dramatic precision assembly cascade intro (all parts swoop down smoothly from mid-air into exact lock!)
+  const startEx = isBoot ? 0.56 : 0.36;
   targetExplode = 0;
-  currentExplode = 0;
-  ui.setExplodeUI(0, false);
+  currentExplode = startEx;
+  explodeVel = 0;
+  introAnim = {
+    startTime: performance.now(),
+    duration: isBoot ? 1280 : 880,
+    startExplode: startEx
+  };
+  ui.setExplodeUI(startEx, false);
 
   const view = engine.getResponsiveView(activeAsm.defaultCameraPos, activeAsm.defaultTarget);
-  if (instantCamera) {
-    engine.camera.position.copy(view.pos);
-    engine.controls.target.copy(view.target);
-    engine.controls.update();
+  if (isBoot) {
+    engine.startCinematicIntro(view.pos, view.target, 1280);
   } else {
-    engine.animateCameraTo(view.pos, view.target, 620);
+    engine.animateCameraTo(view.pos, view.target, 680, 1.15);
   }
 }
 
@@ -285,10 +319,13 @@ switchScale('flagship', true);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    if (ui.zenMode) ui.setZenMode(false);
+    if (cinemaMode) setCinemaMode(false);
+    else if (ui.zenMode) ui.setZenMode(false);
     else engine.selectPart(null);
   } else if (e.key === 'z' || e.key === 'Z') {
     ui.setZenMode(!ui.zenMode);
+  } else if (e.key === 'c' || e.key === 'C') {
+    setCinemaMode(!cinemaMode);
   } else if (e.key === 'f' || e.key === 'F') {
     ui.toggleFullscreen();
   }
@@ -299,13 +336,61 @@ const startTime = prevTime;
 
 function animate(now) {
   requestAnimationFrame(animate);
-  const dt = Math.min(0.05, (now - prevTime) / 1000);
+  const dt = Math.max(0, Math.min(0.05, (now - prevTime) / 1000));
   prevTime = now;
-  const elapsed = (now - startTime) / 1000;
+  const elapsed = Math.max(0, (now - startTime) / 1000);
 
-  currentExplode += (targetExplode - currentExplode) * Math.min(1, dt * 11);
-  if (Math.abs(targetExplode - currentExplode) < 0.0005) {
-    currentExplode = targetExplode;
+  if (introAnim) {
+    const p = Math.min(1, (now - introAnim.startTime) / introAnim.duration);
+    // Quintic ease-out magnetic assembly snap into 0%
+    const ease = 1 - Math.pow(1 - p, 4);
+    currentExplode = introAnim.startExplode * (1 - ease);
+    ui.setExplodeUI(currentExplode, false);
+    if (p >= 1) {
+      currentExplode = 0;
+      targetExplode = 0;
+      explodeVel = 0;
+      introAnim = null;
+      ui.setExplodeUI(0, false);
+    }
+  } else if (cinemaMode) {
+    // Sculptural 13.5 s Apple-Keynote breathing disassembly choreography (starts gliding open immediately on tap!) + silky 360° camera orbit!
+    cinemaElapsed += dt;
+    const cycle = (cinemaElapsed % 13.5) / 13.5;
+    let exTarget = 0;
+    if (cycle < 0.38) {
+      const u = cycle / 0.38;
+      exTarget = 0.84 * (0.5 - 0.5 * Math.cos(u * Math.PI));
+    } else if (cycle < 0.58) {
+      exTarget = 0.84;
+    } else if (cycle < 0.86) {
+      const u = (cycle - 0.58) / 0.28;
+      exTarget = 0.84 * (0.5 + 0.5 * Math.cos(u * Math.PI));
+    } else {
+      exTarget = 0;
+    }
+    targetExplode = exTarget;
+    currentExplode += (targetExplode - currentExplode) * Math.min(1, dt * 8.5);
+    ui.setExplodeUI(currentExplode, false);
+
+    const view = engine.getResponsiveView(activeAsm.defaultCameraPos, activeAsm.defaultTarget);
+    engine.updateCinematicOrbit(dt, elapsed, view.target);
+  } else {
+    // Tactile underdamped harmonic spring physics for butter-smooth mechanical explode/assemble!
+    const force = (targetExplode - currentExplode) * 145.0;
+    explodeVel = (explodeVel + force * dt) * Math.exp(-19.5 * dt);
+    currentExplode += explodeVel * dt;
+    if (currentExplode < 0) {
+      currentExplode = 0;
+      explodeVel = 0;
+    } else if (currentExplode > 1.03) {
+      currentExplode = 1.03;
+      explodeVel = 0;
+    }
+    if (Math.abs(targetExplode - currentExplode) < 0.0006 && Math.abs(explodeVel) < 0.004) {
+      currentExplode = targetExplode;
+      explodeVel = 0;
+    }
   }
 
   sim.update(dt, elapsed, engine.partMap, currentExplode);

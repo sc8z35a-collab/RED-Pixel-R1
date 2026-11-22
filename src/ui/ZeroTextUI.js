@@ -72,6 +72,8 @@ const ICONS = {
   zenOn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="18" height="12.5" rx="2.2" stroke-dasharray="2.6 2.2" stroke-opacity="0.65"/><line x1="4.5" y1="20" x2="19.5" y2="20" stroke-width="2.1"/><circle cx="11" cy="20" r="2.2" fill="currentColor" stroke="none"/></svg>`,
   zenOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="4" rx="1"/><rect x="3" y="9.5" width="5" height="11.5" rx="1"/><rect x="10.5" y="9.5" width="10.5" height="7" rx="1" fill="currentColor" fill-opacity="0.22"/><line x1="10.5" y1="20" x2="21" y2="20" stroke-width="2"/></svg>`,
   layers: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 21 7.5 12 12 3 7.5 12 3"/><polyline points="3 12 12 16.5 21 12"/><polyline points="3 16.5 12 21 21 16.5"/></svg>`,
+  cinema: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" stroke-dasharray="4 2.6"/><polygon points="10 8.5 16.5 12 10 15.5" fill="currentColor" stroke="none"/></svg>`,
+  cinemaPause: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><rect x="9" y="8.5" width="2.2" height="7" rx="0.8" fill="currentColor" stroke="none"/><rect x="12.8" y="8.5" width="2.2" height="7" rx="0.8" fill="currentColor" stroke="none"/></svg>`,
 
   // Part Category Micro-Glyphs for Layer Dissection Stack
   glyphs: {
@@ -139,8 +141,9 @@ export class ZeroTextUI {
     this.activeClipAxis = null;
     this.shadingMode = 'solid';
     this.isOrtho = false;
-    this.opticsOn = false;
-    this.oisOn = false;
+    this.opticsOn = true;
+    this.oisOn = true;
+    this.cinemaOn = false;
     this.isolateOn = false;
     this.ghostOn = false;
 
@@ -348,14 +351,20 @@ export class ZeroTextUI {
     this.explodeSlider.max = '100';
     this.explodeSlider.value = '0';
     this.explodeSlider.className = 'cad-range explode-range';
+    this.explodeSlider.style.setProperty('--p', '0%');
     this.explodeSlider.addEventListener('input', () => {
-      this.cb.onExplodeChange(Number(this.explodeSlider.value) / 100);
+      const v = Number(this.explodeSlider.value);
+      this.explodeSlider.style.setProperty('--p', `${v}%`);
+      this.cb.onExplodeChange(v / 100);
     });
     const btnExplodeFull = this._iconBtn(ICONS.exploded, () => this.setExplodeUI(1, true), 'sm');
     explodeGroup.append(btnAssemble, this.explodeSlider, btnExplodeFull);
 
+    this.btnCinema = this._iconBtn(ICONS.cinema, () => {
+      if (this.cb.onCinemaToggle) this.cb.onCinemaToggle(!this.cinemaOn);
+    }, 'sm btn-cinema');
     this.btnZen = this._iconBtn(ICONS.zenOn, () => this.setZenMode(!this.zenMode), 'sm btn-zen');
-    bottomExplodeRow.append(explodeGroup, this._el('div', 'dock-divider zen-keep'), this.btnZen);
+    bottomExplodeRow.append(explodeGroup, this._el('div', 'dock-divider zen-keep'), this.btnCinema, this.btnZen);
 
     // 4b. Secondary Tools Row (smooth horizontal touch-scroll on compact mobile, hidden in Zen Mode!)
     const bottomToolsRow = this._el('div', 'bottom-tools-row');
@@ -363,16 +372,12 @@ export class ZeroTextUI {
     // Primary Quick Controls (placed first for zero-scroll 1-tap access on phones!)
     const simGroup = this._el('div', 'dock-group');
     this.btnRays = this._iconBtn(ICONS.rays, () => {
-      this.opticsOn = !this.opticsOn;
-      this.btnRays.classList.toggle('active-blue', this.opticsOn);
-      this.cb.onOpticsToggle(this.opticsOn);
-    }, 'sm btn-rays');
+      this.setOpticsUI(!this.opticsOn, true);
+    }, 'sm btn-rays active-blue');
 
     this.btnOis = this._iconBtn(ICONS.ois, () => {
-      this.oisOn = !this.oisOn;
-      this.btnOis.classList.toggle('active-amber', this.oisOn);
-      this.cb.onOisToggle(this.oisOn);
-    }, 'sm btn-ois');
+      this.setOisUI(!this.oisOn, true);
+    }, 'sm btn-ois active-amber');
 
     this.btnInfoToggle = this._iconBtn(ICONS.book, () => {
       this.setInfoOpen(!this.infoOpen);
@@ -512,8 +517,30 @@ export class ZeroTextUI {
   }
 
   setExplodeUI(val, triggerCb = false) {
-    this.explodeSlider.value = String(Math.round(val * 100));
+    const pct = Math.round(Math.max(0, Math.min(1, val)) * 100);
+    this.explodeSlider.value = String(pct);
+    this.explodeSlider.style.setProperty('--p', `${pct}%`);
     if (triggerCb) this.cb.onExplodeChange(val);
+  }
+
+  setOpticsUI(active, triggerCb = false) {
+    this.opticsOn = active;
+    this.btnRays.classList.toggle('active-blue', active);
+    if (triggerCb) this.cb.onOpticsToggle(active);
+  }
+
+  setOisUI(active, triggerCb = false) {
+    this.oisOn = active;
+    this.btnOis.classList.toggle('active-amber', active);
+    if (triggerCb) this.cb.onOisToggle(active);
+  }
+
+  setCinemaUI(active) {
+    this.cinemaOn = active;
+    if (this.btnCinema) {
+      this.btnCinema.innerHTML = active ? ICONS.cinemaPause : ICONS.cinema;
+      this.btnCinema.classList.toggle('active-cinema', active);
+    }
   }
 
   setShadingUI(mode, triggerCb = false) {
@@ -681,6 +708,9 @@ export class ZeroTextUI {
       this.chipMap.get(partId).chip.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
     this.renderExplanation(doc, partId);
+    this.infoBody.classList.remove('panel-reveal');
+    void this.infoBody.offsetWidth;
+    this.infoBody.classList.add('panel-reveal');
   }
 
   _stepPart(delta) {

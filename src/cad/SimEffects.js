@@ -12,24 +12,33 @@ export class SimEffects {
   constructor(scene) {
     this.scene = scene;
     this.opticsGroup = new THREE.Group();
-    this.opticsGroup.visible = false;
+    this.opticsGroup.visible = true;
     this.scene.add(this.opticsGroup);
+
+    this.vfxGroup = new THREE.Group();
+    this.vfxGroup.visible = true;
+    this.scene.add(this.vfxGroup);
 
     this.guideGroup = new THREE.Group();
     this.guideGroup.visible = false;
     this.scene.add(this.guideGroup);
 
     this.photonPulses = [];
-    this.mode = 'macro';
-    this.opticsEnabled = false;
-    this.oisEnabled = false;
+    this.rayMeshes = [];
+    this.pulseRings = [];
+    this.mode = 'flagship';
+    this.opticsEnabled = true;
+    this.oisEnabled = true;
   }
 
   rebuildForMode(mode) {
     this.mode = mode;
     this._clearGroup(this.opticsGroup);
+    this._clearGroup(this.vfxGroup);
     this._clearGroup(this.guideGroup);
     this.photonPulses = [];
+    this.rayMeshes = [];
+    this.pulseRings = [];
 
     if (mode === 'macro') {
       this._buildMacroOptics();
@@ -92,7 +101,9 @@ export class SimEffects {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
     }
+    this._buildModePulseRings(mode);
     this.opticsGroup.visible = this.opticsEnabled;
+    this.vfxGroup.visible = this.opticsEnabled || this.oisEnabled;
   }
 
   _clearGroup(group) {
@@ -104,6 +115,76 @@ export class SimEffects {
         if (Array.isArray(ch.material)) ch.material.forEach((m) => m.dispose());
         else ch.material.dispose();
       }
+    }
+  }
+
+  _addPulseRing(pos, axis, colorHex, minR, maxR, speed = 0.42, ringCount = 2, maxOpacity = 0.52) {
+    const geo = new THREE.RingGeometry(0.84, 1.0, 40);
+    if (axis === 'y') geo.rotateX(-Math.PI / 2);
+    else if (axis === 'x') geo.rotateY(Math.PI / 2);
+    for (let i = 0; i < ringCount; i++) {
+      const mat = new THREE.MeshBasicMaterial({
+        color: colorHex,
+        transparent: true,
+        opacity: 0,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(pos[0], pos[1], pos[2]);
+      mesh.userData.ignorePick = true;
+      this.vfxGroup.add(mesh);
+      this.pulseRings.push({
+        mesh,
+        mat,
+        minR,
+        maxR,
+        speed,
+        maxOpacity,
+        phase: i / ringCount
+      });
+    }
+  }
+
+  _buildModePulseRings(mode) {
+    if (mode === 'flagship') {
+      // 6 Synchronized Flagship Energy Ripples: 1" Main Optics, 940nm LiDAR Radar, TiO2 Metalens, 2nm GAA SoC, Qi2 Coil & 3D Vapor Chamber!
+      this._addPulseRing([-5.75, 2.24, -1.75], 'y', 0x0ea5e9, 0.55, 2.05, 0.42, 2, 0.50);
+      this._addPulseRing([-4.39, 1.82, 0.05], 'y', 0xe11d48, 0.22, 1.55, 0.62, 3, 0.58);
+      this._addPulseRing([8.45, 0.98, -2.85], 'y', 0x8b5cf6, 0.35, 1.48, 0.48, 2, 0.52);
+      this._addPulseRing([4.65, 0.56, -2.35], 'y', 0x10b981, 0.45, 1.78, 0.54, 2, 0.48);
+      this._addPulseRing([5.40, 0.59, 2.25], 'y', 0xf59e0b, 0.90, 2.15, 0.36, 2, 0.42);
+      this._addPulseRing([-1.2, -0.32, 0.2], 'y', 0xf97316, 0.70, 2.90, 0.34, 2, 0.38);
+    } else if (mode === 'soc_gaa') {
+      this._addPulseRing([-5.6, 1.38, 0.0], 'y', 0x10b981, 0.9, 3.8, 0.44, 2, 0.46);
+      this._addPulseRing([7.4, 0.65, 0.0], 'x', 0x6366f1, 0.8, 3.2, 0.56, 3, 0.54);
+      this._addPulseRing([4.72, -2.6, 0.0], 'y', 0xe11d48, 0.5, 2.1, 0.52, 2, 0.48);
+    } else if (mode === 'oled_tandem') {
+      this._addPulseRing([-5.6, 1.85, 0.0], 'y', 0x38bdf8, 0.9, 3.8, 0.40, 2, 0.42);
+      this._addPulseRing([7.4, 0.78, 0.0], 'y', 0xd946ef, 0.7, 3.2, 0.58, 3, 0.56);
+      this._addPulseRing([7.4, 4.95, 0.0], 'y', 0x10b981, 0.6, 2.9, 0.48, 2, 0.50);
+    } else if (mode === 'vapor_chamber') {
+      this._addPulseRing([-7.9, 0.62, 0.25], 'y', 0xef4444, 0.6, 3.4, 0.52, 3, 0.54);
+      this._addPulseRing([5.25, -0.22, 0.0], 'y', 0x06b6d4, 0.6, 2.6, 0.48, 2, 0.52);
+      this._addPulseRing([10.2, 2.32, 0.0], 'y', 0x0284c7, 0.5, 2.2, 0.44, 2, 0.46);
+    } else if (mode === 'lidar') {
+      this._addPulseRing([-4.8, 4.2, 0.0], 'y', 0xe11d48, 0.5, 3.2, 0.66, 3, 0.58);
+      this._addPulseRing([4.8, 2.2, 0.0], 'y', 0xd946ef, 0.5, 2.8, 0.54, 2, 0.50);
+    } else if (mode === 'metalens') {
+      this._addPulseRing([-5.4, 2.6, 0.0], 'y', 0x8b5cf6, 0.8, 3.4, 0.46, 2, 0.48);
+      this._addPulseRing([7.0, -2.5, 0.0], 'y', 0x06b6d4, 0.35, 2.4, 0.58, 3, 0.56);
+    } else if (mode === 'gshutter') {
+      this._addPulseRing([-5.2, 2.4, 0.0], 'y', 0xf59e0b, 0.8, 3.4, 0.46, 2, 0.46);
+      this._addPulseRing([7.2, 0.2, 0.0], 'y', 0x0ea5e9, 0.6, 2.6, 0.56, 3, 0.52);
+    } else if (mode === 'zoom' || mode === 'tetra' || mode === 'periscope') {
+      this._addPulseRing([-6.0, 2.6, 0.0], 'y', 0x0ea5e9, 0.6, 2.8, 0.46, 2, 0.48);
+      this._addPulseRing([6.5, 1.0, 0.0], 'x', 0xf59e0b, 0.5, 2.4, 0.52, 2, 0.48);
+    } else if (mode === 'liquid' || mode === 'sma') {
+      this._addPulseRing([-4.8, 2.4, 0.0], 'y', 0x06b6d4, 0.7, 3.2, 0.48, 3, 0.52);
+      this._addPulseRing([6.8, 0.6, 0.0], 'y', 0xf97316, 0.5, 2.5, 0.52, 2, 0.48);
+    } else {
+      this._addPulseRing([0.0, 2.4, 0.0], 'y', 0x0ea5e9, 0.8, 4.2, 0.42, 2, 0.46);
+      this._addPulseRing([0.0, 0.4, 0.0], 'y', 0xf59e0b, 0.6, 3.0, 0.52, 2, 0.42);
     }
   }
 
@@ -119,19 +200,52 @@ export class SimEffects {
     const mesh = new THREE.Mesh(tube, mat);
     mesh.userData.ignorePick = true;
     this.opticsGroup.add(mesh);
+    this.rayMeshes.push({ mesh, mat, baseOpacity: opacity, phase: this.rayMeshes.length * 0.73 });
 
-    // Animated photon/electron wave packets traveling along the ray
-    const dotGeo = new THREE.SphereGeometry(radius * 2.5, 10, 10);
-    const dotMat = new THREE.MeshBasicMaterial({ color: colorHex });
+    // Luxury Comet-Tail Photon Streams (Bright Core + Soft Halo + 2 Fading Tail Beads!)
+    const headGeo = new THREE.SphereGeometry(radius * 2.6, 10, 10);
+    const haloGeo = new THREE.SphereGeometry(radius * 4.1, 10, 10);
+    const tail1Geo = new THREE.SphereGeometry(radius * 1.9, 8, 8);
+    const tail2Geo = new THREE.SphereGeometry(radius * 1.25, 8, 8);
+
+    const headMat = new THREE.MeshBasicMaterial({ color: colorHex });
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: colorHex,
+      transparent: true,
+      opacity: 0.28,
+      depthWrite: false
+    });
+    const tail1Mat = new THREE.MeshBasicMaterial({
+      color: colorHex,
+      transparent: true,
+      opacity: 0.52,
+      depthWrite: false
+    });
+    const tail2Mat = new THREE.MeshBasicMaterial({
+      color: colorHex,
+      transparent: true,
+      opacity: 0.24,
+      depthWrite: false
+    });
+
     for (let i = 0; i < pulseCount; i++) {
-      const dot = new THREE.Mesh(dotGeo, dotMat);
+      const dot = new THREE.Mesh(headGeo, headMat);
+      const halo = new THREE.Mesh(haloGeo, haloMat);
+      const tail1 = new THREE.Mesh(tail1Geo, tail1Mat);
+      const tail2 = new THREE.Mesh(tail2Geo, tail2Mat);
       dot.userData.ignorePick = true;
-      this.opticsGroup.add(dot);
+      halo.userData.ignorePick = true;
+      tail1.userData.ignorePick = true;
+      tail2.userData.ignorePick = true;
+      this.opticsGroup.add(dot, halo, tail1, tail2);
       this.photonPulses.push({
         mesh: dot,
+        halo,
+        tail1,
+        tail2,
         curve,
         phase: i / pulseCount,
-        speed: 0.38
+        speed: 0.44
       });
     }
   }
@@ -1458,10 +1572,12 @@ export class SimEffects {
   setOpticsVisible(enabled) {
     this.opticsEnabled = enabled;
     this.opticsGroup.visible = enabled;
+    this.vfxGroup.visible = this.opticsEnabled || this.oisEnabled;
   }
 
   setOisActive(enabled) {
     this.oisEnabled = enabled;
+    this.vfxGroup.visible = this.opticsEnabled || this.oisEnabled;
   }
 
   setGuideLinesOpacity(explodeT) {
@@ -1483,11 +1599,39 @@ export class SimEffects {
       this._smaHotEmissive = new THREE.Color(0xea580c);
     }
 
-    // Animate photon & electron pulses
+    this.setGuideLinesOpacity(explodeT);
+
+    // 1. Animate Luxury Comet-Tail Photon Streams + Harmonic Beam Breathing
     if (this.opticsEnabled) {
+      for (const r of this.rayMeshes) {
+        r.mat.opacity = r.baseOpacity * (0.84 + 0.16 * Math.sin(elapsed * 4.4 + r.phase));
+      }
       for (const p of this.photonPulses) {
-        p.phase = (p.phase + dt * p.speed) % 1.0;
+        p.phase = (((p.phase + dt * p.speed) % 1.0) + 1.0) % 1.0;
         p.curve.getPointAt(p.phase, p.mesh.position);
+        p.halo.position.copy(p.mesh.position);
+        const haloPulse = 0.88 + 0.34 * Math.sin(elapsed * 9.0 + p.phase * 12.0);
+        p.halo.scale.setScalar(haloPulse);
+        const t1 = Math.max(0, Math.min(1, p.phase - 0.032));
+        const t2 = Math.max(0, Math.min(1, p.phase - 0.068));
+        p.curve.getPointAt(t1, p.tail1.position);
+        p.curve.getPointAt(t2, p.tail2.position);
+        p.tail1.visible = p.phase > 0.032;
+        p.tail2.visible = p.phase > 0.068;
+      }
+    }
+
+    // 2. Animate 3D Expanding Energy Pulse Wave Rings
+    if (this.vfxGroup.visible) {
+      for (const ring of this.pulseRings) {
+        ring.phase = (((ring.phase + dt * ring.speed) % 1.0) + 1.0) % 1.0;
+        const ease = 1.0 - Math.pow(1.0 - ring.phase, 3);
+        const r = ring.minR + (ring.maxR - ring.minR) * ease;
+        ring.mesh.scale.setScalar(r);
+        const fade = ring.phase < 0.18
+          ? ring.phase / 0.18
+          : Math.pow(1.0 - (ring.phase - 0.18) / 0.82, 1.8);
+        ring.mat.opacity = ring.maxOpacity * fade;
       }
     }
 
@@ -1666,10 +1810,28 @@ export class SimEffects {
     const vcHeatPulse = vcAct ? (0.55 + 0.85 * (0.5 + 0.5 * Math.sin(elapsed * 4.2))) : 0.95;
     const vcThermPulse = vcAct ? (0.28 + 0.44 * (0.5 + 0.5 * Math.sin(elapsed * 3.8))) : 0.38;
 
+    const totalParts = Math.max(1, partsMap.size);
+    let partIdx = 0;
+    const hoverRamp = explodeT > 0.06 ? Math.min(1, (explodeT - 0.06) / 0.28) : 0;
+
     for (const entry of partsMap.values()) {
-      const ex = entry.basePos.x + entry.explodeVec.x * explodeT;
-      const ey = entry.basePos.y + entry.explodeVec.y * explodeT;
-      const ez = entry.basePos.z + entry.explodeVec.z * explodeT;
+      const frac = totalParts > 1 ? partIdx / (totalParts - 1) : 0;
+      let tEff = 0;
+      let hoverY = 0;
+      if (explodeT > 0.0001) {
+        // Staggered sequential cascade (outer layers peel first, inner modules follow in a silky wave!)
+        const localRaw = THREE.MathUtils.clamp(explodeT * 1.26 - frac * 0.26, 0, 1);
+        const smooth = localRaw * localRaw * (3 - 2 * localRaw);
+        const elasticBump = Math.sin(localRaw * Math.PI) * 0.048 * Math.sin(explodeT * Math.PI);
+        tEff = smooth + elasticBump;
+        // Ultra-subtle suspended Zero-G hologram breathing only when exploded (exact 0 at assembled!)
+        hoverY = Math.sin(elapsed * 1.65 + partIdx * 0.58) * 0.072 * hoverRamp * smooth;
+      }
+      partIdx++;
+
+      const ex = entry.basePos.x + entry.explodeVec.x * tEff;
+      const ey = entry.basePos.y + entry.explodeVec.y * tEff + hoverY;
+      const ez = entry.basePos.z + entry.explodeVec.z * tEff;
 
       let dx = (entry.oisMoving && (macroOis || lensAct)) ? oisX : 0;
       let dy = (entry.afMoving && lensAct) ? afStrokeY : 0;
