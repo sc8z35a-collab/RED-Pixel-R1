@@ -2117,6 +2117,92 @@ export function createMaterialLibrary(clippingPlanes) {
       metalness: 0.22,
       roughness: 0.20,
       clearcoat: 0.75
+    }),
+
+    // === PHASE 12: 4-BOUNCE TETRAPRISM 5x TELEPHOTO & 500x TIR EVANESCENT-WAVE NANO-STACK ===
+    tpPrismGlass: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xdbeafe,
+      emissive: 0x38bdf8,
+      emissiveIntensity: 0.08,
+      metalness: 0.04,
+      roughness: 0.03,
+      transparent: true,
+      opacity: 0.34,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.03,
+      iridescence: 0.55,
+      iridescenceIOR: 1.88,
+      depthWrite: false
+    }),
+    tpMirrorSilver: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf1f5f9,
+      emissive: 0x94a3b8,
+      emissiveIntensity: 0.14,
+      metalness: 0.98,
+      roughness: 0.06,
+      clearcoat: 1.0,
+      iridescence: 0.45,
+      iridescenceIOR: 1.75
+    }),
+    tpTirAirGap: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      emissive: 0x0ea5e9,
+      emissiveIntensity: 0.22,
+      metalness: 0.10,
+      roughness: 0.08,
+      transparent: true,
+      opacity: 0.38,
+      clearcoat: 0.9,
+      depthWrite: false
+    }),
+    tpDielectricTiO2: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x8b5cf6,
+      emissive: 0x6d28d9,
+      emissiveIntensity: 0.18,
+      metalness: 0.18,
+      roughness: 0.14,
+      iridescence: 0.95,
+      iridescenceIOR: 2.35
+    }),
+    tpDielectricSiO2: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x2dd4bf,
+      emissive: 0x0d9488,
+      emissiveIntensity: 0.14,
+      metalness: 0.10,
+      roughness: 0.16,
+      clearcoat: 0.85
+    }),
+    tpWaveCrest: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0xf59e0b,
+      emissive: 0xd97706,
+      emissiveIntensity: 0.52,
+      metalness: 0.18,
+      roughness: 0.20
+    }),
+    tpEvanescentGlow: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xf43f5e,
+      emissive: 0xe11d48,
+      emissiveIntensity: 0.58,
+      metalness: 0.06,
+      roughness: 0.18,
+      transparent: true,
+      opacity: 0.62,
+      depthWrite: false
+    }),
+    tpGoosGauge: new THREE.MeshStandardMaterial({
+      ...base,
+      color: 0x10b981,
+      emissive: 0x059669,
+      emissiveIntensity: 0.42,
+      metalness: 0.25,
+      roughness: 0.24
     })
   };
 }

@@ -64,6 +64,9 @@ export class SimEffects {
     } else if (mode === 'liquid') {
       this._buildLiquidPhysics();
       this._buildGuideLines(11.8, -8.8, [[-9.4, -6.2], [12.0, -6.2], [-9.4, 8.6], [12.0, 8.6]]);
+    } else if (mode === 'tetra') {
+      this._buildTetraOptics();
+      this._buildGuideLines(11.8, -8.8, [[-9.0, -4.5], [12.6, -4.5], [-9.0, 6.2], [12.6, 6.2]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -833,6 +836,92 @@ export class SimEffects {
     }
   }
 
+  _buildTetraOptics() {
+    // Sharp piecewise-linear 4-bounce W-path ray helper (exact Law of Reflection at M1 -> M2 -> M3 -> M4!)
+    const addSharpBounceRay = (pts, colorHex, opacity = 0.86, radius = 0.072, pulseCount = 4) => {
+      const path = new THREE.CurvePath();
+      const segMat = new THREE.MeshBasicMaterial({
+        color: colorHex,
+        transparent: true,
+        opacity,
+        depthWrite: false
+      });
+      const up = new THREE.Vector3(0, 1, 0);
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i];
+        const b = pts[i + 1];
+        path.add(new THREE.LineCurve3(a, b));
+        const dir = b.clone().sub(a);
+        const len = dir.length();
+        const cyl = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, len, 10), segMat);
+        cyl.position.copy(a).add(b).multiplyScalar(0.5);
+        if (len > 1e-5) cyl.quaternion.setFromUnitVectors(up, dir.divideScalar(len));
+        cyl.userData.ignorePick = true;
+        this.opticsGroup.add(cyl);
+      }
+
+      // Luminous bounce highlight beads right on the 4 reflection points (M1, M2, M3, M4)
+      const dotGeo = new THREE.SphereGeometry(radius * 2.45, 10, 10);
+      const dotMat = new THREE.MeshBasicMaterial({ color: colorHex });
+      for (let k = 0; k < pulseCount; k++) {
+        const dot = new THREE.Mesh(dotGeo, dotMat);
+        dot.userData.ignorePick = true;
+        this.opticsGroup.add(dot);
+        this.photonPulses.push({
+          mesh: dot,
+          curve: path,
+          phase: k / pulseCount,
+          speed: 0.22 + (k % 2) * 0.03
+        });
+      }
+    };
+
+    // 1. Emerald Central Chief Ray: Exact 4-Bounce W-Path (M1 18.8° -> M2 37.7° TIR -> M3 37.7° TIR -> M4 18.8° -> Sensor!)
+    addSharpBounceRay([
+      new THREE.Vector3(-6.0, 9.6, 0.0),   // Above 7-element circular entrance barrel
+      new THREE.Vector3(-6.0, 2.25, 0.0),  // Enters Tetraprism Entrance AR Face
+      new THREE.Vector3(-6.0, -1.25, 0.0), // BOUNCE 1: M1 Protected-Silver Mirror (18.82°)!
+      new THREE.Vector3(-3.3, 2.25, 0.0),  // BOUNCE 2: M2 Lossless TIR Roof (37.65° > θ_c 32.1°)!
+      new THREE.Vector3(-0.6, -1.25, 0.0), // BOUNCE 3: M3 Lossless TIR Floor (37.65° > θ_c 32.1°)!
+      new THREE.Vector3(2.1, 2.25, 0.0),   // BOUNCE 4: M4 Protected-Silver Mirror (18.82° // M1)!
+      new THREE.Vector3(2.1, -1.25, 0.0),  // Exits Tetraprism AR Exit Face straight down!
+      new THREE.Vector3(2.1, -2.60, 0.0)   // Focuses onto Horizontal 3D Sensor-Shift CMOS!
+    ], 0x10b981, 0.90, 0.082, 4);
+
+    // 2. Royal-Blue Front-Field Ray (+Z offset = +0.88 -> converges cleanly onto sensor front quadrant!)
+    addSharpBounceRay([
+      new THREE.Vector3(-6.45, 9.5, 0.92),
+      new THREE.Vector3(-6.28, 2.25, 0.86),
+      new THREE.Vector3(-6.28, -1.16, 0.78), // M1 Bounce 1
+      new THREE.Vector3(-3.55, 2.25, 0.64),  // M2 TIR Bounce 2
+      new THREE.Vector3(-0.82, -1.25, 0.50), // M3 TIR Bounce 3
+      new THREE.Vector3(1.88, 2.32, 0.36),   // M4 Bounce 4
+      new THREE.Vector3(1.96, -1.25, 0.24),
+      new THREE.Vector3(2.02, -2.60, 0.16)
+    ], 0x2563eb, 0.82, 0.062, 3);
+
+    // 3. Crimson Rear-Field Ray (-Z offset = -0.88 -> converges cleanly onto sensor rear quadrant!)
+    addSharpBounceRay([
+      new THREE.Vector3(-5.55, 9.5, -0.92),
+      new THREE.Vector3(-5.72, 2.25, -0.86),
+      new THREE.Vector3(-5.72, -1.34, -0.78), // M1 Bounce 1
+      new THREE.Vector3(-3.05, 2.25, -0.64),  // M2 TIR Bounce 2
+      new THREE.Vector3(-0.38, -1.25, -0.50), // M3 TIR Bounce 3
+      new THREE.Vector3(2.32, 2.18, -0.36),   // M4 Bounce 4
+      new THREE.Vector3(2.24, -1.25, -0.24),
+      new THREE.Vector3(2.18, -2.60, -0.16)
+    ], 0xef4444, 0.82, 0.062, 3);
+
+    // 4. Amber 10 kHz 3D Sensor-Shift Closed-Loop Drive Current (ASIC -> S-Flex -> XY/Z Coils!)
+    this._addRay([
+      new THREE.Vector3(-5.8, -3.52, 0.65),
+      new THREE.Vector3(-2.35, -3.95, 0.0),
+      new THREE.Vector3(-0.95, -2.75, 1.15),
+      new THREE.Vector3(0.45, -3.02, 0.0),
+      new THREE.Vector3(2.1, -3.26, 1.62)
+    ], 0xf59e0b, 0.86, 0.064, 3);
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -900,6 +989,7 @@ export class SimEffects {
     //  - LiDAR: 940 nm Multi-Junction VCSEL Laser Pulse Burst + Delayed Geiger-Mode SPAD Single-Photon Avalanche Flashes!
     //  - SMA: 8-Wire Antagonistic NiTiCu Artificial-Muscle 5-Axis Motion + Real-Time Hot Austenite <-> Cool Martensite Glow + Phase Front!
     //  - Liquid: Live 3D Vertex-Morphing Oil-Water Meniscus (-15 D <-> +35 D AF + 2-Axis Quadrant OIS Tilt) + 500x EDL Wetting Slide!
+    //  - Tetra: Horizontal 3D Sensor-Shift OIS (X/Y) + Vertical Sensor-Shift AF (Z) at 10,000 Hz + 500x EM Wave & Evanescent Field Pulse!
     const macroOis = this.oisEnabled && this.mode === 'macro';
     const lensAct = this.oisEnabled && this.mode === 'lens';
     const decoAct = this.oisEnabled && this.mode === 'deco';
@@ -910,6 +1000,7 @@ export class SimEffects {
     const lidarAct = this.oisEnabled && this.mode === 'lidar';
     const smaAct = this.oisEnabled && this.mode === 'sma';
     const liquidAct = this.oisEnabled && this.mode === 'liquid';
+    const tetraAct = this.oisEnabled && this.mode === 'tetra';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
@@ -953,6 +1044,13 @@ export class SimEffects {
     const liqTz = liquidAct ? Math.cos(elapsed * 2.05) * 0.26 : 0;
     const liqMicroDy = liquidAct ? -0.34 * (liqK - 0.72) : 0;
 
+    // Phase 12 4-Bounce Tetraprism Horizontal 3D Sensor-Shift (X/Y OIS + Z AF!) & 500x EM Wave Pulse!
+    const tpDx = tetraAct ? Math.sin(elapsed * 3.8) * 0.34 : 0;
+    const tpDy = tetraAct ? Math.sin(elapsed * 1.9) * 0.32 : 0;
+    const tpDz = tetraAct ? Math.cos(elapsed * 3.1) * 0.30 : 0;
+    const tpWavePulse = tetraAct ? (0.48 + 0.75 * (0.5 + 0.5 * Math.sin(elapsed * 6.5))) : 0.52;
+    const tpEvanDy = tetraAct ? Math.sin(elapsed * 4.5) * 0.08 : 0;
+
     for (const entry of partsMap.values()) {
       const ex = entry.basePos.x + entry.explodeVec.x * explodeT;
       const ey = entry.basePos.y + entry.explodeVec.y * explodeT;
@@ -992,6 +1090,17 @@ export class SimEffects {
       // Phase 11 500x Triple-Phase Contact-Line aqueous/oil wedge & EDL ion swarm sliding along hydrophobic wall!
       if (liquidAct && entry.liquidMicroWet) {
         dy += liqMicroDy;
+      }
+
+      // Phase 12 Tetraprism Horizontal 3D Sensor-Shift (X/Y OIS + Z AF!) & 500x Evanescent Field oscillation
+      if (tetraAct) {
+        if (entry.tetraSensor3d) {
+          dx += tpDx;
+          dy += tpDy;
+          dz += tpDz;
+        } else if (entry.tetraEvanescent) {
+          dy += tpEvanDy;
+        }
       }
 
       entry.group.position.set(ex + dx, ey + dy, ez + dz);
@@ -1160,6 +1269,11 @@ export class SimEffects {
         if (qMesh && qMesh.userData.solidHighlightMat && liquidAct) {
           qMesh.userData.solidHighlightMat.emissiveIntensity = inten;
         }
+      }
+
+      // Live Phase 12 500x Electromagnetic Wave Propagation Pulse
+      if (entry.group.userData.tetraWaveMat) {
+        entry.group.userData.tetraWaveMat.emissiveIntensity = tpWavePulse;
       }
     }
 
