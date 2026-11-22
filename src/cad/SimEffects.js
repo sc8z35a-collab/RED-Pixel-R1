@@ -82,6 +82,12 @@ export class SimEffects {
     } else if (mode === 'soc_gaa') {
       this._buildSocGaaPhysics();
       this._buildGuideLines(10.5, -9.2, [[-10.6, -5.2], [12.4, -5.2], [-10.6, 5.2], [12.4, 5.2]]);
+    } else if (mode === 'oled_tandem') {
+      this._buildOledTandemPhysics();
+      this._buildGuideLines(10.8, -8.8, [[-10.6, -5.2], [12.2, -5.2], [-10.6, 5.2], [12.2, 5.2]]);
+    } else if (mode === 'vapor_chamber') {
+      this._buildVaporChamberPhysics();
+      this._buildGuideLines(10.2, -8.4, [[-10.8, -4.8], [12.4, -4.8], [-10.8, 4.8], [12.4, 4.8]]);
     } else {
       this._buildLayer2SignalFlow();
       this._buildGuideLines(13.4, -11.0, [[-8.0, -8.0], [8.0, -8.0], [-8.0, 8.0], [8.0, 8.0]]);
@@ -1302,6 +1308,112 @@ export class SimEffects {
     ], 0x06b6d4, 0.90, 0.075, 4);
   }
 
+  _buildOledTandemPhysics() {
+    const X_PAN = -5.6;
+    const X_TD = 7.4;
+
+    // 1. LEFT PANEL: Vertical RGB Self-Emissive Photon Beams rising out of Diamond PenTile -> MLA -> COE -> Cover Glass!
+    const cols = [
+      { ox: -1.8, oz: -1.6, col: 0xef4444 },
+      { ox: 0.4, oz: 0.2, col: 0x22c55e },
+      { ox: 2.2, oz: 1.8, col: 0x3b82f6 }
+    ];
+    for (const c of cols) {
+      this._addRay([
+        new THREE.Vector3(X_PAN + c.ox, 1.24, c.oz),
+        new THREE.Vector3(X_PAN + c.ox, 3.65, c.oz),
+        new THREE.Vector3(X_PAN + c.ox, 6.20, c.oz)
+      ], c.col, 0.84, 0.064, 3);
+    }
+
+    // 2. Golden 50,000x Quantum Magnification Callout Arc bridging Left Diamond Subpixel -> Right Tandem OLED Tower!
+    this._addRay([
+      new THREE.Vector3(X_PAN + 3.1, 1.32, 0.4),
+      new THREE.Vector3(0.8, 3.45, 0.3),
+      new THREE.Vector3(X_TD - 3.2, 0.80, 0.0)
+    ], 0xf59e0b, 0.72, 0.044, 3);
+
+    // 3. RIGHT 50,000x TANDEM TOWER: Bottom Ag Mirror <-> Top Mg:Ag Half-Mirror Microcavity Bounce -> MLA Dome TIR Escape!
+    // Center normal beam climbing straight through EML-1 -> CGL -> EML-2 -> Mg:Ag -> CPL -> COE -> MLA Dome!
+    this._addRay([
+      new THREE.Vector3(X_TD, -1.14, 0.0),    // Reflected off Bottom Ag Mirror!
+      new THREE.Vector3(X_TD, -0.22, 0.0),    // Stack-1 EML-1 Resonance
+      new THREE.Vector3(X_TD, 0.78, 0.0),     // Quantum CGL Tunnel Junction
+      new THREE.Vector3(X_TD, 1.70, 0.0),     // Stack-2 EML-2 Coherent Boost!
+      new THREE.Vector3(X_TD, 2.66, 0.0),     // Escapes Semi-Transparent Mg:Ag Half-Mirror
+      new THREE.Vector3(X_TD, 5.20, 0.0),     // Focused out top of MLA Dome
+      new THREE.Vector3(X_TD, 7.60, 0.0)
+    ], 0x10b981, 0.90, 0.074, 4);
+
+    // Oblique wide-angle photons rescued from Total Internal Reflection (TIR) by the curved MLA Dome!
+    for (const sx of [-1, 1]) {
+      this._addRay([
+        new THREE.Vector3(X_TD + sx * 0.45, -0.22, 0.25),
+        new THREE.Vector3(X_TD + sx * 1.45, 1.70, 0.25),
+        new THREE.Vector3(X_TD + sx * 2.15, 3.60, 0.25),
+        new THREE.Vector3(X_TD + sx * 2.25, 4.45, 0.25), // Strikes curved MLA Dome wall -> bends straight UP!
+        new THREE.Vector3(X_TD + sx * 1.65, 7.45, 0.25)
+      ], sx < 0 ? 0x3b82f6 : 0xef4444, 0.86, 0.064, 3);
+    }
+
+    // LTPS Drive TFT vertical current injection path into bottom Ag Anode!
+    this._addRay([
+      new THREE.Vector3(X_TD + 1.95, -2.84, 0.0),
+      new THREE.Vector3(X_TD + 2.55, -1.96, 0.0),
+      new THREE.Vector3(X_TD + 2.55, -1.36, 0.0)
+    ], 0xf59e0b, 0.88, 0.068, 2);
+  }
+
+  _buildVaporChamberPhysics() {
+    const X_VC = -5.6;
+    const X_MW = 7.4;
+
+    // 1. LEFT MACRO VC: Radial High-Speed Crimson Vapor Spreading from SoC Hotspot -> Condenser Edges!
+    for (const [tx, tz] of [[3.8, -2.6], [4.1, 0.0], [3.8, 2.6]]) {
+      this._addRay([
+        new THREE.Vector3(X_VC - 2.35, 0.52, 0.25),
+        new THREE.Vector3(X_VC - 0.2, 1.12, tz * 0.45),
+        new THREE.Vector3(X_VC + tx, 1.12, tz)
+      ], 0xef4444, 0.86, 0.065, 3);
+    }
+    // Cool Sapphire Capillary Liquid Return along bottom axial grooves back to SoC Hotspot!
+    for (const gz of [-1.3, 1.3]) {
+      this._addRay([
+        new THREE.Vector3(X_VC + 3.8, 0.24, gz),
+        new THREE.Vector3(X_VC + 0.5, 0.24, gz),
+        new THREE.Vector3(X_VC - 2.35, 0.34, gz * 0.35)
+      ], 0x0ea5e9, 0.86, 0.058, 3);
+    }
+
+    // 2. Golden 1,000x Magnification Callout Arc linking Macro Evaporator Reticle -> Right 1,000x Sintered Wick!
+    this._addRay([
+      new THREE.Vector3(X_VC - 0.85, 0.72, 0.85),
+      new THREE.Vector3(0.6, 3.2, 0.65),
+      new THREE.Vector3(X_MW - 2.2, 0.2, 0.4)
+    ], 0xf59e0b, 0.72, 0.044, 3);
+
+    // 3. RIGHT 1,000x MICRO TWO-PHASE CLOSED THERMODYNAMIC LOOP!
+    // (a) Blazing Crimson-Orange High-Enthalpy Evaporation & Vacuum Vapor Core Stream (Left Meniscus -> Top Right Ceiling!)
+    for (const lz of [-0.6, 0.6]) {
+      this._addRay([
+        new THREE.Vector3(X_MW - 2.15, -0.25, lz), // Concave Thin-Film Meniscus Evaporation!
+        new THREE.Vector3(X_MW - 1.65, 1.45, lz),  // High-speed vertical vapor plume
+        new THREE.Vector3(X_MW + 0.55, 2.05, lz),  // Supersonic Vacuum Vapor Core!
+        new THREE.Vector3(X_MW + 2.85, 2.35, lz)   // Condensing on Biphilic Cold Ceiling!
+      ], 0xef4444, 0.90, 0.072, 4);
+    }
+
+    // (b) Cool Sapphire Condensed Water Return (Ceiling Droplets -> Support Pillar -> #300 Mesh -> Sintered Wick Capillary Suction!)
+    this._addRay([
+      new THREE.Vector3(X_MW + 2.95, 2.32, 0.35),  // Coalesced Ceiling Condensate Droplet
+      new THREE.Vector3(X_MW + 3.15, 0.25, 0.35),  // Drains down hydrophilic Support Pillar!
+      new THREE.Vector3(X_MW + 2.85, -1.55, 0.35), // Enters #300 Copper Return Mesh
+      new THREE.Vector3(X_MW + 0.25, -1.55, 0.35), // Pumped LEFT via Young-Laplace Capillary Suction!
+      new THREE.Vector3(X_MW - 2.15, -1.25, 0.35), // Saturates Sintered Copper Spheres
+      new THREE.Vector3(X_MW - 2.15, -0.25, 0.35)  // Feeds Concave Meniscus Continuously (Zero Electricity!)
+    ], 0x0284c7, 0.90, 0.072, 4);
+  }
+
   _buildGuideLines(topY, botY, corners) {
     const lineMat = new THREE.LineDashedMaterial({
       color: 0x94a3b8,
@@ -1390,6 +1502,8 @@ export class SimEffects {
     const gsAct = this.oisEnabled && this.mode === 'gshutter';
     const flagshipAct = this.oisEnabled && this.mode === 'flagship';
     const socGaaAct = this.oisEnabled && this.mode === 'soc_gaa';
+    const oledAct = this.oisEnabled && this.mode === 'oled_tandem';
+    const vcAct = this.oisEnabled && this.mode === 'vapor_chamber';
 
     const oisX = macroOis ? Math.sin(elapsed * 4.4) * 0.55 : lensAct ? Math.sin(elapsed * 2.9) * 0.28 : 0;
     const oisZ = macroOis ? Math.cos(elapsed * 3.1) * 0.45 : lensAct ? Math.cos(elapsed * 2.3) * 0.26 : 0;
@@ -1513,6 +1627,17 @@ export class SimEffects {
     }
     const gaaIspPulse = socGaaAct ? (0.35 + 0.95 * (0.5 + 0.5 * Math.sin(elapsed * 5.4))) : 0.44;
     const gaaNpuPulse = socGaaAct ? (0.35 + 1.05 * (0.5 + 0.5 * Math.cos(elapsed * 6.8))) : 0.48;
+
+    // Phase 18 Tandem LTPO OLED 50,000x Live Dual-Stack Carrier Recombination & Microcavity Photon Launch!
+    const oledPhase = oledAct ? (elapsed * 0.72) % 1.0 : 0.0;
+    const oledEmlPulse = oledAct ? (0.55 + 0.95 * (0.5 + 0.5 * Math.sin(elapsed * 7.2))) : 0.72;
+    const oledCglPulse = oledAct ? (0.65 + 0.95 * (0.5 + 0.5 * Math.cos(elapsed * 6.4))) : 0.88;
+    const oledSubPulse = oledAct ? (0.20 + 0.52 * (0.5 + 0.5 * Math.sin(elapsed * 4.5))) : 0.24;
+
+    // Phase 19 0.35 mm Pure-Copper Vapor Chamber 1,000x Live Two-Phase Closed-Loop Evaporation <-> Capillary Return!
+    const vcPhase = vcAct ? (elapsed * 0.52) % 1.0 : 0.0;
+    const vcHeatPulse = vcAct ? (0.55 + 0.85 * (0.5 + 0.5 * Math.sin(elapsed * 4.2))) : 0.95;
+    const vcThermPulse = vcAct ? (0.28 + 0.44 * (0.5 + 0.5 * Math.sin(elapsed * 3.8))) : 0.38;
 
     for (const entry of partsMap.values()) {
       const ex = entry.basePos.x + entry.explodeVec.x * explodeT;
@@ -1948,6 +2073,81 @@ export class SimEffects {
           em.position.set(d.xMin + p * d.xSpan, d.baseY, d.laneZ);
           const sc = socGaaAct ? (gaaGateOn ? 1.15 : 0.78) : 1.0;
           em.scale.set(sc, sc, sc);
+        }
+      }
+
+      // Live Phase 18 50,000x Tandem LTPO OLED Dual-Stack Hole (h+) / Electron (e-) Exciton Recombination & Microcavity Photon Launch!
+      if (ud.oledSubMat) {
+        ud.oledSubMat.emissiveIntensity = oledSubPulse;
+      }
+      if (ud.oledEml1Mat) {
+        ud.oledEml1Mat.emissiveIntensity = oledEmlPulse;
+      }
+      if (ud.oledEml2Mat) {
+        ud.oledEml2Mat.emissiveIntensity = oledEmlPulse;
+      }
+      if (ud.oledCglMat) {
+        ud.oledCglMat.emissiveIntensity = oledCglPulse;
+      }
+      if (ud.oledHoles) {
+        for (const h of ud.oledHoles) {
+          const d = h.userData;
+          const p = oledAct ? ((d.phase + oledPhase) % 1.0) : 0.45;
+          h.position.y = d.yStart + (d.yEnd - d.yStart) * p;
+        }
+      }
+      if (ud.oledElectrons) {
+        for (const e of ud.oledElectrons) {
+          const d = e.userData;
+          const p = oledAct ? ((d.phase + oledPhase) % 1.0) : 0.45;
+          e.position.y = d.yStart + (d.yEnd - d.yStart) * p;
+        }
+      }
+      if (ud.oledPhotons) {
+        for (const ph of ud.oledPhotons) {
+          const d = ph.userData;
+          const p = oledAct ? ((d.phase + oledPhase) % 1.0) : d.phase;
+          ph.position.y = d.yStart + (d.yEnd - d.yStart) * p;
+        }
+      }
+
+      // Live Phase 19 1,000x Pure-Copper Vapor Chamber Two-Phase Closed Loop (Evaporation -> Vacuum Steam -> Dropwise Condensation -> Capillary Return!)
+      if (ud.vcThermalMat) {
+        ud.vcThermalMat.emissiveIntensity = vcThermPulse;
+      }
+      if (ud.vcHeatPlumeMat) {
+        ud.vcHeatPlumeMat.emissiveIntensity = vcHeatPulse;
+      }
+      if (ud.vcCondDroplets) {
+        for (const dr of ud.vcCondDroplets) {
+          const d = dr.userData;
+          const g = vcAct ? (0.78 + 0.36 * (0.5 + 0.5 * Math.sin(elapsed * 3.2 + d.phase))) : 1.0;
+          const s = d.baseScale * g;
+          dr.scale.set(s, s * 0.78, s);
+        }
+      }
+      if (ud.vcVaporPackets) {
+        for (const vp of ud.vcVaporPackets) {
+          const d = vp.userData;
+          const p = vcAct ? ((d.basePhase + vcPhase) % 1.0) : d.basePhase;
+          // Arc up from left concave meniscus -> race across vacuum vapor core -> hit right cold condenser ceiling!
+          const vx = d.xLeft + (d.xRight - d.xLeft) * p;
+          const vy = -0.15 + Math.sin(p * Math.PI * 0.85) * 2.15 + p * 0.85;
+          vp.position.set(vx, vy, d.laneZ);
+        }
+      }
+      if (ud.vcLiquidPackets) {
+        for (const lp of ud.vcLiquidPackets) {
+          const d = lp.userData;
+          const p = vcAct ? ((d.basePhase + vcPhase) % 1.0) : d.basePhase;
+          // First 22%: drop down hydrophilic support pillar; Remaining 78%: pump LEFT through #300 mesh & sintered wick via Young-Laplace capillary suction!
+          if (p < 0.22) {
+            const t = p / 0.22;
+            lp.position.set(d.xRight + 0.12, 2.35 - t * 3.90, d.laneZ * 0.35);
+          } else {
+            const t = (p - 0.22) / 0.78;
+            lp.position.set(d.xRight - (d.xRight - d.xLeft) * t, -1.55 + Math.pow(t, 3) * 1.15, d.laneZ);
+          }
         }
       }
     }

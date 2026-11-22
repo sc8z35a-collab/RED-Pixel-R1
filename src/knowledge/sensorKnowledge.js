@@ -14,6 +14,8 @@ import { METALENS_OVERVIEW_DOC, METALENS_PARTS } from './metalensKnowledge.js';
 import { GLOBAL_SHUTTER_OVERVIEW_DOC, GLOBAL_SHUTTER_PARTS } from './globalShutterKnowledge.js';
 import { FLAGSHIP_PHONE_OVERVIEW_DOC, FLAGSHIP_PHONE_PARTS } from './flagshipPhoneKnowledge.js';
 import { SOC_GAA_OVERVIEW_DOC, SOC_GAA_PARTS } from './socGaaKnowledge.js';
+import { OLED_TANDEM_OVERVIEW_DOC, OLED_TANDEM_PARTS } from './oledTandemKnowledge.js';
+import { VAPOR_CHAMBER_OVERVIEW_DOC, VAPOR_CHAMBER_PARTS } from './vaporChamberKnowledge.js';
 
 export {
   LAYER2_PARTS,
@@ -31,10 +33,14 @@ export {
   METALENS_PARTS,
   GLOBAL_SHUTTER_PARTS,
   FLAGSHIP_PHONE_PARTS,
-  SOC_GAA_PARTS
+  SOC_GAA_PARTS,
+  OLED_TANDEM_PARTS,
+  VAPOR_CHAMBER_PARTS
 };
 
 export const OVERVIEW_DOCS = {
+  vapor_chamber: VAPOR_CHAMBER_OVERVIEW_DOC,
+  oled_tandem: OLED_TANDEM_OVERVIEW_DOC,
   soc_gaa: SOC_GAA_OVERVIEW_DOC,
   flagship: FLAGSHIP_PHONE_OVERVIEW_DOC,
   gshutter: GLOBAL_SHUTTER_OVERVIEW_DOC,
@@ -1009,6 +1015,8 @@ export const ALL_PARTS_BY_ID = Object.fromEntries(
     ...METALENS_PARTS,
     ...GLOBAL_SHUTTER_PARTS,
     ...FLAGSHIP_PHONE_PARTS,
-    ...SOC_GAA_PARTS
+    ...SOC_GAA_PARTS,
+    ...OLED_TANDEM_PARTS,
+    ...VAPOR_CHAMBER_PARTS
   ].map((p) => [p.id, p])
 );

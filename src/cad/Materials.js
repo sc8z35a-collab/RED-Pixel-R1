@@ -840,6 +840,99 @@ function createAbfSubstrateTexture() {
 }
 
 /**
+ * Phase 18: Strictly ZERO-TEXT Diamond PenTile RGGB OLED Subpixel Emission Matrix texture.
+ */
+function createDiamondSubpixelTexture() {
+  const { c, ctx } = makeCanvas(512, 512);
+  ctx.fillStyle = '#070b14';
+  ctx.fillRect(0, 0, 512, 512);
+  const step = 64;
+  for (let y = 0; y < 512; y += step) {
+    for (let x = 0; x < 512; x += step) {
+      // Iconic Diamond PenTile: large Blue diamond, medium Red octagon, two rotated Green ovals!
+      // Blue subpixel (top-left)
+      ctx.fillStyle = '#3b82f6';
+      ctx.beginPath();
+      ctx.moveTo(x + 16, y + 4); ctx.lineTo(x + 28, y + 16);
+      ctx.lineTo(x + 16, y + 28); ctx.lineTo(x + 4, y + 16);
+      ctx.closePath(); ctx.fill();
+
+      // Red subpixel (bottom-right)
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.moveTo(x + 48, y + 38); ctx.lineTo(x + 58, y + 48);
+      ctx.lineTo(x + 48, y + 58); ctx.lineTo(x + 38, y + 48);
+      ctx.closePath(); ctx.fill();
+
+      // Twin rotated Green oval subpixels (top-right & bottom-left)
+      ctx.fillStyle = '#22c55e';
+      ctx.save(); ctx.translate(x + 48, y + 16); ctx.rotate(Math.PI / 4);
+      ctx.fillRect(-9, -4, 18, 8); ctx.restore();
+      ctx.save(); ctx.translate(x + 16, y + 48); ctx.rotate(-Math.PI / 4);
+      ctx.fillRect(-9, -4, 18, 8); ctx.restore();
+    }
+  }
+  return toTexture(c, true);
+}
+
+/**
+ * Phase 18: Strictly ZERO-TEXT Y-OCTA 240Hz diamond copper metal-mesh touch grid texture.
+ */
+function createYoctaTouchTexture() {
+  const { c, ctx } = makeCanvas(256, 256);
+  ctx.clearRect(0, 0, 256, 256);
+  ctx.strokeStyle = 'rgba(251, 191, 36, 0.72)';
+  ctx.lineWidth = 2;
+  for (let i = -256; i <= 512; i += 24) {
+    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 256, 256); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(i, 256); ctx.lineTo(i + 256, 0); ctx.stroke();
+  }
+  return toTexture(c, true);
+}
+
+/**
+ * Phase 19: Strictly ZERO-TEXT #300 woven phosphor-bronze / copper capillary mesh wick texture.
+ */
+function createCopperMeshTexture() {
+  const { c, ctx } = makeCanvas(256, 256);
+  ctx.fillStyle = '#7c2d12';
+  ctx.fillRect(0, 0, 256, 256);
+  const s = 16;
+  for (let y = 0; y < 256; y += s) {
+    for (let x = 0; x < 256; x += s) {
+      const alt = (((x / s) + (y / s)) & 1) === 0;
+      ctx.fillStyle = alt ? '#f97316' : '#c2410c';
+      ctx.fillRect(x + 2, y + 4, s - 4, 8);
+      ctx.fillStyle = alt ? '#c2410c' : '#fb923c';
+      ctx.fillRect(x + 4, y + 2, 8, s - 4);
+    }
+  }
+  return toTexture(c, true);
+}
+
+/**
+ * Phase 19: Strictly ZERO-TEXT infrared thermal equilibrium gradient map (Crimson SoC Hotspot -> Cool Blue Condenser).
+ */
+function createThermalMapTexture() {
+  const { c, ctx } = makeCanvas(512, 256);
+  const g = ctx.createRadialGradient(135, 128, 16, 185, 128, 360);
+  g.addColorStop(0.0, '#fef08a');
+  g.addColorStop(0.18, '#ef4444');
+  g.addColorStop(0.45, '#f97316');
+  g.addColorStop(0.72, '#10b981');
+  g.addColorStop(1.0, '#0284c7');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 512, 256);
+  // Subtle isothermal contour rings (zero digits/text!)
+  ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+  ctx.lineWidth = 2;
+  for (const r of [42, 92, 152, 224, 300]) {
+    ctx.beginPath(); ctx.arc(135, 128, r, 0, Math.PI * 2); ctx.stroke();
+  }
+  return toTexture(c, true);
+}
+
+/**
  * Material Library Factory with shared clipping planes & clean PBR parameters.
  */
 export function createMaterialLibrary(clippingPlanes) {
@@ -860,6 +953,10 @@ export function createMaterialLibrary(clippingPlanes) {
   const batteryTex = createBatteryCellTexture();
   const socDieTex = createSocDieFloorplanTexture();
   const abfSubTex = createAbfSubstrateTexture();
+  const diamondSubTex = createDiamondSubpixelTexture();
+  const yoctaTouchTex = createYoctaTouchTexture();
+  const copperMeshTex = createCopperMeshTexture();
+  const thermalMapTex = createThermalMapTexture();
 
   const base = {
     clippingPlanes,
@@ -3084,6 +3181,212 @@ export function createMaterialLibrary(clippingPlanes) {
       metalness: 0.12,
       roughness: 0.08,
       clearcoat: 1.0
+    }),
+
+    // === PHASE 18: 6.8" TANDEM LTPO OLED & 50,000x QUANTUM DUAL-STACK EXCITON DISSECTION ===
+    oledDiamondSub: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: diamondSubTex,
+      color: 0xffffff,
+      emissive: 0x38bdf8,
+      emissiveIntensity: 0.24,
+      metalness: 0.18,
+      roughness: 0.14,
+      clearcoat: 0.92
+    }),
+    oledYoctaMesh: new THREE.MeshStandardMaterial({
+      ...base,
+      map: yoctaTouchTex,
+      color: 0xffffff,
+      emissive: 0xf59e0b,
+      emissiveIntensity: 0.35,
+      transparent: true,
+      opacity: 0.85,
+      depthWrite: false
+    }),
+    oledEmlGlow: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x34d399,
+      emissive: 0x10b981,
+      emissiveIntensity: 0.72,
+      metalness: 0.14,
+      roughness: 0.12,
+      transparent: true,
+      opacity: 0.74,
+      clearcoat: 1.0,
+      depthWrite: false
+    }),
+    oledCglMagenta: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe879f9,
+      emissive: 0xd946ef,
+      emissiveIntensity: 0.88,
+      metalness: 0.28,
+      roughness: 0.14,
+      clearcoat: 1.0
+    }),
+    oledHtlBlue: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.26,
+      metalness: 0.10,
+      roughness: 0.16,
+      transparent: true,
+      opacity: 0.54,
+      clearcoat: 0.85,
+      depthWrite: false
+    }),
+    oledEtlAmber: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xfbbf24,
+      emissive: 0xd97706,
+      emissiveIntensity: 0.28,
+      metalness: 0.14,
+      roughness: 0.16,
+      transparent: true,
+      opacity: 0.54,
+      clearcoat: 0.85,
+      depthWrite: false
+    }),
+    oledMgAgHalf: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe2e8f0,
+      emissive: 0x94a3b8,
+      emissiveIntensity: 0.16,
+      metalness: 0.92,
+      roughness: 0.12,
+      transparent: true,
+      opacity: 0.48,
+      clearcoat: 1.0,
+      depthWrite: false
+    }),
+    oledMlaGlass: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xe0f2fe,
+      emissive: 0x38bdf8,
+      emissiveIntensity: 0.14,
+      metalness: 0.06,
+      roughness: 0.06,
+      transparent: true,
+      opacity: 0.42,
+      iridescence: 0.85,
+      iridescenceIOR: 1.68,
+      clearcoat: 1.0,
+      depthWrite: false
+    }),
+    oledHoleSphere: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x7dd3fc,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.95,
+      metalness: 0.12,
+      roughness: 0.10,
+      clearcoat: 1.0
+    }),
+    oledStandingWave: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xfb7185,
+      emissive: 0xe11d48,
+      emissiveIntensity: 0.55,
+      metalness: 0.10,
+      roughness: 0.16,
+      transparent: true,
+      opacity: 0.34,
+      depthWrite: false
+    }),
+
+    // === PHASE 19: 0.35mm PURE-COPPER 3D VAPOR CHAMBER & 1,000x TWO-PHASE CAPILLARY WICK ===
+    vcMeshWick: new THREE.MeshPhysicalMaterial({
+      ...base,
+      map: copperMeshTex,
+      color: 0xffffff,
+      metalness: 0.86,
+      roughness: 0.28,
+      clearcoat: 0.42
+    }),
+    vcThermalMap: new THREE.MeshStandardMaterial({
+      ...base,
+      map: thermalMapTex,
+      color: 0xffffff,
+      emissive: 0xf97316,
+      emissiveIntensity: 0.38,
+      transparent: true,
+      opacity: 0.84,
+      depthWrite: false
+    }),
+    vcSinterCopper: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xea580c,
+      emissive: 0x9a3412,
+      emissiveIntensity: 0.16,
+      metalness: 0.92,
+      roughness: 0.26,
+      clearcoat: 0.48
+    }),
+    vcWaterPool: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x0ea5e9,
+      emissive: 0x0369a1,
+      emissiveIntensity: 0.28,
+      metalness: 0.08,
+      roughness: 0.08,
+      transparent: true,
+      opacity: 0.44,
+      clearcoat: 1.0,
+      depthWrite: false
+    }),
+    vcMeniscusCyan: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x67e8f9,
+      emissive: 0x06b6d4,
+      emissiveIntensity: 0.62,
+      metalness: 0.12,
+      roughness: 0.06,
+      transparent: true,
+      opacity: 0.78,
+      iridescence: 0.9,
+      clearcoat: 1.0,
+      depthWrite: false
+    }),
+    vcVaporPlume: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xfdba74,
+      emissive: 0xf97316,
+      emissiveIntensity: 0.58,
+      metalness: 0.06,
+      roughness: 0.20,
+      transparent: true,
+      opacity: 0.40,
+      depthWrite: false
+    }),
+    vcVaporPacket: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xfef08a,
+      emissive: 0xef4444,
+      emissiveIntensity: 0.95,
+      metalness: 0.10,
+      roughness: 0.10,
+      clearcoat: 1.0
+    }),
+    vcLiquidPacket: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0xbae6fd,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.92,
+      metalness: 0.10,
+      roughness: 0.08,
+      clearcoat: 1.0
+    }),
+    vcHydrophobicCoat: new THREE.MeshPhysicalMaterial({
+      ...base,
+      color: 0x818cf8,
+      emissive: 0x4f46e5,
+      emissiveIntensity: 0.34,
+      metalness: 0.26,
+      roughness: 0.18,
+      iridescence: 0.85,
+      clearcoat: 0.95
     })
   };
 }
