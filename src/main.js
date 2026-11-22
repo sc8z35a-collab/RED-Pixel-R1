@@ -13,6 +13,11 @@ import { buildIrisNanoAssembly } from './assemblies/IrisNanoAssembly.js';
 import { buildLidarPhotonicsAssembly } from './assemblies/LidarPhotonicsAssembly.js';
 import { buildSmaMuscleAssembly } from './assemblies/SmaMuscleAssembly.js';
 import { buildLiquidLensAssembly } from './assemblies/LiquidLensAssembly.js';
+import { buildTetraprismAssembly } from './assemblies/TetraprismAssembly.js';
+import { buildContinuousZoomAssembly } from './assemblies/ContinuousZoomAssembly.js';
+import { buildMetalensAssembly } from './assemblies/MetalensAssembly.js';
+import { buildGlobalShutterAssembly } from './assemblies/GlobalShutterAssembly.js';
+import { buildFlagshipSmartphoneAssembly } from './assemblies/FlagshipSmartphoneAssembly.js';
 import {
   MACRO_PARTS,
   MICRO_PARTS,
@@ -26,6 +31,11 @@ import {
   LIDAR_PARTS,
   SMA_PARTS,
   LIQUID_PARTS,
+  TETRAPRISM_PARTS,
+  CONTINUOUS_ZOOM_PARTS,
+  METALENS_PARTS,
+  GLOBAL_SHUTTER_PARTS,
+  FLAGSHIP_PHONE_PARTS,
   OVERVIEW_DOCS,
   ALL_PARTS_BY_ID
 } from './knowledge/sensorKnowledge.js';
@@ -37,7 +47,7 @@ const uiRoot = document.getElementById('ui-root');
 const engine = new CadEngine(viewportEl);
 const sim = new SimEffects(engine.scene);
 
-// Pre-build all 12 multiscale modes (336 independent dissectable 3D CAD parts!)
+// Pre-build all 17 multiscale modes (EXACTLY 500 independent dissectable 3D CAD parts!)
 const assemblies = {
   macro: buildMacroSensorAssembly(engine.materials),
   micro: buildMicroPixelAssembly(engine.materials),
@@ -50,7 +60,12 @@ const assemblies = {
   iris_nano: buildIrisNanoAssembly(engine.materials),
   lidar: buildLidarPhotonicsAssembly(engine.materials),
   sma: buildSmaMuscleAssembly(engine.materials),
-  liquid: buildLiquidLensAssembly(engine.materials)
+  liquid: buildLiquidLensAssembly(engine.materials),
+  tetra: buildTetraprismAssembly(engine.materials),
+  zoom: buildContinuousZoomAssembly(engine.materials),
+  metalens: buildMetalensAssembly(engine.materials),
+  gshutter: buildGlobalShutterAssembly(engine.materials),
+  flagship: buildFlagshipSmartphoneAssembly(engine.materials)
 };
 
 const partDocsByScale = {
@@ -65,13 +80,18 @@ const partDocsByScale = {
   iris_nano: IRIS_NANO_PARTS,
   lidar: LIDAR_PARTS,
   sma: SMA_PARTS,
-  liquid: LIQUID_PARTS
+  liquid: LIQUID_PARTS,
+  tetra: TETRAPRISM_PARTS,
+  zoom: CONTINUOUS_ZOOM_PARTS,
+  metalens: METALENS_PARTS,
+  gshutter: GLOBAL_SHUTTER_PARTS,
+  flagship: FLAGSHIP_PHONE_PARTS
 };
 
 Object.values(assemblies).forEach((asm) => engine.scene.add(asm.root));
 
-let currentScale = 'liquid';
-let activeAsm = assemblies.liquid;
+let currentScale = 'flagship';
+let activeAsm = assemblies.flagship;
 let targetExplode = 0;
 let currentExplode = 0;
 
@@ -111,29 +131,37 @@ const ui = new ZeroTextUI(uiRoot, {
   },
   onSnapView(preset) {
     const dist =
-      currentScale === 'liquid'
-        ? 42
-        : currentScale === 'sma'
-          ? 42
-          : currentScale === 'lidar'
-            ? 40
-            : currentScale === 'iris_nano'
-              ? 34
-              : currentScale === 'iris'
-                ? 44
-                : currentScale === 'aperture'
-                  ? 44
-                  : currentScale === 'periscope'
+      currentScale === 'flagship'
+        ? 40
+        : currentScale === 'gshutter' || currentScale === 'metalens'
+          ? 45
+          : currentScale === 'zoom'
+            ? 45
+            : currentScale === 'tetra'
+              ? 44
+              : currentScale === 'liquid'
+                ? 42
+                : currentScale === 'sma'
+                  ? 42
+                  : currentScale === 'lidar'
                     ? 40
-                    : currentScale === 'deco'
-                      ? 42
-                      : currentScale === 'lens'
-                        ? 38
-                        : currentScale === 'macro'
-                          ? 36
-                          : currentScale === 'layer2'
-                            ? 32
-                            : 28;
+                    : currentScale === 'iris_nano'
+                      ? 34
+                      : currentScale === 'iris'
+                        ? 44
+                        : currentScale === 'aperture'
+                          ? 44
+                          : currentScale === 'periscope'
+                            ? 40
+                            : currentScale === 'deco'
+                              ? 42
+                              : currentScale === 'lens'
+                                ? 38
+                                : currentScale === 'macro'
+                                  ? 36
+                                  : currentScale === 'layer2'
+                                    ? 32
+                                    : 28;
     engine.snapView(preset, dist, activeAsm.defaultTarget);
   },
   onSelectPartUI(partId) {
@@ -234,8 +262,8 @@ function switchScale(scale, instantCamera = false) {
   }
 }
 
-// Launch directly into Phase 11 Zero-Gear 4-Quadrant Electrowetting Liquid Lens & 500x EDL Nano-Anatomy (32 Parts)
-switchScale('liquid', true);
+// Launch directly into Phase 16 Complete Integrated Flagship Smartphone Camera (17 Scales / 500-Part Grand Finale!)
+switchScale('flagship', true);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -260,29 +288,37 @@ function animate(now) {
   sim.update(dt, elapsed, engine.partMap, currentExplode);
   const gridDrop =
     currentExplode *
-    (currentScale === 'liquid'
-      ? 6.2
-      : currentScale === 'sma'
-        ? 6.0
-        : currentScale === 'lidar'
+    (currentScale === 'flagship'
+      ? 6.8
+      : currentScale === 'gshutter' || currentScale === 'metalens'
+        ? 6.4
+        : currentScale === 'zoom'
           ? 6.4
-          : currentScale === 'iris_nano'
-            ? 5.0
-            : currentScale === 'iris'
-              ? 6.8
-              : currentScale === 'aperture'
-                ? 9.2
-                : currentScale === 'periscope'
-                  ? 6.4
-                  : currentScale === 'deco'
-                    ? 8.8
-                    : currentScale === 'lens'
-                      ? 7.6
-                      : currentScale === 'layer2'
-                        ? 8.0
-                        : currentScale === 'macro'
-                          ? 9.6
-                          : 9.4);
+          : currentScale === 'tetra'
+            ? 6.4
+            : currentScale === 'liquid'
+              ? 6.2
+            : currentScale === 'sma'
+              ? 6.0
+              : currentScale === 'lidar'
+                ? 6.4
+                : currentScale === 'iris_nano'
+                  ? 5.0
+                  : currentScale === 'iris'
+                    ? 6.8
+                    : currentScale === 'aperture'
+                      ? 9.2
+                      : currentScale === 'periscope'
+                        ? 6.4
+                        : currentScale === 'deco'
+                          ? 8.8
+                          : currentScale === 'lens'
+                            ? 7.6
+                            : currentScale === 'layer2'
+                              ? 8.0
+                              : currentScale === 'macro'
+                                ? 9.6
+                                : 9.4);
   engine.setGridElevation(activeAsm.gridY - gridDrop);
   engine.update(now);
 }

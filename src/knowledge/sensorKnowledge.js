@@ -8,6 +8,11 @@ import { IRIS_NANO_OVERVIEW_DOC, IRIS_NANO_PARTS } from './irisNanoKnowledge.js'
 import { LIDAR_OVERVIEW_DOC, LIDAR_PARTS } from './lidarKnowledge.js';
 import { SMA_OVERVIEW_DOC, SMA_PARTS } from './smaMuscleKnowledge.js';
 import { LIQUID_OVERVIEW_DOC, LIQUID_PARTS } from './liquidLensKnowledge.js';
+import { TETRAPRISM_OVERVIEW_DOC, TETRAPRISM_PARTS } from './tetraprismKnowledge.js';
+import { CONTINUOUS_ZOOM_OVERVIEW_DOC, CONTINUOUS_ZOOM_PARTS } from './continuousZoomKnowledge.js';
+import { METALENS_OVERVIEW_DOC, METALENS_PARTS } from './metalensKnowledge.js';
+import { GLOBAL_SHUTTER_OVERVIEW_DOC, GLOBAL_SHUTTER_PARTS } from './globalShutterKnowledge.js';
+import { FLAGSHIP_PHONE_OVERVIEW_DOC, FLAGSHIP_PHONE_PARTS } from './flagshipPhoneKnowledge.js';
 
 export {
   LAYER2_PARTS,
@@ -19,10 +24,20 @@ export {
   IRIS_NANO_PARTS,
   LIDAR_PARTS,
   SMA_PARTS,
-  LIQUID_PARTS
+  LIQUID_PARTS,
+  TETRAPRISM_PARTS,
+  CONTINUOUS_ZOOM_PARTS,
+  METALENS_PARTS,
+  GLOBAL_SHUTTER_PARTS,
+  FLAGSHIP_PHONE_PARTS
 };
 
 export const OVERVIEW_DOCS = {
+  flagship: FLAGSHIP_PHONE_OVERVIEW_DOC,
+  gshutter: GLOBAL_SHUTTER_OVERVIEW_DOC,
+  metalens: METALENS_OVERVIEW_DOC,
+  zoom: CONTINUOUS_ZOOM_OVERVIEW_DOC,
+  tetra: TETRAPRISM_OVERVIEW_DOC,
   liquid: LIQUID_OVERVIEW_DOC,
   sma: SMA_OVERVIEW_DOC,
   lidar: LIDAR_OVERVIEW_DOC,
@@ -985,6 +1000,11 @@ export const ALL_PARTS_BY_ID = Object.fromEntries(
     ...IRIS_NANO_PARTS,
     ...LIDAR_PARTS,
     ...SMA_PARTS,
-    ...LIQUID_PARTS
+    ...LIQUID_PARTS,
+    ...TETRAPRISM_PARTS,
+    ...CONTINUOUS_ZOOM_PARTS,
+    ...METALENS_PARTS,
+    ...GLOBAL_SHUTTER_PARTS,
+    ...FLAGSHIP_PHONE_PARTS
   ].map((p) => [p.id, p])
 );
